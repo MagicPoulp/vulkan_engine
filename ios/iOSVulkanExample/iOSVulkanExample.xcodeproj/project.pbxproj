@@ -11,6 +11,8 @@
 		228E1927277618DE00572E1B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 228E1926277618DE00572E1B /* ContentView.swift */; };
 		228E1929277618DE00572E1B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 228E1928277618DE00572E1B /* Assets.xcassets */; };
 		228E192C277618DE00572E1B /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 228E192B277618DE00572E1B /* Preview Assets.xcassets */; };
+		228E19342776265C00572E1B /* MoltenVK.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 228E19332776265C00572E1B /* MoltenVK.xcframework */; };
+		228E1936277626DE00572E1B /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 228E1935277626DE00572E1B /* libc++.tbd */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -19,6 +21,8 @@
 		228E1926277618DE00572E1B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		228E1928277618DE00572E1B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		228E192B277618DE00572E1B /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		228E19332776265C00572E1B /* MoltenVK.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = MoltenVK.xcframework; path = ../../../MoltenVK/MoltenVK/MoltenVK.xcframework; sourceTree = "<group>"; };
+		228E1935277626DE00572E1B /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "usr/lib/libc++.tbd"; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -26,6 +30,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				228E1936277626DE00572E1B /* libc++.tbd in Frameworks */,
+				228E19342776265C00572E1B /* MoltenVK.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -37,6 +43,7 @@
 			children = (
 				228E1923277618DE00572E1B /* iOSVulkanExample */,
 				228E1922277618DE00572E1B /* Products */,
+				228E19322776265C00572E1B /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -65,6 +72,15 @@
 				228E192B277618DE00572E1B /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		228E19322776265C00572E1B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				228E1935277626DE00572E1B /* libc++.tbd */,
+				228E19332776265C00572E1B /* MoltenVK.xcframework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

@@ -5,6 +5,8 @@ An XCFramework is highly recommended in the doc to simplify the bundling
 set the path in project settings / build settings / user defined
 MOLTENVK_PATH
 
+for mor performance, disable GPU tracing in Edit scheme Release as said in the doc
+
 # Links
 
 https://github.com/KhronosGroup/MoltenVK/
