@@ -1,4 +1,4 @@
-# Version hisotry
+# Version history
 
 git tag -n
 
