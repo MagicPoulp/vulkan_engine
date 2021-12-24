@@ -1,5 +1,10 @@
 An XCFramework is highly recommended in the doc to simplify the bundling
 
+# setup
+
+set the path in project settings / build settings / user defined
+MOLTENVK_PATH
+
 # Links
 
 https://github.com/KhronosGroup/MoltenVK/
