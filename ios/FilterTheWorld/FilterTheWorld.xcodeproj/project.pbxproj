@@ -42,7 +42,6 @@
 		221DA82A27779037007612BD /* MoltenVK.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = MoltenVK.xcframework; path = ../../../MoltenVK/Package/Debug/MoltenVK/MoltenVK.xcframework; sourceTree = "<group>"; };
 		221DA84227779D11007612BD /* VulkanViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VulkanViewController.swift; sourceTree = "<group>"; };
 		221DA90427779FE6007612BD /* DemoViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DemoViewController.m; sourceTree = "<group>"; };
-		221DA90627779FE6007612BD /* Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Prefix.pch; sourceTree = "<group>"; };
 		221DA90727779FE6007612BD /* DemoViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DemoViewController.h; sourceTree = "<group>"; };
 		221DA9332777A24E007612BD /* FilterTheWorld-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "FilterTheWorld-Bridging-Header.h"; sourceTree = "<group>"; };
 		2298ABED277A06D400A3F774 /* object_type_string_helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = object_type_string_helper.h; sourceTree = "<group>"; };
@@ -152,7 +151,6 @@
 			children = (
 				221DA90427779FE6007612BD /* DemoViewController.m */,
 				221DA90727779FE6007612BD /* DemoViewController.h */,
-				221DA90627779FE6007612BD /* Prefix.pch */,
 				221DA9332777A24E007612BD /* FilterTheWorld-Bridging-Header.h */,
 			);
 			name = iOS;
