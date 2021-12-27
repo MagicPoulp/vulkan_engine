@@ -14,6 +14,6 @@ struct VulkanViewController: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ uiViewController: DemoViewController, context: Context) {
-        
+
     }
 }

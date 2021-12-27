@@ -19,7 +19,7 @@
 #import "DemoViewController.h"
 
 #include <MoltenVK/mvk_vulkan.h>
-#include "../../Vulkan-Tools/cube/cube.c"
+#include "../../vulkan_application/cube/cube.h"
 
 
 #pragma mark -
