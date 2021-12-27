@@ -154,7 +154,7 @@ struct sample_info {
 #elif defined(VK_USE_PLATFORM_METAL_EXT)
     void *caMetalLayer;
 #elif defined(__ANDROID__)
-    // DEBUG
+    // not needed since we specify our own surface
     //PFN_vkCreateAndroidSurfaceKHR fpCreateAndroidSurfaceKHR;
 #elif defined(VK_USE_PLATFORM_WAYLAND_KHR)
     wl_display *display;

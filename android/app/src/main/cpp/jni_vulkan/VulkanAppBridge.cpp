@@ -29,6 +29,8 @@ Java_com_thierry_android_1surface_1view_1with_1vulkan_VulkanAppBridge_nativeCrea
     auto window = ANativeWindow_fromSurface(env, surface);
     auto assetManager = AAssetManager_fromJava(env, pAssetManager);
     mApplicationInstance = new AndroidGraphicsApplication(assetManager, window);
+    __android_log_print(ANDROID_LOG_VERBOSE, "AndroidGraphicsApplication", "createSurface");
+    mApplicationInstance->createSurface();
 }
 
 JNIEXPORT void JNICALL
