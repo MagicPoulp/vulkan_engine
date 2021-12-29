@@ -16,10 +16,12 @@
 		221DA82927778F80007612BD /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 221DA82827778F80007612BD /* libc++.tbd */; };
 		221DA82B27779037007612BD /* MoltenVK.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 221DA82A27779037007612BD /* MoltenVK.xcframework */; };
 		221DA84327779D11007612BD /* VulkanViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 221DA84227779D11007612BD /* VulkanViewController.swift */; };
-		221DA92B27779FE6007612BD /* DemoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 221DA90427779FE6007612BD /* DemoViewController.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		2298AC0A277A06D400A3F774 /* cube.frag in Resources */ = {isa = PBXBuildFile; fileRef = 2298ABEE277A06D400A3F774 /* cube.frag */; };
-		2298AC0B277A06D400A3F774 /* CMakeLists.txt in Resources */ = {isa = PBXBuildFile; fileRef = 2298ABEF277A06D400A3F774 /* CMakeLists.txt */; };
-		2298AC0C277A06D400A3F774 /* cube.vert in Resources */ = {isa = PBXBuildFile; fileRef = 2298ABF2277A06D400A3F774 /* cube.vert */; };
+		22527FFE277C4CE300E3109E /* cube.vert in Resources */ = {isa = PBXBuildFile; fileRef = 22527FF2277C4CE300E3109E /* cube.vert */; };
+		22528000277C4CE300E3109E /* CMakeLists.txt in Resources */ = {isa = PBXBuildFile; fileRef = 22527FF9277C4CE300E3109E /* CMakeLists.txt */; };
+		22528001277C4CE300E3109E /* cube.frag in Resources */ = {isa = PBXBuildFile; fileRef = 22527FFD277C4CE300E3109E /* cube.frag */; };
+		22528006277C504D00E3109E /* DemoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 22528005277C504D00E3109E /* DemoViewController.m */; };
+		22528008277C521C00E3109E /* cube.vert.inc in Sources */ = {isa = PBXBuildFile; fileRef = 22528007277C521C00E3109E /* cube.vert.inc */; };
+		2252800A277C522F00E3109E /* cube.frag.inc in Sources */ = {isa = PBXBuildFile; fileRef = 22528009277C522F00E3109E /* cube.frag.inc */; };
 		9F69EE4C26942A8A00746CD7 /* CameraError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F69EE4B26942A8A00746CD7 /* CameraError.swift */; };
 		9F69EE4E26942CD500746CD7 /* CameraManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F69EE4D26942CD500746CD7 /* CameraManager.swift */; };
 		9F69EE5226957E1300746CD7 /* FrameManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F69EE5126957E1300746CD7 /* FrameManager.swift */; };
@@ -41,17 +43,22 @@
 		221DA82827778F80007612BD /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "usr/lib/libc++.tbd"; sourceTree = SDKROOT; };
 		221DA82A27779037007612BD /* MoltenVK.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = MoltenVK.xcframework; path = ../../../MoltenVK/Package/Debug/MoltenVK/MoltenVK.xcframework; sourceTree = "<group>"; };
 		221DA84227779D11007612BD /* VulkanViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VulkanViewController.swift; sourceTree = "<group>"; };
-		221DA90427779FE6007612BD /* DemoViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DemoViewController.m; sourceTree = "<group>"; };
-		221DA90727779FE6007612BD /* DemoViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DemoViewController.h; sourceTree = "<group>"; };
-		221DA9332777A24E007612BD /* FilterTheWorld-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "FilterTheWorld-Bridging-Header.h"; sourceTree = "<group>"; };
-		2298ABED277A06D400A3F774 /* object_type_string_helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = object_type_string_helper.h; sourceTree = "<group>"; };
-		2298ABEE277A06D400A3F774 /* cube.frag */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = cube.frag; sourceTree = "<group>"; };
-		2298ABEF277A06D400A3F774 /* CMakeLists.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
-		2298ABF0277A06D400A3F774 /* linmath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = linmath.h; sourceTree = "<group>"; };
-		2298ABF1277A06D400A3F774 /* lunarg.ppm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lunarg.ppm.h; sourceTree = "<group>"; };
-		2298ABF2277A06D400A3F774 /* cube.vert */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = cube.vert; sourceTree = "<group>"; };
-		2298AC08277A06D400A3F774 /* gettime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gettime.h; sourceTree = "<group>"; };
-		2298AC18277A0B2600A3F774 /* cube.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cube.h; sourceTree = "<group>"; };
+		22527FF2277C4CE300E3109E /* cube.vert */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = cube.vert; path = ../android/app/src/main/cpp/jni_vulkan/vulkan_application/cube.vert; sourceTree = "<group>"; };
+		22527FF3277C4CE300E3109E /* lunarg.ppm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lunarg.ppm.h; path = ../android/app/src/main/cpp/jni_vulkan/vulkan_application/lunarg.ppm.h; sourceTree = "<group>"; };
+		22527FF4277C4CE300E3109E /* cube.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = cube.h; path = ../android/app/src/main/cpp/jni_vulkan/vulkan_application/cube.h; sourceTree = "<group>"; };
+		22527FF5277C4CE300E3109E /* cube_data.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = cube_data.h; path = ../android/app/src/main/cpp/jni_vulkan/vulkan_application/cube_data.h; sourceTree = "<group>"; };
+		22527FF6277C4CE300E3109E /* 15-draw_cube.vert.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "15-draw_cube.vert.h"; path = "../android/app/src/main/cpp/jni_vulkan/vulkan_application/15-draw_cube.vert.h"; sourceTree = "<group>"; };
+		22527FF8277C4CE300E3109E /* 15-draw_cube.frag.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "15-draw_cube.frag.h"; path = "../android/app/src/main/cpp/jni_vulkan/vulkan_application/15-draw_cube.frag.h"; sourceTree = "<group>"; };
+		22527FF9277C4CE300E3109E /* CMakeLists.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = CMakeLists.txt; path = ../android/app/src/main/cpp/jni_vulkan/vulkan_application/CMakeLists.txt; sourceTree = "<group>"; };
+		22527FFA277C4CE300E3109E /* linmath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = linmath.h; path = ../android/app/src/main/cpp/jni_vulkan/vulkan_application/linmath.h; sourceTree = "<group>"; };
+		22527FFB277C4CE300E3109E /* gettime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gettime.h; path = ../android/app/src/main/cpp/jni_vulkan/vulkan_application/gettime.h; sourceTree = "<group>"; };
+		22527FFC277C4CE300E3109E /* object_type_string_helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = object_type_string_helper.h; path = ../android/app/src/main/cpp/jni_vulkan/vulkan_application/object_type_string_helper.h; sourceTree = "<group>"; };
+		22527FFD277C4CE300E3109E /* cube.frag */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = cube.frag; path = ../android/app/src/main/cpp/jni_vulkan/vulkan_application/cube.frag; sourceTree = "<group>"; };
+		22528003277C504D00E3109E /* DemoViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DemoViewController.h; sourceTree = "<group>"; };
+		22528004277C504D00E3109E /* FilterTheWorld-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "FilterTheWorld-Bridging-Header.h"; sourceTree = "<group>"; };
+		22528005277C504D00E3109E /* DemoViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DemoViewController.m; sourceTree = "<group>"; };
+		22528007277C521C00E3109E /* cube.vert.inc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.pascal; name = cube.vert.inc; path = ../android/app/src/main/cpp/jni_vulkan/vulkan_application/cube.vert.inc; sourceTree = "<group>"; };
+		22528009277C522F00E3109E /* cube.frag.inc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.pascal; name = cube.frag.inc; path = ../android/app/src/main/cpp/jni_vulkan/vulkan_application/cube.frag.inc; sourceTree = "<group>"; };
 		9F69EE4B26942A8A00746CD7 /* CameraError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraError.swift; sourceTree = "<group>"; };
 		9F69EE4D26942CD500746CD7 /* CameraManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraManager.swift; sourceTree = "<group>"; };
 		9F69EE5126957E1300746CD7 /* FrameManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameManager.swift; sourceTree = "<group>"; };
@@ -98,7 +105,7 @@
 		18D775BF22AD944300AE281E /* FilterTheWorld */ = {
 			isa = PBXGroup;
 			children = (
-				221DA8F727779FE6007612BD /* iOS */,
+				22528002277C504D00E3109E /* bridge */,
 				2208111427777AFB00B5BA42 /* Components */,
 				9F69EE4926942A2900746CD7 /* Camera */,
 				9F69EE612698A1B700746CD7 /* Extensions */,
@@ -146,39 +153,35 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		221DA8F727779FE6007612BD /* iOS */ = {
+		22528002277C504D00E3109E /* bridge */ = {
 			isa = PBXGroup;
 			children = (
-				221DA90427779FE6007612BD /* DemoViewController.m */,
-				221DA90727779FE6007612BD /* DemoViewController.h */,
-				221DA9332777A24E007612BD /* FilterTheWorld-Bridging-Header.h */,
+				22528003277C504D00E3109E /* DemoViewController.h */,
+				22528004277C504D00E3109E /* FilterTheWorld-Bridging-Header.h */,
+				22528005277C504D00E3109E /* DemoViewController.m */,
 			);
-			name = iOS;
-			path = ../../Demos/Cube/iOS;
+			path = bridge;
 			sourceTree = "<group>";
 		};
 		2298ABEB277A06D400A3F774 /* vulkan_application */ = {
 			isa = PBXGroup;
 			children = (
-				2298ABEC277A06D400A3F774 /* cube */,
+				22528007277C521C00E3109E /* cube.vert.inc */,
+				22528009277C522F00E3109E /* cube.frag.inc */,
+				22527FF8277C4CE300E3109E /* 15-draw_cube.frag.h */,
+				22527FF6277C4CE300E3109E /* 15-draw_cube.vert.h */,
+				22527FF9277C4CE300E3109E /* CMakeLists.txt */,
+				22527FF5277C4CE300E3109E /* cube_data.h */,
+				22527FFD277C4CE300E3109E /* cube.frag */,
+				22527FF4277C4CE300E3109E /* cube.h */,
+				22527FF2277C4CE300E3109E /* cube.vert */,
+				22527FFB277C4CE300E3109E /* gettime.h */,
+				22527FFA277C4CE300E3109E /* linmath.h */,
+				22527FF3277C4CE300E3109E /* lunarg.ppm.h */,
+				22527FFC277C4CE300E3109E /* object_type_string_helper.h */,
 			);
 			name = vulkan_application;
 			path = ../../vulkan_application;
-			sourceTree = "<group>";
-		};
-		2298ABEC277A06D400A3F774 /* cube */ = {
-			isa = PBXGroup;
-			children = (
-				2298AC18277A0B2600A3F774 /* cube.h */,
-				2298ABED277A06D400A3F774 /* object_type_string_helper.h */,
-				2298ABEE277A06D400A3F774 /* cube.frag */,
-				2298ABF2277A06D400A3F774 /* cube.vert */,
-				2298ABEF277A06D400A3F774 /* CMakeLists.txt */,
-				2298ABF0277A06D400A3F774 /* linmath.h */,
-				2298ABF1277A06D400A3F774 /* lunarg.ppm.h */,
-				2298AC08277A06D400A3F774 /* gettime.h */,
-			);
-			path = cube;
 			sourceTree = "<group>";
 		};
 		9F69EE4926942A2900746CD7 /* Camera */ = {
@@ -276,12 +279,12 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				22528001277C4CE300E3109E /* cube.frag in Resources */,
 				18D775D822AD963800AE281E /* LaunchScreen.storyboard in Resources */,
 				18D775CA22AD944400AE281E /* Preview Assets.xcassets in Resources */,
-				2298AC0A277A06D400A3F774 /* cube.frag in Resources */,
-				2298AC0C277A06D400A3F774 /* cube.vert in Resources */,
 				18D775C722AD944400AE281E /* Assets.xcassets in Resources */,
-				2298AC0B277A06D400A3F774 /* CMakeLists.txt in Resources */,
+				22527FFE277C4CE300E3109E /* cube.vert in Resources */,
+				22528000277C4CE300E3109E /* CMakeLists.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -316,7 +319,10 @@
 				9F69EE542695837100746CD7 /* FrameView.swift in Sources */,
 				9F69EE5226957E1300746CD7 /* FrameManager.swift in Sources */,
 				9F69EE602698210900746CD7 /* VulkanView.swift in Sources */,
+				22528006277C504D00E3109E /* DemoViewController.m in Sources */,
 				18D775C522AD944300AE281E /* ContentView.swift in Sources */,
+				22528008277C521C00E3109E /* cube.vert.inc in Sources */,
+				2252800A277C522F00E3109E /* cube.frag.inc in Sources */,
 				1839F4B025190F2A00BB00F1 /* AppMain.swift in Sources */,
 				221DA84327779D11007612BD /* VulkanViewController.swift in Sources */,
 				22081113277769EE00B5BA42 /* LayerView.swift in Sources */,
@@ -324,7 +330,6 @@
 				9F69EE4E26942CD500746CD7 /* CameraManager.swift in Sources */,
 				9F69EE4C26942A8A00746CD7 /* CameraError.swift in Sources */,
 				9F69EE562696F0A200746CD7 /* ErrorView.swift in Sources */,
-				221DA92B27779FE6007612BD /* DemoViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -393,7 +398,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -448,7 +453,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
@@ -462,6 +467,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_OBJC_ARC = NO;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "FilterTheWorld/Preview\\ Content";
 				DEVELOPMENT_TEAM = 5PQJ73JT76;
@@ -472,6 +478,7 @@
 					"$(SRCROOT)",
 				);
 				INFOPLIST_FILE = FilterTheWorld/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -479,7 +486,7 @@
 				MOLTENVK_PATH = /Users/thierryvilmart/repos/MoltenVK;
 				PRODUCT_BUNDLE_IDENTIFIER = com.raywenderlich.FilterTheWorld2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/../Demos/Cube/iOS/FilterTheWorld-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/FilterTheWorld/bridge/FilterTheWorld-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -489,6 +496,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_OBJC_ARC = NO;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "FilterTheWorld/Preview\\ Content";
 				DEVELOPMENT_TEAM = 5PQJ73JT76;
@@ -499,6 +507,7 @@
 					"$(SRCROOT)",
 				);
 				INFOPLIST_FILE = FilterTheWorld/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -506,7 +515,7 @@
 				MOLTENVK_PATH = /Users/thierryvilmart/repos/MoltenVK;
 				PRODUCT_BUNDLE_IDENTIFIER = com.raywenderlich.FilterTheWorld2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/../Demos/Cube/iOS/FilterTheWorld-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/FilterTheWorld/bridge/FilterTheWorld-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
