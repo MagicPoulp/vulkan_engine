@@ -10,7 +10,7 @@
 #define VOLK_IMPLEMENTATION
 #include "volk_setup.hpp"
 
-#include "vulkan_application/GraphicsApplication.hpp" // Base class shared with iOS/macOS/...
+#include "legacy/GraphicsApplication.hpp" // Base class shared with iOS/macOS/...
 
 class AndroidGraphicsApplication : public GraphicsApplication {
 private:

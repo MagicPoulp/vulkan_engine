@@ -7,7 +7,7 @@ cmake_minimum_required(VERSION 3.10.2)
 include_directories(utils)
 include_directories(vulkan_application)
 
-include_directories(${ANDROID_NDK}//sources/android/native_app_glue)
+include_directories(${ANDROID_NDK}/sources/android/native_app_glue)
 
 if (ANDROID)
     set(VOLK_STATIC_DEFINES VK_USE_PLATFORM_ANDROID_KHR)
@@ -19,7 +19,7 @@ include_directories(volk)
 add_library(
         jni_vulkan
         SHARED
-        VulkanAppBridge.cpp AndroidGraphicsApplication.cpp vulkan_application/GraphicsApplication.cpp utils/util_init.cpp utils/util.cpp)
+        VulkanAppBridge.cpp AndroidGraphicsApplication.cpp GraphicsApplication.cpp)
 
 SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fpermissive")
 
