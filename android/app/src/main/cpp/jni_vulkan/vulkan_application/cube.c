@@ -1895,7 +1895,7 @@ static void demo_prepare(struct demo *demo) {
     demo->prepared = true;
 }
 
-static void demo_cleanup(struct demo *demo) {
+void demo_cleanup(struct demo *demo) {
     uint32_t i;
 
     demo->prepared = false;
@@ -3907,7 +3907,11 @@ int demo_main_android(struct demo *demo, struct ANativeWindow* window, int argc,
 
     demo_run(demo);
 
-    demo_cleanup(demo);
-
     return validation_error;
+}
+
+void setSizeFull(struct demo *demo, int32_t width, int32_t height) {
+    demo->width = width;
+    demo->height = height;
+    demo_resize(demo);
 }

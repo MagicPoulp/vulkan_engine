@@ -5,6 +5,9 @@
 #include <android/asset_manager_jni.h>
 
 extern void createSurface(ANativeWindow* window);
+extern void demoDestroy();
+extern void drawFrame();
+extern void setSize(int32_t width, int32_t height);
 
 // sources for the idea of using an android SurfaceView
 // https://stackoverflow.com/questions/45157950/can-we-use-vulkan-with-java-activity-on-android-platform
@@ -27,15 +30,17 @@ Java_com_thierry_android_1surface_1view_1with_1vulkan_VulkanAppBridge_nativeCrea
 JNIEXPORT void JNICALL
 Java_com_thierry_android_1surface_1view_1with_1vulkan_VulkanAppBridge_nativeDestroy(JNIEnv *env, jobject vulkanAppBridge) {
     __android_log_print(ANDROID_LOG_DEBUG, "mc-native-VulkanAppBridge", "destroy");
+    demoDestroy();
 }
 
 JNIEXPORT void JNICALL
 Java_com_thierry_android_1surface_1view_1with_1vulkan_VulkanAppBridge_nativeResize(JNIEnv *env, jobject vulkanAppBridge, jint width, jint height) {
     __android_log_print(ANDROID_LOG_DEBUG, "mc-native-VulkanAppBridge", "resize: %dx%d", width, height);
-        //mApplicationInstance->setSize(width, height);
+    setSize(width, height);
 }
 
 JNIEXPORT void JNICALL
 Java_com_thierry_android_1surface_1view_1with_1vulkan_VulkanAppBridge_nativeDraw(JNIEnv *env, jobject vulkanAppBridge) {
     __android_log_print(ANDROID_LOG_DEBUG, "mc-native-VulkanAppBridge", "draw");
+    drawFrame();
 }

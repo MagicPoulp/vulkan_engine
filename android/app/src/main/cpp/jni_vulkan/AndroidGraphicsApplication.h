@@ -8,7 +8,8 @@
 #include "volk_setup.h"
 
 void createSurface(ANativeWindow* window);
-void setSize(uint32_t w, uint32_t h);
+void setSize(int32_t width, int32_t height);
 void drawFrame();
+void demoDestroy();
 
 #endif //ANDROID_SURFACE_VIEW_WITH_VULKAN_ANDROIDGRAPHICSAPPLICATION_H
