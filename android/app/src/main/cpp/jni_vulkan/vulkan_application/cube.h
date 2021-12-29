@@ -429,5 +429,8 @@ struct demo {
 
 int demo_main_android(struct demo *demo, struct ANativeWindow* window, int argc, char **argv);
 void demo_draw(struct demo *demo);
+void demo_main(struct demo *demo,  void *caMetalLayer, int argc, const char *argv[]);
+void demo_cleanup(struct demo *demo);
+void demo_resize(struct demo *demo);
 
 #endif /* cube_h */

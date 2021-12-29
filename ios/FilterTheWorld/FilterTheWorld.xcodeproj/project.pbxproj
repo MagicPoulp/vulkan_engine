@@ -16,12 +16,13 @@
 		221DA82927778F80007612BD /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 221DA82827778F80007612BD /* libc++.tbd */; };
 		221DA82B27779037007612BD /* MoltenVK.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 221DA82A27779037007612BD /* MoltenVK.xcframework */; };
 		221DA84327779D11007612BD /* VulkanViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 221DA84227779D11007612BD /* VulkanViewController.swift */; };
-		22527FFE277C4CE300E3109E /* cube.vert in Resources */ = {isa = PBXBuildFile; fileRef = 22527FF2277C4CE300E3109E /* cube.vert */; };
-		22528000277C4CE300E3109E /* CMakeLists.txt in Resources */ = {isa = PBXBuildFile; fileRef = 22527FF9277C4CE300E3109E /* CMakeLists.txt */; };
-		22528001277C4CE300E3109E /* cube.frag in Resources */ = {isa = PBXBuildFile; fileRef = 22527FFD277C4CE300E3109E /* cube.frag */; };
 		22528006277C504D00E3109E /* DemoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 22528005277C504D00E3109E /* DemoViewController.m */; };
-		22528008277C521C00E3109E /* cube.vert.inc in Sources */ = {isa = PBXBuildFile; fileRef = 22528007277C521C00E3109E /* cube.vert.inc */; };
-		2252800A277C522F00E3109E /* cube.frag.inc in Sources */ = {isa = PBXBuildFile; fileRef = 22528009277C522F00E3109E /* cube.frag.inc */; };
+		2265FBE1277CEEB8008E1018 /* cube.frag in Resources */ = {isa = PBXBuildFile; fileRef = 2265FBD1277CEEB7008E1018 /* cube.frag */; };
+		2265FBE2277CEEB8008E1018 /* CMakeLists.txt in Resources */ = {isa = PBXBuildFile; fileRef = 2265FBD2277CEEB7008E1018 /* CMakeLists.txt */; };
+		2265FBE3277CEEB8008E1018 /* cube.frag.inc in Sources */ = {isa = PBXBuildFile; fileRef = 2265FBD5277CEEB7008E1018 /* cube.frag.inc */; };
+		2265FBE5277CEEB8008E1018 /* cube.vert in Resources */ = {isa = PBXBuildFile; fileRef = 2265FBDB277CEEB7008E1018 /* cube.vert */; };
+		2265FBE6277CEEB8008E1018 /* cube.vert.inc in Sources */ = {isa = PBXBuildFile; fileRef = 2265FBDC277CEEB7008E1018 /* cube.vert.inc */; };
+		2265FBE7277CEEB8008E1018 /* cube.c in Sources */ = {isa = PBXBuildFile; fileRef = 2265FBDF277CEEB7008E1018 /* cube.c */; };
 		9F69EE4C26942A8A00746CD7 /* CameraError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F69EE4B26942A8A00746CD7 /* CameraError.swift */; };
 		9F69EE4E26942CD500746CD7 /* CameraManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F69EE4D26942CD500746CD7 /* CameraManager.swift */; };
 		9F69EE5226957E1300746CD7 /* FrameManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F69EE5126957E1300746CD7 /* FrameManager.swift */; };
@@ -43,22 +44,23 @@
 		221DA82827778F80007612BD /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "usr/lib/libc++.tbd"; sourceTree = SDKROOT; };
 		221DA82A27779037007612BD /* MoltenVK.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = MoltenVK.xcframework; path = ../../../MoltenVK/Package/Debug/MoltenVK/MoltenVK.xcframework; sourceTree = "<group>"; };
 		221DA84227779D11007612BD /* VulkanViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VulkanViewController.swift; sourceTree = "<group>"; };
-		22527FF2277C4CE300E3109E /* cube.vert */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = cube.vert; path = ../android/app/src/main/cpp/jni_vulkan/vulkan_application/cube.vert; sourceTree = "<group>"; };
-		22527FF3277C4CE300E3109E /* lunarg.ppm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lunarg.ppm.h; path = ../android/app/src/main/cpp/jni_vulkan/vulkan_application/lunarg.ppm.h; sourceTree = "<group>"; };
-		22527FF4277C4CE300E3109E /* cube.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = cube.h; path = ../android/app/src/main/cpp/jni_vulkan/vulkan_application/cube.h; sourceTree = "<group>"; };
-		22527FF5277C4CE300E3109E /* cube_data.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = cube_data.h; path = ../android/app/src/main/cpp/jni_vulkan/vulkan_application/cube_data.h; sourceTree = "<group>"; };
-		22527FF6277C4CE300E3109E /* 15-draw_cube.vert.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "15-draw_cube.vert.h"; path = "../android/app/src/main/cpp/jni_vulkan/vulkan_application/15-draw_cube.vert.h"; sourceTree = "<group>"; };
-		22527FF8277C4CE300E3109E /* 15-draw_cube.frag.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "15-draw_cube.frag.h"; path = "../android/app/src/main/cpp/jni_vulkan/vulkan_application/15-draw_cube.frag.h"; sourceTree = "<group>"; };
-		22527FF9277C4CE300E3109E /* CMakeLists.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = CMakeLists.txt; path = ../android/app/src/main/cpp/jni_vulkan/vulkan_application/CMakeLists.txt; sourceTree = "<group>"; };
-		22527FFA277C4CE300E3109E /* linmath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = linmath.h; path = ../android/app/src/main/cpp/jni_vulkan/vulkan_application/linmath.h; sourceTree = "<group>"; };
-		22527FFB277C4CE300E3109E /* gettime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gettime.h; path = ../android/app/src/main/cpp/jni_vulkan/vulkan_application/gettime.h; sourceTree = "<group>"; };
-		22527FFC277C4CE300E3109E /* object_type_string_helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = object_type_string_helper.h; path = ../android/app/src/main/cpp/jni_vulkan/vulkan_application/object_type_string_helper.h; sourceTree = "<group>"; };
-		22527FFD277C4CE300E3109E /* cube.frag */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = cube.frag; path = ../android/app/src/main/cpp/jni_vulkan/vulkan_application/cube.frag; sourceTree = "<group>"; };
 		22528003277C504D00E3109E /* DemoViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DemoViewController.h; sourceTree = "<group>"; };
 		22528004277C504D00E3109E /* FilterTheWorld-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "FilterTheWorld-Bridging-Header.h"; sourceTree = "<group>"; };
 		22528005277C504D00E3109E /* DemoViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DemoViewController.m; sourceTree = "<group>"; };
-		22528007277C521C00E3109E /* cube.vert.inc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.pascal; name = cube.vert.inc; path = ../android/app/src/main/cpp/jni_vulkan/vulkan_application/cube.vert.inc; sourceTree = "<group>"; };
-		22528009277C522F00E3109E /* cube.frag.inc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.pascal; name = cube.frag.inc; path = ../android/app/src/main/cpp/jni_vulkan/vulkan_application/cube.frag.inc; sourceTree = "<group>"; };
+		2265FBD0277CEEB7008E1018 /* object_type_string_helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = object_type_string_helper.h; sourceTree = "<group>"; };
+		2265FBD1277CEEB7008E1018 /* cube.frag */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = cube.frag; sourceTree = "<group>"; };
+		2265FBD2277CEEB7008E1018 /* CMakeLists.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
+		2265FBD3277CEEB7008E1018 /* linmath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = linmath.h; sourceTree = "<group>"; };
+		2265FBD4277CEEB7008E1018 /* cube_data.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cube_data.h; sourceTree = "<group>"; };
+		2265FBD5277CEEB7008E1018 /* cube.frag.inc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.pascal; path = cube.frag.inc; sourceTree = "<group>"; };
+		2265FBD9277CEEB7008E1018 /* cube.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cube.h; sourceTree = "<group>"; };
+		2265FBDA277CEEB7008E1018 /* lunarg.ppm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lunarg.ppm.h; sourceTree = "<group>"; };
+		2265FBDB277CEEB7008E1018 /* cube.vert */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = cube.vert; sourceTree = "<group>"; };
+		2265FBDC277CEEB7008E1018 /* cube.vert.inc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.pascal; path = cube.vert.inc; sourceTree = "<group>"; };
+		2265FBDD277CEEB7008E1018 /* gettime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gettime.h; sourceTree = "<group>"; };
+		2265FBDE277CEEB7008E1018 /* 15-draw_cube.frag.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "15-draw_cube.frag.h"; sourceTree = "<group>"; };
+		2265FBDF277CEEB7008E1018 /* cube.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cube.c; sourceTree = "<group>"; };
+		2265FBE0277CEEB7008E1018 /* 15-draw_cube.vert.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "15-draw_cube.vert.h"; sourceTree = "<group>"; };
 		9F69EE4B26942A8A00746CD7 /* CameraError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraError.swift; sourceTree = "<group>"; };
 		9F69EE4D26942CD500746CD7 /* CameraManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraManager.swift; sourceTree = "<group>"; };
 		9F69EE5126957E1300746CD7 /* FrameManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameManager.swift; sourceTree = "<group>"; };
@@ -84,7 +86,7 @@
 		18D775B422AD944300AE281E = {
 			isa = PBXGroup;
 			children = (
-				2298ABEB277A06D400A3F774 /* vulkan_application */,
+				2265FBCF277CEEB7008E1018 /* vulkan_application */,
 				18D775BF22AD944300AE281E /* FilterTheWorld */,
 				221DA81427778DB9007612BD /* Resources */,
 				18D775BE22AD944300AE281E /* Products */,
@@ -163,22 +165,23 @@
 			path = bridge;
 			sourceTree = "<group>";
 		};
-		2298ABEB277A06D400A3F774 /* vulkan_application */ = {
+		2265FBCF277CEEB7008E1018 /* vulkan_application */ = {
 			isa = PBXGroup;
 			children = (
-				22528007277C521C00E3109E /* cube.vert.inc */,
-				22528009277C522F00E3109E /* cube.frag.inc */,
-				22527FF8277C4CE300E3109E /* 15-draw_cube.frag.h */,
-				22527FF6277C4CE300E3109E /* 15-draw_cube.vert.h */,
-				22527FF9277C4CE300E3109E /* CMakeLists.txt */,
-				22527FF5277C4CE300E3109E /* cube_data.h */,
-				22527FFD277C4CE300E3109E /* cube.frag */,
-				22527FF4277C4CE300E3109E /* cube.h */,
-				22527FF2277C4CE300E3109E /* cube.vert */,
-				22527FFB277C4CE300E3109E /* gettime.h */,
-				22527FFA277C4CE300E3109E /* linmath.h */,
-				22527FF3277C4CE300E3109E /* lunarg.ppm.h */,
-				22527FFC277C4CE300E3109E /* object_type_string_helper.h */,
+				2265FBD0277CEEB7008E1018 /* object_type_string_helper.h */,
+				2265FBD1277CEEB7008E1018 /* cube.frag */,
+				2265FBD2277CEEB7008E1018 /* CMakeLists.txt */,
+				2265FBD3277CEEB7008E1018 /* linmath.h */,
+				2265FBD4277CEEB7008E1018 /* cube_data.h */,
+				2265FBD5277CEEB7008E1018 /* cube.frag.inc */,
+				2265FBDF277CEEB7008E1018 /* cube.c */,
+				2265FBD9277CEEB7008E1018 /* cube.h */,
+				2265FBDA277CEEB7008E1018 /* lunarg.ppm.h */,
+				2265FBDB277CEEB7008E1018 /* cube.vert */,
+				2265FBDC277CEEB7008E1018 /* cube.vert.inc */,
+				2265FBDD277CEEB7008E1018 /* gettime.h */,
+				2265FBDE277CEEB7008E1018 /* 15-draw_cube.frag.h */,
+				2265FBE0277CEEB7008E1018 /* 15-draw_cube.vert.h */,
 			);
 			name = vulkan_application;
 			path = ../../vulkan_application;
@@ -279,12 +282,12 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				22528001277C4CE300E3109E /* cube.frag in Resources */,
 				18D775D822AD963800AE281E /* LaunchScreen.storyboard in Resources */,
 				18D775CA22AD944400AE281E /* Preview Assets.xcassets in Resources */,
+				2265FBE1277CEEB8008E1018 /* cube.frag in Resources */,
+				2265FBE5277CEEB8008E1018 /* cube.vert in Resources */,
 				18D775C722AD944400AE281E /* Assets.xcassets in Resources */,
-				22527FFE277C4CE300E3109E /* cube.vert in Resources */,
-				22528000277C4CE300E3109E /* CMakeLists.txt in Resources */,
+				2265FBE2277CEEB8008E1018 /* CMakeLists.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -317,16 +320,17 @@
 			buildActionMask = 2147483647;
 			files = (
 				9F69EE542695837100746CD7 /* FrameView.swift in Sources */,
+				2265FBE6277CEEB8008E1018 /* cube.vert.inc in Sources */,
 				9F69EE5226957E1300746CD7 /* FrameManager.swift in Sources */,
 				9F69EE602698210900746CD7 /* VulkanView.swift in Sources */,
 				22528006277C504D00E3109E /* DemoViewController.m in Sources */,
+				2265FBE7277CEEB8008E1018 /* cube.c in Sources */,
 				18D775C522AD944300AE281E /* ContentView.swift in Sources */,
-				22528008277C521C00E3109E /* cube.vert.inc in Sources */,
-				2252800A277C522F00E3109E /* cube.frag.inc in Sources */,
 				1839F4B025190F2A00BB00F1 /* AppMain.swift in Sources */,
 				221DA84327779D11007612BD /* VulkanViewController.swift in Sources */,
 				22081113277769EE00B5BA42 /* LayerView.swift in Sources */,
 				9F69EE5A2696F18900746CD7 /* ContentViewModel.swift in Sources */,
+				2265FBE3277CEEB8008E1018 /* cube.frag.inc in Sources */,
 				9F69EE4E26942CD500746CD7 /* CameraManager.swift in Sources */,
 				9F69EE4C26942A8A00746CD7 /* CameraError.swift in Sources */,
 				9F69EE562696F0A200746CD7 /* ErrorView.swift in Sources */,

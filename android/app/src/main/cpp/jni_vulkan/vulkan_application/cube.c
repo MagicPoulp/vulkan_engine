@@ -189,7 +189,7 @@ bool CanPresentEarlier(uint64_t earliest, uint64_t actual, uint64_t margin, uint
 }
 
 // Forward declarations:
-static void demo_resize(struct demo *demo);
+void demo_resize(struct demo *demo);
 static void demo_create_surface(struct demo *demo);
 
 static bool memory_type_from_properties(struct demo *demo, uint32_t typeBits, VkFlags requirements_mask, uint32_t *typeIndex) {
@@ -1990,7 +1990,7 @@ void demo_cleanup(struct demo *demo) {
     vkDestroyInstance(demo->inst, NULL);
 }
 
-static void demo_resize(struct demo *demo) {
+void demo_resize(struct demo *demo) {
     uint32_t i;
 
     // Don't react to resize until after first initialization.
@@ -2930,7 +2930,9 @@ static void demo_init_vk(struct demo *demo) {
             "vkCreateInstance Failure");
     }
 
+#ifdef __ANDROID__
     volkLoadInstance(demo->inst);
+#endif
 
     /* Make initial call to query gpu_count, then second call for gpu info */
     uint32_t gpu_count = 0;
@@ -3895,6 +3897,7 @@ int main(int argc, char **argv) {
 */
 #endif
 
+#ifdef __ANDROID__
 int demo_main_android(struct demo *demo, struct ANativeWindow* window, int argc, char **argv) {
     memset(demo, 0, sizeof(*demo));
     demo->window = window;
@@ -3909,6 +3912,7 @@ int demo_main_android(struct demo *demo, struct ANativeWindow* window, int argc,
 
     return validation_error;
 }
+#endif
 
 void setSizeFull(struct demo *demo, int32_t width, int32_t height) {
     demo->width = width;
