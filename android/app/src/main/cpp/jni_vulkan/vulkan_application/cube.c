@@ -2930,6 +2930,8 @@ static void demo_init_vk(struct demo *demo) {
             "vkCreateInstance Failure");
     }
 
+    volkLoadInstance(demo->inst);
+
     /* Make initial call to query gpu_count, then second call for gpu info */
     uint32_t gpu_count = 0;
     err = vkEnumeratePhysicalDevices(demo->inst, &gpu_count, NULL);
