@@ -1,4 +1,4 @@
-#include <util_init.hpp>
+
 #include "AndroidGraphicsApplication.hpp"
 #include "cube_data.h"
 
@@ -10,9 +10,13 @@ AndroidGraphicsApplication::~AndroidGraphicsApplication() {
 }
 
 void AndroidGraphicsApplication::createSurface() {
+    if (volkInitialize())
+    {
+        throw std::runtime_error("Failed to initialize volk.");
+    }
     const char* argv[] = { "cube" };
     int argc = sizeof(argv)/sizeof(char*);
-    demo_main_android(&demo, mWindow, argc, argv);
+    demo_main_android(&demo, mWindow, argc, const_cast<char **>(argv));
     demo_draw(&demo);
 }
 

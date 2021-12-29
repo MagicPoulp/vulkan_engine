@@ -37,7 +37,9 @@
  * Author: Bill Hollings <bill.hollings@brenwill.com>
  */
 
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -61,12 +63,14 @@
 #endif  // _WIN32
 
 #ifdef ANDROID
-#include "vulkan_wrapper.h"
+//#include "vulkan_wrapper.h"
 #else
 #include <vulkan/vulkan.h>
 #endif
 
+#ifndef ANDROID
 #include <vulkan/vk_sdk_platform.h>
+#endif
 #include "linmath.h"
 #include "object_type_string_helper.h"
 
@@ -742,8 +746,8 @@ static void demo_draw_build_cmd(struct demo *demo, VkCommandBuffer cmd_buf) {
         .framebuffer = demo->swapchain_image_resources[demo->current_buffer].framebuffer,
         .renderArea.offset.x = 0,
         .renderArea.offset.y = 0,
-        .renderArea.extent.width = demo->width,
-        .renderArea.extent.height = demo->height,
+        .renderArea.extent.width = (uint32_t)demo->width,
+        .renderArea.extent.height = (uint32_t)demo->height,
         .clearValueCount = 2,
         .pClearValues = clear_values,
     };
@@ -4307,7 +4311,7 @@ int main(int argc, char **argv) {
 */
 #endif
 
-int demo_main_android(struct demo *demo, struct ANativeWindow* window, int argc, const char *argv[]) {
+int demo_main_android(struct demo *demo, struct ANativeWindow* window, int argc, char **argv) {
     demo->window = window;
 
     demo_init(demo, argc, argv);

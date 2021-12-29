@@ -6,7 +6,6 @@
 #include <string>
 #include <android/asset_manager.h>
 #include <android/native_window.h>
-#include <util_init.hpp>
 #define VOLK_IMPLEMENTATION
 #include "volk_setup.hpp"
 extern "C" {

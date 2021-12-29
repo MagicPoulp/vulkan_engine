@@ -19,7 +19,7 @@ include_directories(volk)
 add_library(
         jni_vulkan
         SHARED
-        VulkanAppBridge.cpp AndroidGraphicsApplication.cpp GraphicsApplication.cpp)
+        VulkanAppBridge.cpp AndroidGraphicsApplication.cpp)
 
 SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fpermissive")
 
