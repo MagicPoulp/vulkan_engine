@@ -55,4 +55,5 @@ class MainActivity : AppCompatActivity() {
 
         cameraProvider.bindToLifecycle(this as LifecycleOwner, cameraSelector, preview)
     }
+
 }

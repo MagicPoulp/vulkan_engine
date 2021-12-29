@@ -8,6 +8,9 @@ import android.view.SurfaceView
 class VulkanSurfaceView: SurfaceView, SurfaceHolder.Callback2 {
 
     private var vulkanApp = VulkanAppBridge()
+    private val syncedRenderer: SyncedRenderer = SyncedRenderer { frameTimeNanos: Long ->
+        vulkanApp.draw()
+    }
 
     constructor(context: Context): super(context) {
     }
@@ -19,6 +22,11 @@ class VulkanSurfaceView: SurfaceView, SurfaceHolder.Callback2 {
     }
 
     constructor(context: Context, attrs: AttributeSet, defStyle: Int, defStyleRes: Int): super(context, attrs, defStyle, defStyleRes) {
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        syncedRenderer.stop()
     }
 
     init {
@@ -42,6 +50,7 @@ class VulkanSurfaceView: SurfaceView, SurfaceHolder.Callback2 {
     override fun surfaceCreated(holder: SurfaceHolder) {
         holder.let { h ->
             vulkanApp.create(h.surface, resources.assets)
+            syncedRenderer.start();
         }
     }
 

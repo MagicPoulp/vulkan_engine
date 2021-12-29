@@ -1,3 +1,9 @@
+# SUmmary
+
+The application must be in C and not in C++. iOS has only the last iOS version for C++.
+Moreover, for low level stuff, C is suitted to have clear structures.
+Moreover, C has better inter-operability with the operating system.
+
 An XCFramework is highly recommended in the doc to simplify the bundling
 
 # setup
