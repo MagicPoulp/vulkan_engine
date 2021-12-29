@@ -5,13 +5,11 @@
 //  Created by Thierry Vilmart on 2021-12-27.
 //  Copyright © 2021 Ray Wenderlich. All rights reserved.
 //
-#ifndef CUBE_H
-#define CUBE_H
 
-extern "C" {
-#ifndef _GNU_SOURCE
+#ifndef cube_h
+#define cube_h
+
 #define _GNU_SOURCE
-#endif
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -38,11 +36,9 @@ extern "C" {
 //#include "vulkan_wrapper.h"
 #else
 #include <vulkan/vulkan.h>
-#endif
-
-#ifndef ANDROID
 #include <vulkan/vk_sdk_platform.h>
 #endif
+
 #include "linmath.h"
 #include "object_type_string_helper.h"
 
@@ -158,7 +154,7 @@ struct texture_object {
     int32_t tex_width, tex_height;
 };
 
-static const char *tex_files[] = {"lunarg.ppm"};
+static char *tex_files[] = {"lunarg.ppm"};
 
 static int validation_error = 0;
 
@@ -261,24 +257,6 @@ static const float g_uv_buffer_data[] = {
         1.0f, 0.0f,
 };
 // clang-format on
-
-void dumpMatrix(const char *note, mat4x4 MVP) {
-    int i;
-
-    printf("%s: \n", note);
-    for (i = 0; i < 4; i++) {
-        printf("%f, %f, %f, %f\n", MVP[i][0], MVP[i][1], MVP[i][2], MVP[i][3]);
-    }
-    printf("\n");
-    fflush(stdout);
-}
-
-void dumpVec4(const char *note, vec4 vector) {
-    printf("%s: \n", note);
-    printf("%f, %f, %f, %f\n", vector[0], vector[1], vector[2], vector[3]);
-    printf("\n");
-    fflush(stdout);
-}
 
 typedef struct {
     VkImage image;
@@ -448,8 +426,7 @@ struct demo {
     uint32_t queue_family_count;
 };
 
-int demo_draw(struct demo *demo);
 int demo_main_android(struct demo *demo, struct ANativeWindow* window, int argc, char **argv);
-}
+void demo_draw(struct demo *demo);
 
-#endif
+#endif /* cube_h */

@@ -1,25 +1,23 @@
 
-#include "AndroidGraphicsApplication.hpp"
-#include "cube_data.h"
+#include "AndroidGraphicsApplication.h"
+#include <stdlib.h>
 
-AndroidGraphicsApplication::AndroidGraphicsApplication(AAssetManager* assetManager, ANativeWindow* window) {
-    mWindow = window;
-}
+extern struct demo demo;
+extern int demo_main_android(struct demo *demo, struct ANativeWindow* window, int argc, char **argv);
+extern void demo_draw(struct demo *demo);
 
-AndroidGraphicsApplication::~AndroidGraphicsApplication() {
-}
-
-void AndroidGraphicsApplication::createSurface() {
+void createSurface(ANativeWindow* window) {
     if (volkInitialize())
     {
-        throw std::runtime_error("Failed to initialize volk.");
+        exit(1);
     }
     const char* argv[] = { "cube" };
     int argc = sizeof(argv)/sizeof(char*);
-    demo_main_android(&demo, mWindow, argc, const_cast<char **>(argv));
+    demo_main_android(&demo, window, argc, (char **)argv);
     demo_draw(&demo);
 }
 
+/*
 void AndroidGraphicsApplication::setSize(uint32_t w, uint32_t h) {
     width = w;
     height = h;
@@ -36,4 +34,4 @@ void AndroidGraphicsApplication::init_window_size_patched(struct sample_info &in
     //info.width = default_width;
     //info.height = default_height;
 }
-
+*/
