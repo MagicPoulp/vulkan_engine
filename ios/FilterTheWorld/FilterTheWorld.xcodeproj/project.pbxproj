@@ -22,7 +22,6 @@
 		2265FBE3277CEEB8008E1018 /* cube.frag.inc in Sources */ = {isa = PBXBuildFile; fileRef = 2265FBD5277CEEB7008E1018 /* cube.frag.inc */; };
 		2265FBE5277CEEB8008E1018 /* cube.vert in Resources */ = {isa = PBXBuildFile; fileRef = 2265FBDB277CEEB7008E1018 /* cube.vert */; };
 		2265FBE6277CEEB8008E1018 /* cube.vert.inc in Sources */ = {isa = PBXBuildFile; fileRef = 2265FBDC277CEEB7008E1018 /* cube.vert.inc */; };
-		2265FBE7277CEEB8008E1018 /* cube.c in Sources */ = {isa = PBXBuildFile; fileRef = 2265FBDF277CEEB7008E1018 /* cube.c */; };
 		9F69EE4C26942A8A00746CD7 /* CameraError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F69EE4B26942A8A00746CD7 /* CameraError.swift */; };
 		9F69EE4E26942CD500746CD7 /* CameraManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F69EE4D26942CD500746CD7 /* CameraManager.swift */; };
 		9F69EE5226957E1300746CD7 /* FrameManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F69EE5126957E1300746CD7 /* FrameManager.swift */; };
@@ -59,8 +58,8 @@
 		2265FBDC277CEEB7008E1018 /* cube.vert.inc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.pascal; path = cube.vert.inc; sourceTree = "<group>"; };
 		2265FBDD277CEEB7008E1018 /* gettime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gettime.h; sourceTree = "<group>"; };
 		2265FBDE277CEEB7008E1018 /* 15-draw_cube.frag.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "15-draw_cube.frag.h"; sourceTree = "<group>"; };
-		2265FBDF277CEEB7008E1018 /* cube.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cube.c; sourceTree = "<group>"; };
 		2265FBE0277CEEB7008E1018 /* 15-draw_cube.vert.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "15-draw_cube.vert.h"; sourceTree = "<group>"; };
+		2265FBEC277D0D7B008E1018 /* cube2.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = cube2.h; path = ../android/app/src/main/cpp/jni_vulkan/vulkan_application/cube2.h; sourceTree = "<group>"; };
 		9F69EE4B26942A8A00746CD7 /* CameraError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraError.swift; sourceTree = "<group>"; };
 		9F69EE4D26942CD500746CD7 /* CameraManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraManager.swift; sourceTree = "<group>"; };
 		9F69EE5126957E1300746CD7 /* FrameManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameManager.swift; sourceTree = "<group>"; };
@@ -158,8 +157,8 @@
 		22528002277C504D00E3109E /* bridge */ = {
 			isa = PBXGroup;
 			children = (
-				22528003277C504D00E3109E /* DemoViewController.h */,
 				22528004277C504D00E3109E /* FilterTheWorld-Bridging-Header.h */,
+				22528003277C504D00E3109E /* DemoViewController.h */,
 				22528005277C504D00E3109E /* DemoViewController.m */,
 			);
 			path = bridge;
@@ -170,14 +169,14 @@
 			children = (
 				2265FBD0277CEEB7008E1018 /* object_type_string_helper.h */,
 				2265FBD1277CEEB7008E1018 /* cube.frag */,
+				2265FBDB277CEEB7008E1018 /* cube.vert */,
 				2265FBD2277CEEB7008E1018 /* CMakeLists.txt */,
 				2265FBD3277CEEB7008E1018 /* linmath.h */,
 				2265FBD4277CEEB7008E1018 /* cube_data.h */,
 				2265FBD5277CEEB7008E1018 /* cube.frag.inc */,
-				2265FBDF277CEEB7008E1018 /* cube.c */,
 				2265FBD9277CEEB7008E1018 /* cube.h */,
+				2265FBEC277D0D7B008E1018 /* cube2.h */,
 				2265FBDA277CEEB7008E1018 /* lunarg.ppm.h */,
-				2265FBDB277CEEB7008E1018 /* cube.vert */,
 				2265FBDC277CEEB7008E1018 /* cube.vert.inc */,
 				2265FBDD277CEEB7008E1018 /* gettime.h */,
 				2265FBDE277CEEB7008E1018 /* 15-draw_cube.frag.h */,
@@ -324,7 +323,6 @@
 				9F69EE5226957E1300746CD7 /* FrameManager.swift in Sources */,
 				9F69EE602698210900746CD7 /* VulkanView.swift in Sources */,
 				22528006277C504D00E3109E /* DemoViewController.m in Sources */,
-				2265FBE7277CEEB8008E1018 /* cube.c in Sources */,
 				18D775C522AD944300AE281E /* ContentView.swift in Sources */,
 				1839F4B025190F2A00BB00F1 /* AppMain.swift in Sources */,
 				221DA84327779D11007612BD /* VulkanViewController.swift in Sources */,

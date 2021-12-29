@@ -721,7 +721,7 @@ void demo_draw(struct demo *demo, double elapsedTimeS) {
 
     if (demo->VK_GOOGLE_display_timing_enabled) {
         VkPresentTimeGOOGLE ptime;
-      /*
+
         if (demo->prev_desired_present_time == 0) {
             // This must be the first present for this swapchain.
             //
@@ -741,8 +741,8 @@ void demo_draw(struct demo *demo, double elapsedTimeS) {
         } else {
             ptime.desiredPresentTime = (demo->prev_desired_present_time + demo->target_IPD);
         }
-      */
-        ptime.desiredPresentTime = (uint64_t)(elapsedTimeS * 1000000000);
+
+        //ptime.desiredPresentTime = (uint64_t)(elapsedTimeS * 1000000000);
         ptime.presentID = demo->next_present_id++;
         demo->prev_desired_present_time = ptime.desiredPresentTime;
 
@@ -3760,7 +3760,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine,
 
 #elif defined(VK_USE_PLATFORM_METAL_EXT)
 void demo_main(struct demo *demo, void *caMetalLayer, int argc, const char *argv[]) {
-    demo->VK_GOOGLE_display_timing_enabled = true;
+    //demo->VK_GOOGLE_display_timing_enabled = true;
     demo_init(demo, argc, (char **)argv);
     demo->caMetalLayer = caMetalLayer;
     demo_init_vk_swapchain(demo);

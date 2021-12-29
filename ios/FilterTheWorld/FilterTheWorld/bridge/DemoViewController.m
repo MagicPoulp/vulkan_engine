@@ -19,19 +19,19 @@
 #import "DemoViewController.h"
 
 #include <MoltenVK/mvk_vulkan.h>
-#include "../../vulkan_application/cube.h"
+#include "../../vulkan_application/cube2.h"
 
 #pragma mark -
 #pragma mark DemoViewController
 
 @implementation DemoViewController {
-	CADisplayLink* _displayLink;
+	CADisplayLink* displayLink;
 	struct demo demo;
 }
 
 -(void) dealloc {
 	demo_cleanup(&demo);
-	[_displayLink release];
+	[displayLink release];
 	[super dealloc];
 }
 
@@ -58,14 +58,15 @@
 #endif
 	int argc = sizeof(argv)/sizeof(char*);
 	demo_main(&demo, self.view.layer, argc, argv);
-	demo_draw(&demo);
+	demo_draw(&demo, 0);
 
-	_displayLink = [CADisplayLink displayLinkWithTarget: self selector: @selector(renderLoop)];
-  [_displayLink addToRunLoop: NSRunLoop.currentRunLoop forMode: NSDefaultRunLoopMode];
+	displayLink = [CADisplayLink displayLinkWithTarget: self selector: @selector(renderLoop)];
+  [displayLink addToRunLoop: NSRunLoop.currentRunLoop forMode: NSDefaultRunLoopMode];
 }
 
 -(void) renderLoop {
-	demo_draw(&demo);
+  double elapsedTimeS = displayLink.targetTimestamp - displayLink.timestamp;
+	demo_draw(&demo, elapsedTimeS);
 }
 
 // Allow device rotation to resize the swapchain
