@@ -47,7 +47,6 @@ Java_com_thierry_android_1surface_1view_1with_1vulkan_VulkanAppBridge_nativeResi
     __android_log_print(ANDROID_LOG_DEBUG, "mc-native-VulkanAppBridge", "resize: %dx%d", width, height);
     if (mApplicationInstance) {
         mApplicationInstance->setSize(width, height);
-        mApplicationInstance->isResizeNeeded = true;
     }
 }
 

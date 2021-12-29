@@ -33,10 +33,7 @@ void AndroidGraphicsApplication::drawFrame() {
 void AndroidGraphicsApplication::init_window_size_patched(struct sample_info &info) {
     int32_t default_width = ANativeWindow_getWidth(mWindow);
     int32_t default_height = ANativeWindow_getHeight(mWindow);
-    info.width = default_width;
-    info.height = default_height;
+    //info.width = default_width;
+    //info.height = default_height;
 }
 
-void AndroidGraphicsApplication::init_swapchain_extension_patched(struct sample_info &info) {
-    init_swapchain_extension(info, mWindow);
-}

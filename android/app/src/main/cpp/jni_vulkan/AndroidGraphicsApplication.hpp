@@ -28,7 +28,6 @@ public:
     void setSize(uint32_t w, uint32_t h);
     void drawFrame();
     void init_window_size_patched(struct sample_info &info);
-    void init_swapchain_extension_patched(struct sample_info &info);
 };
 
 #endif //ANDROID_SURFACE_VIEW_WITH_VULKAN_ANDROIDGRAPHICSAPPLICATION_HPP

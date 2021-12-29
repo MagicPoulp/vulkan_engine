@@ -230,7 +230,7 @@ if(APPLE)
 elseif(NOT WIN32)
     if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL ${CMAKE_HOST_SYSTEM_PROCESSOR})
         add_executable(vkcube
-                       cube.c
+                cube.cpp
                        ${PROJECT_SOURCE_DIR}/cube/cube.vert
                        ${PROJECT_SOURCE_DIR}/cube/cube.frag
                        cube.vert.inc
@@ -252,7 +252,7 @@ else()
 
     add_executable(vkcube
                    WIN32
-                   cube.c
+            cube.cpp
                    ${PROJECT_SOURCE_DIR}/cube/cube.vert
                    ${PROJECT_SOURCE_DIR}/cube/cube.frag
                    cube.vert.inc
