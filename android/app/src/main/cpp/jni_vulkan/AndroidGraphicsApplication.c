@@ -1,6 +1,7 @@
 
-#include "AndroidGraphicsApplication.h"
 #include <stdlib.h>
+#include "AndroidGraphicsApplication.h"
+#include "string.h"
 
 extern struct demo demo;
 extern int demo_main_android(struct demo *demo, struct ANativeWindow* window, int argc, char **argv);

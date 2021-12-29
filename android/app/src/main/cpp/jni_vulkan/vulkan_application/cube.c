@@ -3545,7 +3545,7 @@ static void demo_init(struct demo *demo, int argc, char **argv) {
     vec3 origin = {0, 0, 0};
     vec3 up = {0.0f, 1.0f, 0.0};
 
-    memset(demo, 0, sizeof(*demo));
+    //memset(demo, 0, sizeof(*demo));
     demo->presentMode = VK_PRESENT_MODE_FIFO_KHR;
     demo->frameCount = INT32_MAX;
     /* Autodetect suitable / best GPU by default */
@@ -3896,6 +3896,7 @@ int main(int argc, char **argv) {
 #endif
 
 int demo_main_android(struct demo *demo, struct ANativeWindow* window, int argc, char **argv) {
+    memset(demo, 0, sizeof(*demo));
     demo->window = window;
 
     demo_init(demo, argc, argv);
