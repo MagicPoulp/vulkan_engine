@@ -23,7 +23,7 @@
 
 #include <android/native_window.h>
 
-#include "volk_setup.hpp"
+#include "volk_setup.h"
 #include "util.hpp"
 
 // Make sure functions start with init, execute, or destroy to assist codegen

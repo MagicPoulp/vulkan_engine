@@ -3310,6 +3310,15 @@ static void demo_init_vk_swapchain(struct demo *demo) {
 
     demo_create_device(demo);
 
+    demo->fpCreateSwapchainKHR = vkCreateSwapchainKHR;
+    demo->fpDestroySwapchainKHR = vkDestroySwapchainKHR;
+    demo->fpGetSwapchainImagesKHR = vkGetSwapchainImagesKHR;
+    demo->fpAcquireNextImageKHR = vkAcquireNextImageKHR;
+    demo->fpQueuePresentKHR = vkQueuePresentKHR;
+    demo->fpGetRefreshCycleDurationGOOGLE = vkGetRefreshCycleDurationGOOGLE;
+    demo->fpGetPastPresentationTimingGOOGLE = vkGetPastPresentationTimingGOOGLE;
+
+    /*
     GET_DEVICE_PROC_ADDR(demo->device, CreateSwapchainKHR);
     GET_DEVICE_PROC_ADDR(demo->device, DestroySwapchainKHR);
     GET_DEVICE_PROC_ADDR(demo->device, GetSwapchainImagesKHR);
@@ -3318,7 +3327,7 @@ static void demo_init_vk_swapchain(struct demo *demo) {
     if (demo->VK_GOOGLE_display_timing_enabled) {
         GET_DEVICE_PROC_ADDR(demo->device, GetRefreshCycleDurationGOOGLE);
         GET_DEVICE_PROC_ADDR(demo->device, GetPastPresentationTimingGOOGLE);
-    }
+    }*/
 
     vkGetDeviceQueue(demo->device, demo->graphics_queue_family_index, 0, &demo->graphics_queue);
 
