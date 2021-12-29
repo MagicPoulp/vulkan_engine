@@ -2,22 +2,28 @@
 #include "AndroidGraphicsApplication.hpp"
 #include "cube_data.h"
 
-AndroidGraphicsApplication::AndroidGraphicsApplication(AAssetManager* assetManager, ANativeWindow* window): GraphicsApplication() {
-    mAssetManager = assetManager;
+AndroidGraphicsApplication::AndroidGraphicsApplication(AAssetManager* assetManager, ANativeWindow* window) {
     mWindow = window;
 }
 
 AndroidGraphicsApplication::~AndroidGraphicsApplication() {
 }
 
-// Used to setup shaders.
-std::vector<char> AndroidGraphicsApplication::readFile(const std::string& filename) {
-    AAsset* file = AAssetManager_open(mAssetManager, filename.c_str(), AASSET_MODE_BUFFER);
-    size_t size = AAsset_getLength(file);
-    std::vector<char> data(size);
-    AAsset_read(file, data.data(), size);
-    AAsset_close(file);
-    return data;
+void AndroidGraphicsApplication::createSurface() {
+    const char* argv[] = { "cube" };
+    int argc = sizeof(argv)/sizeof(char*);
+    demo_main_android(&demo, mWindow, argc, argv);
+    demo_draw(&demo);
+}
+
+void AndroidGraphicsApplication::setSize(uint32_t w, uint32_t h) {
+    width = w;
+    height = h;
+}
+
+void AndroidGraphicsApplication::drawFrame() {
+    // not done yet
+    // redraw after SurfaceView.surfaceRedrawNeeded()
 }
 
 void AndroidGraphicsApplication::init_window_size_patched(struct sample_info &info) {

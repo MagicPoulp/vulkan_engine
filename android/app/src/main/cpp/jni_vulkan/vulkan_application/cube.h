@@ -4307,20 +4307,18 @@ int main(int argc, char **argv) {
 */
 #endif
 
-int demo_main_android(struct demo *demo, void *caMetalLayer, int argc, const char *argv[]) {
-    struct demo demo;
+int demo_main_android(struct demo *demo, struct ANativeWindow* window, int argc, const char *argv[]) {
+    demo->window = window;
 
-    demo_init(&demo, argc, argv);
+    demo_init(demo, argc, argv);
 
-    demo_create_window(&demo);
+    demo_init_vk_swapchain(demo);
 
-    demo_init_vk_swapchain(&demo);
+    demo_prepare(demo);
 
-    demo_prepare(&demo);
+    demo_run(demo);
 
-    demo_run(&demo);
-
-    demo_cleanup(&demo);
+    demo_cleanup(demo);
 
     return validation_error;
 }

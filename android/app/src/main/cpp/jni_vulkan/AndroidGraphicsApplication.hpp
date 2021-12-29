@@ -9,20 +9,27 @@
 #include <util_init.hpp>
 #define VOLK_IMPLEMENTATION
 #include "volk_setup.hpp"
+extern "C" {
+#include "vulkan_application/cube.h"
+}
 
-#include "legacy/GraphicsApplication.hpp" // Base class shared with iOS/macOS/...
-
-class AndroidGraphicsApplication : public GraphicsApplication {
+class AndroidGraphicsApplication {
 private:
-    AAssetManager* mAssetManager;
+    uint32_t width;
+    uint32_t height;
+    VkInstance instance;
+    VkSurfaceKHR surface;
+    struct demo demo;
     ANativeWindow* mWindow;
 
 public:
     AndroidGraphicsApplication(AAssetManager* assetManager, ANativeWindow* window);
     ~AndroidGraphicsApplication();
-    std::vector<char> readFile(const std::string& filename);
-    void init_window_size_patched(struct sample_info &info) override;
-    void init_swapchain_extension_patched(struct sample_info &info) override;
+    void createSurface();
+    void setSize(uint32_t w, uint32_t h);
+    void drawFrame();
+    void init_window_size_patched(struct sample_info &info);
+    void init_swapchain_extension_patched(struct sample_info &info);
 };
 
 #endif //ANDROID_SURFACE_VIEW_WITH_VULKAN_ANDROIDGRAPHICSAPPLICATION_HPP
