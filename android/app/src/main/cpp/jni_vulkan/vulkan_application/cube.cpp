@@ -183,7 +183,7 @@ struct texture_object {
     int32_t tex_width, tex_height;
 };
 
-static char *tex_files[] = {"lunarg.ppm"};
+static const char *tex_files[] = {"lunarg.ppm"};
 
 static int validation_error = 0;
 

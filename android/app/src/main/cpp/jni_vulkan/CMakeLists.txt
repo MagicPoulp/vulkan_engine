@@ -21,7 +21,7 @@ add_library(
         SHARED
         VulkanAppBridge.cpp AndroidGraphicsApplication.cpp vulkan_application/cube.cpp)
 
-SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fpermissive -Wwritable-strings")
+SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fpermissive")
 
 add_subdirectory(volk)
 target_link_libraries(jni_vulkan PRIVATE log android volk)
