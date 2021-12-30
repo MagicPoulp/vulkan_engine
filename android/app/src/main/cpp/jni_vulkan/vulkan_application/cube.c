@@ -26,6 +26,7 @@
  */
 
 #include "cube.h"
+// cube.c and cube2.h must be exact copies to syn Android and iOS
 
 struct demo demo;
 
@@ -477,7 +478,7 @@ void demo_update_data_buffer(struct demo *demo, double elapsedTimeS) {
     mat4x4_dup(Model, demo->model_matrix);
     // degrees per second
     double movedAngle = demo->spin_angle * elapsedTimeS;
-    __android_log_print(ANDROID_LOG_INFO, "LOG", "%lf - &lf - %lf", demo->spin_angle, elapsedTimeS, movedAngle);
+    //__android_log_print(ANDROID_LOG_INFO, "LOG", "%lf - &lf - %lf", demo->spin_angle, elapsedTimeS, movedAngle);
     //NSLog(@"%lf", movedAngle);
     mat4x4_rotate_Y(demo->model_matrix, Model, (float)degreesToRadians(movedAngle));
     mat4x4_orthonormalize(demo->model_matrix, demo->model_matrix);
@@ -3625,17 +3626,17 @@ static void demo_init(struct demo *demo, int argc, char **argv) {
         ERR_EXIT("Usage: vkcube [--validate]\n", "Usage");
 #else
         char *message =
-            "Usage:\n  %s\t[--use_staging] [--validate] [--validate-checks-disabled]\n"
-            "\t[--break] [--c <framecount>] [--suppress_popups]\n"
-            "\t[--incremental_present] [--display_timing]\n"
-            "\t[--gpu_number <index of physical device>]\n"
-            "\t[--present_mode <present mode enum>]\n"
-            "\t[--width <width>] [--height <height>]\n"
-            "\t<present_mode_enum>\n"
-            "\t\tVK_PRESENT_MODE_IMMEDIATE_KHR = %d\n"
-            "\t\tVK_PRESENT_MODE_MAILBOX_KHR = %d\n"
-            "\t\tVK_PRESENT_MODE_FIFO_KHR = %d\n"
-            "\t\tVK_PRESENT_MODE_FIFO_RELAXED_KHR = %d\n";
+                "Usage:\n  %s\t[--use_staging] [--validate] [--validate-checks-disabled]\n"
+                "\t[--break] [--c <framecount>] [--suppress_popups]\n"
+                "\t[--incremental_present] [--display_timing]\n"
+                "\t[--gpu_number <index of physical device>]\n"
+                "\t[--present_mode <present mode enum>]\n"
+                "\t[--width <width>] [--height <height>]\n"
+                "\t<present_mode_enum>\n"
+                "\t\tVK_PRESENT_MODE_IMMEDIATE_KHR = %d\n"
+                "\t\tVK_PRESENT_MODE_MAILBOX_KHR = %d\n"
+                "\t\tVK_PRESENT_MODE_FIFO_KHR = %d\n"
+                "\t\tVK_PRESENT_MODE_FIFO_RELAXED_KHR = %d\n";
         int length = snprintf(NULL, 0, message, APP_SHORT_NAME, VK_PRESENT_MODE_IMMEDIATE_KHR, VK_PRESENT_MODE_MAILBOX_KHR,
                               VK_PRESENT_MODE_FIFO_KHR, VK_PRESENT_MODE_FIFO_RELAXED_KHR);
         char *usage = (char *)malloc(length + 1);
