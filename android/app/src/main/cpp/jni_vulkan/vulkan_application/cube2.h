@@ -467,7 +467,7 @@ void demo_build_image_ownership_cmd(struct demo *demo, int i) {
     assert(!err);
 }
 
-void demo_update_data_buffer(struct demo *demo) {
+void demo_update_data_buffer(struct demo *demo, double elapsedTimeS) {
     mat4x4 MVP, Model, VP;
     int matrixSize = sizeof(MVP);
 
@@ -475,7 +475,10 @@ void demo_update_data_buffer(struct demo *demo) {
 
     // Rotate around the Y axis
     mat4x4_dup(Model, demo->model_matrix);
-    mat4x4_rotate_Y(demo->model_matrix, Model, (float)degreesToRadians(demo->spin_angle));
+    // degrees per second
+    double movedAngle = demo->spin_angle * elapsedTimeS;
+    //NSLog(@"%lf", movedAngle);
+    mat4x4_rotate_Y(demo->model_matrix, Model, (float)degreesToRadians(movedAngle));
     mat4x4_orthonormalize(demo->model_matrix, demo->model_matrix);
     mat4x4_mul(MVP, VP, demo->model_matrix);
 
@@ -628,7 +631,7 @@ void demo_draw(struct demo *demo, double elapsedTimeS) {
         }
     } while (err != VK_SUCCESS);
 
-    demo_update_data_buffer(demo);
+    demo_update_data_buffer(demo, elapsedTimeS);
 
     if (demo->VK_GOOGLE_display_timing_enabled) {
         // Look at what happened to previous presents, and make appropriate
@@ -3765,7 +3768,8 @@ void demo_main(struct demo *demo, void *caMetalLayer, int argc, const char *argv
     demo->caMetalLayer = caMetalLayer;
     demo_init_vk_swapchain(demo);
     demo_prepare(demo);
-    demo->spin_angle = 0.4f;
+    // degrees per second
+    demo->spin_angle = 8;
 }
 
 #elif defined(VK_USE_PLATFORM_ANDROID_KHR)
