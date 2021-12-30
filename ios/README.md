@@ -1,10 +1,17 @@
-# SUmmary
+# Summary
 
 The application must be in C and not in C++. iOS has only the last iOS version for C++.
 Moreover, for low level stuff, C is suitted to have clear structures.
 Moreover, C has better inter-operability with the operating system.
 
 An XCFramework is highly recommended in the doc to simplify the bundling
+
+the 2 files cube2.h and cube.c must be kept identical
+A duplication is required because iOS can only build using the header cube2.h
+
+how to log:
+//__android_log_print(ANDROID_LOG_INFO, "LOG", "%lf - &lf - %lf", demo->spin_angle, elapsedTimeS, movedAngle);
+//NSLog(@"%lf", movedAngle);
 
 # setup
 
