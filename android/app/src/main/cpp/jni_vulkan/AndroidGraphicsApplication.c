@@ -5,7 +5,7 @@
 
 extern struct demo demo;
 extern int demo_main_android(struct demo *demo, struct ANativeWindow* window, int argc, char **argv);
-extern void demo_draw(struct demo *demo);
+extern void demo_draw(struct demo *demo, double elapsedTimeS);
 extern void demo_cleanup(struct demo *demo);
 extern void setSizeFull(struct demo *demo, int32_t width, int32_t height);
 
@@ -23,8 +23,8 @@ void demoDestroy() {
     demo_cleanup(&demo);
 }
 
-void drawFrame() {
-    demo_draw(&demo);
+void drawFrame(double elapsedTimeS) {
+    demo_draw(&demo, elapsedTimeS);
 }
 
 void setSize(int32_t width, int32_t height) {

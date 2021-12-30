@@ -9,7 +9,7 @@
 
 void createSurface(ANativeWindow* window);
 void setSize(int32_t width, int32_t height);
-void drawFrame();
+void drawFrame(double elapsedTimeS);
 void demoDestroy();
 
 #endif //ANDROID_SURFACE_VIEW_WITH_VULKAN_ANDROIDGRAPHICSAPPLICATION_H

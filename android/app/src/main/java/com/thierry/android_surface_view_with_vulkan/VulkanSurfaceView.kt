@@ -8,8 +8,8 @@ import android.view.SurfaceView
 class VulkanSurfaceView: SurfaceView, SurfaceHolder.Callback2 {
 
     private var vulkanApp = VulkanAppBridge()
-    private val syncedRenderer: SyncedRenderer = SyncedRenderer { frameTimeNanos: Long ->
-        vulkanApp.draw()
+    private val syncedRenderer: SyncedRenderer = SyncedRenderer { elapsedTimeNanos: Long ->
+        vulkanApp.draw((elapsedTimeNanos * 1000000000).toDouble())
     }
 
     constructor(context: Context): super(context) {
@@ -55,6 +55,6 @@ class VulkanSurfaceView: SurfaceView, SurfaceHolder.Callback2 {
     }
 
     override fun surfaceRedrawNeeded(holder: SurfaceHolder) {
-        vulkanApp.draw()
+        vulkanApp.draw(0.0)
     }
 }

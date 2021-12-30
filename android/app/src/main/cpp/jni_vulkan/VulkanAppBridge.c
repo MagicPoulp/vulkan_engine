@@ -40,7 +40,7 @@ Java_com_thierry_android_1surface_1view_1with_1vulkan_VulkanAppBridge_nativeResi
 }
 
 JNIEXPORT void JNICALL
-Java_com_thierry_android_1surface_1view_1with_1vulkan_VulkanAppBridge_nativeDraw(JNIEnv *env, jobject vulkanAppBridge) {
+Java_com_thierry_android_1surface_1view_1with_1vulkan_VulkanAppBridge_nativeDraw(JNIEnv *env, jobject vulkanAppBridge, jdouble elapsedTimeS) {
     __android_log_print(ANDROID_LOG_DEBUG, "mc-native-VulkanAppBridge", "draw");
-    drawFrame();
+    drawFrame(elapsedTimeS);
 }

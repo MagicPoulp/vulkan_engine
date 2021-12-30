@@ -6,10 +6,15 @@ import android.view.Choreographer
 class SyncedRenderer(val doFrame: (frameTimeNanos: Long) -> Unit) {
 
     private var callback: (Long) -> Unit = {}
+    private var frameTimeNanosPrevious = 0L
 
     fun start() {
         callback = {
-            doFrame(it)
+            if (frameTimeNanosPrevious == -1L) {
+                frameTimeNanosPrevious = it
+            }
+            doFrame(it - frameTimeNanosPrevious)
+            frameTimeNanosPrevious = it
             Choreographer.getInstance().postFrameCallback(callback)
         }
         Choreographer.getInstance().postFrameCallback(callback)
