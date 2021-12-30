@@ -477,7 +477,7 @@ void demo_update_data_buffer(struct demo *demo, double elapsedTimeS) {
     mat4x4_dup(Model, demo->model_matrix);
     // degrees per second
     double movedAngle = demo->spin_angle * elapsedTimeS;
-    __android_log_print(ANDROID_LOG_INFO, "LOG", "%lf", movedAngle);
+    __android_log_print(ANDROID_LOG_INFO, "LOG", "%lf - &lf - %lf", demo->spin_angle, elapsedTimeS, movedAngle);
     //NSLog(@"%lf", movedAngle);
     mat4x4_rotate_Y(demo->model_matrix, Model, (float)degreesToRadians(movedAngle));
     mat4x4_orthonormalize(demo->model_matrix, demo->model_matrix);
@@ -3659,7 +3659,8 @@ static void demo_init(struct demo *demo, int argc, char **argv) {
 
     demo_init_vk(demo);
 
-    demo->spin_angle = 4.0f;
+    // degrees per second
+    demo->spin_angle = 8.0f;
     demo->spin_increment = 0.2f;
     demo->pause = false;
 

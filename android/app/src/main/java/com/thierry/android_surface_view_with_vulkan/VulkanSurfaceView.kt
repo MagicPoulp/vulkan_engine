@@ -9,7 +9,7 @@ class VulkanSurfaceView: SurfaceView, SurfaceHolder.Callback2 {
 
     private var vulkanApp = VulkanAppBridge()
     private val syncedRenderer: SyncedRenderer = SyncedRenderer { elapsedTimeNanos: Long ->
-        vulkanApp.draw((elapsedTimeNanos * 1000000000).toDouble())
+        vulkanApp.draw(elapsedTimeNanos.toDouble()/1000000000.0)
     }
 
     constructor(context: Context): super(context) {
