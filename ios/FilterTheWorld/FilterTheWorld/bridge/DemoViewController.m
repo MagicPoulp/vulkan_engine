@@ -27,6 +27,7 @@
 @implementation DemoViewController {
 	CADisplayLink* displayLink;
 	struct demo demo;
+  BOOL initDone;
 }
 
 -(void) dealloc {
@@ -37,7 +38,7 @@
 
 -(instancetype)initWithView:(UIView *) view {
     self = [super init];
-
+    initDone = NO;
     if (self) {
       self.view = view;
     }
@@ -47,15 +48,14 @@
 /** Since this is a single-view app, init Vulkan when the view is loaded. */
 -(void) viewWillLayoutSubviews {
 	[super viewWillLayoutSubviews];
+  if (initDone) {
+    return;
+  }
+  initDone = YES;
 
   self.view.contentScaleFactor = UIScreen.mainScreen.nativeScale;
 
-#if TARGET_OS_SIMULATOR
-	// Avoid linear host-coherent texture loading on simulator
-	const char* argv[] = { "cube", "--use_staging" };
-#else
 	const char* argv[] = { "cube" };
-#endif
 	int argc = sizeof(argv)/sizeof(char*);
 	demo_main(&demo, self.view.layer, argc, argv);
 	demo_draw(&demo, 0);
