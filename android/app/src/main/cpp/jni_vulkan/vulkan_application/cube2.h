@@ -3216,9 +3216,10 @@ void setSizeFull(struct demo *demo, int32_t width, int32_t height) {
     demo_resize(demo);
 }
 
-void createTextureImage() {
+void createTextureImage(const char* path) {
     int texWidth, texHeight, texChannels;
-    stbi_uc* pixels = stbi_load("textures/statue.jpeg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+    stbi_uc* pixels = stbi_load(path, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+    //stbi_uc* pixels = stbi_load("vulkan_application/textures/statue-hera.png", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
     VkDeviceSize imageSize = texWidth * texHeight * 4;
 
     if (!pixels) {

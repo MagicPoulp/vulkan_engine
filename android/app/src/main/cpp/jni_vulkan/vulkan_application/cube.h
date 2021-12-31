@@ -435,6 +435,6 @@ void demo_main(struct demo *demo,  void *caMetalLayer, int argc, const char *arg
 void demo_cleanup(struct demo *demo);
 void demo_resize(struct demo *demo);
 
-void createTextureImage(void);
+void createTextureImage(const char* path);
 
 #endif /* cube_h */

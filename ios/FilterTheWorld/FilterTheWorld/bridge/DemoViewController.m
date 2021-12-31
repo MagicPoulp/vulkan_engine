@@ -59,7 +59,9 @@
 	int argc = sizeof(argv)/sizeof(char*);
 	// the debugger step-in cannot be used in demo-main, BUT it works in a function just after
   demo_main(&demo, self.view.layer, argc, argv);
-  createTextureImage();
+  NSString * path = [[NSBundle mainBundle] pathForResource:  @"statue-hera" ofType: @"png"];
+  // https://www.qi-u.com/?qa=924696/c-how-to-fopen-on-the-iphone
+  createTextureImage([path cStringUsingEncoding:1]);
 	demo_draw(&demo, 0);
 
 	displayLink = [CADisplayLink displayLinkWithTarget: self selector: @selector(renderLoop)];
