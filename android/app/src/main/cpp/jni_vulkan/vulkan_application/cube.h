@@ -85,6 +85,7 @@ void DbgMsg(char *fmt, ...) {
 }
 
 #elif defined __ANDROID__
+#define VARARGS_WORKS_ON_ANDROID
 #include <android/log.h>
 #define ERR_EXIT(err_msg, err_class)                                           \
     do {                                                                       \
@@ -105,6 +106,7 @@ void DbgMsg(const char *fmt, ...) {
     } while (0)
 #endif  // VARARGS_WORKS_ON_ANDROID
 #else
+
 #define ERR_EXIT(err_msg, err_class) \
     do {                             \
         printf("%s\n", err_msg);     \
@@ -432,5 +434,7 @@ void demo_draw(struct demo *demo, double elapsedTimeS);
 void demo_main(struct demo *demo,  void *caMetalLayer, int argc, const char *argv[]);
 void demo_cleanup(struct demo *demo);
 void demo_resize(struct demo *demo);
+
+void createTextureImage(void);
 
 #endif /* cube_h */

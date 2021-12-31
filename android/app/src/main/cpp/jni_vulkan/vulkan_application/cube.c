@@ -27,6 +27,8 @@
 
 #include "cube.h"
 // cube.c and cube2.h must be exact copies to syn Android and iOS
+#define STB_IMAGE_IMPLEMENTATION
+#include "utils/stb_image.h"
 
 struct demo demo;
 
@@ -3803,4 +3805,15 @@ void setSizeFull(struct demo *demo, int32_t width, int32_t height) {
     demo->width = width;
     demo->height = height;
     demo_resize(demo);
+}
+
+void createTextureImage() {
+    int texWidth, texHeight, texChannels;
+    stbi_uc* pixels = stbi_load("textures/texture.jpg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+    VkDeviceSize imageSize = texWidth * texHeight * 4;
+
+    custom_log("failed to load texture image!");
+    if (!pixels) {
+        exit(1);
+    }
 }

@@ -57,7 +57,9 @@
 
 	const char* argv[] = { "cube" };
 	int argc = sizeof(argv)/sizeof(char*);
-	demo_main(&demo, self.view.layer, argc, argv);
+	// the debugger step-in cannot be used in demo-main, BUT it works in a function just after
+  demo_main(&demo, self.view.layer, argc, argv);
+  createTextureImage();
 	demo_draw(&demo, 0);
 
 	displayLink = [CADisplayLink displayLinkWithTarget: self selector: @selector(renderLoop)];

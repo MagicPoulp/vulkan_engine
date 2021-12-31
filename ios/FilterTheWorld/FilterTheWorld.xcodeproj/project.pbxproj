@@ -46,6 +46,9 @@
 		22528003277C504D00E3109E /* DemoViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DemoViewController.h; sourceTree = "<group>"; };
 		22528004277C504D00E3109E /* FilterTheWorld-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "FilterTheWorld-Bridging-Header.h"; sourceTree = "<group>"; };
 		22528005277C504D00E3109E /* DemoViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DemoViewController.m; sourceTree = "<group>"; };
+		22594E9A277F0E7E0078C781 /* stb_image.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stb_image.h; sourceTree = "<group>"; };
+		22594E9C277F0F680078C781 /* statue.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = statue.jpeg; sourceTree = "<group>"; };
+		22594E9D277F160B0078C781 /* cube2.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = cube2.h; path = ../android/app/src/main/cpp/jni_vulkan/vulkan_application/cube2.h; sourceTree = "<group>"; };
 		2265FBD0277CEEB7008E1018 /* object_type_string_helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = object_type_string_helper.h; sourceTree = "<group>"; };
 		2265FBD1277CEEB7008E1018 /* cube.frag */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = cube.frag; sourceTree = "<group>"; };
 		2265FBD2277CEEB7008E1018 /* CMakeLists.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
@@ -59,7 +62,6 @@
 		2265FBDD277CEEB7008E1018 /* gettime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gettime.h; sourceTree = "<group>"; };
 		2265FBDE277CEEB7008E1018 /* 15-draw_cube.frag.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "15-draw_cube.frag.h"; sourceTree = "<group>"; };
 		2265FBE0277CEEB7008E1018 /* 15-draw_cube.vert.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "15-draw_cube.vert.h"; sourceTree = "<group>"; };
-		2265FBEC277D0D7B008E1018 /* cube2.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = cube2.h; path = ../android/app/src/main/cpp/jni_vulkan/vulkan_application/cube2.h; sourceTree = "<group>"; };
 		9F69EE4B26942A8A00746CD7 /* CameraError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraError.swift; sourceTree = "<group>"; };
 		9F69EE4D26942CD500746CD7 /* CameraManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraManager.swift; sourceTree = "<group>"; };
 		9F69EE5126957E1300746CD7 /* FrameManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameManager.swift; sourceTree = "<group>"; };
@@ -164,9 +166,29 @@
 			path = bridge;
 			sourceTree = "<group>";
 		};
+		22594E99277F0E7E0078C781 /* utils */ = {
+			isa = PBXGroup;
+			children = (
+				22594E9A277F0E7E0078C781 /* stb_image.h */,
+			);
+			name = utils;
+			path = ../android/app/src/main/cpp/jni_vulkan/vulkan_application/utils;
+			sourceTree = "<group>";
+		};
+		22594E9B277F0F680078C781 /* textures */ = {
+			isa = PBXGroup;
+			children = (
+				22594E9C277F0F680078C781 /* statue.jpeg */,
+			);
+			name = textures;
+			path = ../android/app/src/main/cpp/jni_vulkan/vulkan_application/textures;
+			sourceTree = "<group>";
+		};
 		2265FBCF277CEEB7008E1018 /* vulkan_application */ = {
 			isa = PBXGroup;
 			children = (
+				22594E9B277F0F680078C781 /* textures */,
+				22594E99277F0E7E0078C781 /* utils */,
 				2265FBD0277CEEB7008E1018 /* object_type_string_helper.h */,
 				2265FBD1277CEEB7008E1018 /* cube.frag */,
 				2265FBDB277CEEB7008E1018 /* cube.vert */,
@@ -175,7 +197,7 @@
 				2265FBD4277CEEB7008E1018 /* cube_data.h */,
 				2265FBD5277CEEB7008E1018 /* cube.frag.inc */,
 				2265FBD9277CEEB7008E1018 /* cube.h */,
-				2265FBEC277D0D7B008E1018 /* cube2.h */,
+				22594E9D277F160B0078C781 /* cube2.h */,
 				2265FBDA277CEEB7008E1018 /* lunarg.ppm.h */,
 				2265FBDC277CEEB7008E1018 /* cube.vert.inc */,
 				2265FBDD277CEEB7008E1018 /* gettime.h */,
