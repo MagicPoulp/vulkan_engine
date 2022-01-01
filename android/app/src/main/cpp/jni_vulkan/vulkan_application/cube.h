@@ -339,8 +339,12 @@ struct demo {
     VkDevice device;
     VkQueue graphics_queue;
     VkQueue present_queue;
+    VkQueue graphics_queue2;
+    VkQueue present_queue2;
     uint32_t graphics_queue_family_index;
     uint32_t present_queue_family_index;
+    uint32_t graphics_queue_family_index2;
+    uint32_t present_queue_family_index2;
     VkSemaphore image_acquired_semaphores[FRAME_LAG];
     VkSemaphore draw_complete_semaphores[FRAME_LAG];
     VkSemaphore image_ownership_semaphores[FRAME_LAG];

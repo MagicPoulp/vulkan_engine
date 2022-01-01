@@ -61,8 +61,8 @@
   demo_main(&demo, self.view.layer, argc, argv);
   NSString * path = [[NSBundle mainBundle] pathForResource:  @"statue-hera" ofType: @"png"];
   // https://www.qi-u.com/?qa=924696/c-how-to-fopen-on-the-iphone
-  //createTextureImage(&demo, [path cStringUsingEncoding:1]);
-	//demo_draw(&demo, 0);
+  createTextureImage(&demo, [path cStringUsingEncoding:1]);
+	demo_draw(&demo, 0);
 
 	displayLink = [CADisplayLink displayLinkWithTarget: self selector: @selector(renderLoop)];
   [displayLink addToRunLoop: NSRunLoop.currentRunLoop forMode: NSDefaultRunLoopMode];
@@ -70,7 +70,7 @@
 
 -(void) renderLoop {
   double elapsedTimeS = displayLink.targetTimestamp - displayLink.timestamp;
-	//demo_draw(&demo, elapsedTimeS);
+	demo_draw(&demo, elapsedTimeS);
 }
 
 // Allow device rotation to resize the swapchain

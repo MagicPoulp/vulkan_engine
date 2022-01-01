@@ -2552,7 +2552,8 @@ static void demo_create_device(struct demo *demo) {
             .ppEnabledExtensionNames = (const char *const *)demo->extension_names,
             .pEnabledFeatures = NULL,  // If specific features are required, pass them in here
     };
-    if (demo->separate_present_queue) {
+  /*
+  if (demo->separate_present_queue) {
         queues[1].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
         queues[1].pNext = NULL;
         queues[1].queueFamilyIndex = demo->present_queue_family_index;
@@ -2561,6 +2562,15 @@ static void demo_create_device(struct demo *demo) {
         queues[1].flags = 0;
         device.queueCreateInfoCount = 2;
     }
+  */
+
+    queues[1].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    queues[1].pNext = NULL;
+    queues[1].queueFamilyIndex = demo->graphics_queue_family_index2;
+    queues[1].queueCount = 1;
+    queues[1].pQueuePriorities = queue_priorities;
+    queues[1].flags = 0;
+    device.queueCreateInfoCount = 2;
     err = vkCreateDevice(demo->gpu, &device, NULL, &demo->device);
     assert(!err);
 }
@@ -2669,22 +2679,30 @@ static void demo_init_vk_swapchain(struct demo *demo) {
     // families, try to find one that supports both
     uint32_t graphicsQueueFamilyIndex = UINT32_MAX;
     uint32_t presentQueueFamilyIndex = UINT32_MAX;
+    uint32_t graphicsQueueFamilyIndex2 = UINT32_MAX;
+    uint32_t presentQueueFamilyIndex2 = UINT32_MAX;
+    bool val1 = false;
     for (uint32_t i = 0; i < demo->queue_family_count; i++) {
         if ((demo->queue_props[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0) {
             if (graphicsQueueFamilyIndex == UINT32_MAX) {
                 graphicsQueueFamilyIndex = i;
             }
 
-            if (supportsPresent[i] == VK_TRUE) {
+            if (val1 && supportsPresent[i] == VK_TRUE) {
+                graphicsQueueFamilyIndex2 = i;
+                presentQueueFamilyIndex2 = i;
+                break;
+            }
+            if (!val1 && supportsPresent[i] == VK_TRUE) {
                 graphicsQueueFamilyIndex = i;
                 presentQueueFamilyIndex = i;
-                break;
+                val1 = true;
             }
         }
     }
 
     if (presentQueueFamilyIndex == UINT32_MAX) {
-        // If didn't find a queue that supports both graphics and present, then
+        // If we didn't find a queue that supports both graphics and present, then
         // find a separate present queue.
         for (uint32_t i = 0; i < demo->queue_family_count; ++i) {
             if (supportsPresent[i] == VK_TRUE) {
@@ -2726,6 +2744,7 @@ static void demo_init_vk_swapchain(struct demo *demo) {
     }*/
 
     vkGetDeviceQueue(demo->device, demo->graphics_queue_family_index, 0, &demo->graphics_queue);
+    vkGetDeviceQueue(demo->device, demo->graphics_queue_family_index2, 0, &demo->graphics_queue2);
 
     if (!demo->separate_present_queue) {
         demo->present_queue = demo->graphics_queue;
@@ -3237,8 +3256,8 @@ void endSingleTimeCommands(VkCommandBuffer* commandBuffer) {
     submitInfo.pCommandBuffers = commandBuffer;
     submitInfo.pNext = 0;
 
-    vkQueueSubmit(demo.graphics_queue, 1, &submitInfo, VK_NULL_HANDLE);
-    vkQueueWaitIdle(demo.graphics_queue);
+    vkQueueSubmit(demo.graphics_queue2, 1, &submitInfo, VK_NULL_HANDLE);
+    vkQueueWaitIdle(demo.graphics_queue2);
 
     vkFreeCommandBuffers(demo.device, demo.cmd_pool, 1, commandBuffer);
 }
