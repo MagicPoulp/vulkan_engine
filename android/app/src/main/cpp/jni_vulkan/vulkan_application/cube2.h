@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2019 LunarG, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * you may not use this file exdemo_maincept in compliance with the License.
  * You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
@@ -227,15 +227,17 @@ static void demo_flush_init_cmd(struct demo *demo) {
     assert(!err);
 
     const VkCommandBuffer cmd_bufs[] = {demo->cmd};
-    VkSubmitInfo submit_info = {.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-            .pNext = NULL,
-            .waitSemaphoreCount = 0,
-            .pWaitSemaphores = NULL,
-            .pWaitDstStageMask = NULL,
-            .commandBufferCount = 1,
-            .pCommandBuffers = cmd_bufs,
-            .signalSemaphoreCount = 0,
-            .pSignalSemaphores = NULL};
+    VkSubmitInfo submit_info = {
+      .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+      .pNext = NULL,
+      .waitSemaphoreCount = 0,
+      .pWaitSemaphores = NULL,
+      .pWaitDstStageMask = NULL,
+      .commandBufferCount = 1,
+      .pCommandBuffers = cmd_bufs,
+      .signalSemaphoreCount = 0,
+      .pSignalSemaphores = NULL
+    };
 
     err = vkQueueSubmit(demo->graphics_queue, 1, &submit_info, fence);
     assert(!err);
@@ -2041,7 +2043,7 @@ static void demo_run(struct demo *demo) {
 }
 #elif defined(VK_USE_PLATFORM_METAL_EXT)
 static void demo_run(struct demo *demo) {
-    demo_draw(demo, 0);
+    //demo_draw(demo, 0);
     demo->curFrame++;
     if (demo->frameCount != INT32_MAX && demo->curFrame == demo->frameCount) {
         demo->quit = TRUE;
@@ -2892,46 +2894,6 @@ static void registry_handle_global_remove(void *data UNUSED, struct wl_registry 
 static const struct wl_registry_listener registry_listener = {registry_handle_global, registry_handle_global_remove};
 #endif
 
-static void demo_init_connection(struct demo *demo) {
-#if defined(VK_USE_PLATFORM_XCB_KHR)
-    const xcb_setup_t *setup;
-    xcb_screen_iterator_t iter;
-    int scr;
-
-    const char *display_envar = getenv("DISPLAY");
-    if (display_envar == NULL || display_envar[0] == '\0') {
-        printf("Environment variable DISPLAY requires a valid value.\nExiting ...\n");
-        fflush(stdout);
-        exit(1);
-    }
-
-    demo->connection = xcb_connect(NULL, &scr);
-    if (xcb_connection_has_error(demo->connection) > 0) {
-        printf("Cannot find a compatible Vulkan installable client driver (ICD).\nExiting ...\n");
-        fflush(stdout);
-        exit(1);
-    }
-
-    setup = xcb_get_setup(demo->connection);
-    iter = xcb_setup_roots_iterator(setup);
-    while (scr-- > 0) xcb_screen_next(&iter);
-
-    demo->screen = iter.data;
-#elif defined(VK_USE_PLATFORM_WAYLAND_KHR)
-    demo->display = wl_display_connect(NULL);
-
-    if (demo->display == NULL) {
-        printf("Cannot find a compatible Vulkan installable client driver (ICD).\nExiting ...\n");
-        fflush(stdout);
-        exit(1);
-    }
-
-    demo->registry = wl_display_get_registry(demo->display);
-    wl_registry_add_listener(demo->registry, &registry_listener, demo);
-    wl_display_dispatch(demo->display);
-#endif
-}
-
 static void demo_init(struct demo *demo, int argc, char **argv) {
     vec3 eye = {0.0f, 3.0f, 5.0f};
     vec3 origin = {0, 0, 0};
@@ -3038,8 +3000,6 @@ static void demo_init(struct demo *demo, int argc, char **argv) {
 #endif
     }
 
-    demo_init_connection(demo);
-
     demo_init_vk(demo);
 
     // degrees per second
@@ -3112,6 +3072,9 @@ uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
 VkImage textureImage;
 VkDeviceMemory textureImageMemory;
 
+// we should use separate queues for separate things
+// https://stackoverflow.com/questions/37575012/should-i-try-to-use-as-many-queues-as-possible
+
 // from
 // https://github.com/Overv/VulkanTutorial.git
 // ./code/27_model_loading.cpp
@@ -3143,7 +3106,7 @@ void createTextureImage(struct demo *demo1, const char* path) {
   createImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &textureImage, &textureImageMemory);
 
   transitionImageLayout(&textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-      copyBufferToImage(&stagingBuffer, &textureImage, (uint32_t)texWidth, (uint32_t)texHeight);
+  copyBufferToImage(&stagingBuffer, &textureImage, (uint32_t)texWidth, (uint32_t)texHeight);
   transitionImageLayout(&textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
   vkDestroyBuffer(demo.device, stagingBuffer, NULL);
@@ -3279,3 +3242,4 @@ void endSingleTimeCommands(VkCommandBuffer* commandBuffer) {
 
     vkFreeCommandBuffers(demo.device, demo.cmd_pool, 1, commandBuffer);
 }
+
