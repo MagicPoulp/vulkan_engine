@@ -380,6 +380,7 @@ struct demo {
     int frame_index;
 
     VkCommandPool cmd_pool;
+    VkCommandPool cmd_pool2;
     VkCommandPool present_cmd_pool;
 
     struct {
@@ -394,6 +395,7 @@ struct demo {
     struct texture_object textures[DEMO_TEXTURE_COUNT];
     struct texture_object staging_texture;
 
+    VkCommandBuffer cmd2;
     VkCommandBuffer cmd;  // Buffer for initialization commands
     VkPipelineLayout pipeline_layout;
     VkDescriptorSetLayout desc_layout;
