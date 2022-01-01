@@ -9,6 +9,8 @@
 #ifndef cube_h
 #define cube_h
 
+#include "utils/stb_image.h"
+
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <stdarg.h>
@@ -435,6 +437,14 @@ void demo_main(struct demo *demo,  void *caMetalLayer, int argc, const char *arg
 void demo_cleanup(struct demo *demo);
 void demo_resize(struct demo *demo);
 
-void createTextureImage(const char* path);
+void createTextureImage(struct demo *demo1, const char* path);
+void createStagingBuffer(stbi_uc* pixels, VkDeviceSize imageSize);
+uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer* buffer, VkDeviceMemory* bufferMemory);
+void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage* image, VkDeviceMemory* imageMemory);
+void transitionImageLayout(VkImage* image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+void copyBufferToImage(VkBuffer* buffer, VkImage* image, uint32_t width, uint32_t height);
+VkCommandBuffer beginSingleTimeCommands(void);
+void endSingleTimeCommands(VkCommandBuffer* commandBuffer);
 
 #endif /* cube_h */

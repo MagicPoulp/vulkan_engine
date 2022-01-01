@@ -61,7 +61,7 @@
   demo_main(&demo, self.view.layer, argc, argv);
   NSString * path = [[NSBundle mainBundle] pathForResource:  @"statue-hera" ofType: @"png"];
   // https://www.qi-u.com/?qa=924696/c-how-to-fopen-on-the-iphone
-  createTextureImage([path cStringUsingEncoding:1]);
+  createTextureImage(&demo, [path cStringUsingEncoding:1]);
 	demo_draw(&demo, 0);
 
 	displayLink = [CADisplayLink displayLinkWithTarget: self selector: @selector(renderLoop)];

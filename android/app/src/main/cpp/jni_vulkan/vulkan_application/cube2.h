@@ -1968,35 +1968,6 @@ void demo_cleanup(struct demo *demo) {
         demo->DestroyDebugUtilsMessengerEXT(demo->inst, demo->dbg_messenger, NULL);
     }
     vkDestroySurfaceKHR(demo->inst, demo->surface, NULL);
-
-#if defined(VK_USE_PLATFORM_XLIB_KHR)
-    XDestroyWindow(demo->display, demo->xlib_window);
-    XCloseDisplay(demo->display);
-#elif defined(VK_USE_PLATFORM_XCB_KHR)
-    xcb_destroy_window(demo->connection, demo->xcb_window);
-    xcb_disconnect(demo->connection);
-    free(demo->atom_wm_delete_window);
-#elif defined(VK_USE_PLATFORM_WAYLAND_KHR)
-    wl_keyboard_destroy(demo->keyboard);
-    wl_pointer_destroy(demo->pointer);
-    wl_seat_destroy(demo->seat);
-    xdg_toplevel_destroy(demo->xdg_toplevel);
-    xdg_surface_destroy(demo->xdg_surface);
-    wl_surface_destroy(demo->window);
-    xdg_wm_base_destroy(demo->xdg_wm_base);
-    if (demo->xdg_decoration_mgr) {
-        zxdg_toplevel_decoration_v1_destroy(demo->toplevel_decoration);
-        zxdg_decoration_manager_v1_destroy(demo->xdg_decoration_mgr);
-    }
-    wl_compositor_destroy(demo->compositor);
-    wl_registry_destroy(demo->registry);
-    wl_display_disconnect(demo->display);
-#elif defined(VK_USE_PLATFORM_DIRECTFB_EXT)
-    demo->event_buffer->Release(demo->event_buffer);
-    demo->window->Release(demo->window);
-    demo->dfb->Release(demo->dfb);
-#endif
-
     vkDestroyInstance(demo->inst, NULL);
 }
 
@@ -3083,99 +3054,7 @@ static void demo_init(struct demo *demo, int argc, char **argv) {
     demo->projection_matrix[1][1] *= -1;  // Flip projection matrix from GL to Vulkan orientation.
 }
 
-#if defined(VK_USE_PLATFORM_WIN32_KHR)
-// Include header required for parsing the command line options.
-#include <shellapi.h>
-
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nCmdShow) {
-    MSG msg;    // message
-    bool done;  // flag saying when app is complete
-    int argc;
-    char **argv;
-
-    // Ensure wParam is initialized.
-    msg.wParam = 0;
-
-    // Use the CommandLine functions to get the command line arguments.
-    // Unfortunately, Microsoft outputs
-    // this information as wide characters for Unicode, and we simply want the
-    // Ascii version to be compatible
-    // with the non-Windows side.  So, we have to convert the information to
-    // Ascii character strings.
-    LPWSTR *commandLineArgs = CommandLineToArgvW(GetCommandLineW(), &argc);
-    if (NULL == commandLineArgs) {
-        argc = 0;
-    }
-
-    if (argc > 0) {
-        argv = (char **)malloc(sizeof(char *) * argc);
-        if (argv == NULL) {
-            argc = 0;
-        } else {
-            for (int iii = 0; iii < argc; iii++) {
-                size_t wideCharLen = wcslen(commandLineArgs[iii]);
-                size_t numConverted = 0;
-
-                argv[iii] = (char *)malloc(sizeof(char) * (wideCharLen + 1));
-                if (argv[iii] != NULL) {
-                    wcstombs_s(&numConverted, argv[iii], wideCharLen + 1, commandLineArgs[iii], wideCharLen + 1);
-                }
-            }
-        }
-    } else {
-        argv = NULL;
-    }
-
-    demo_init(&demo, argc, argv);
-
-    // Free up the items we had to allocate for the command line arguments.
-    if (argc > 0 && argv != NULL) {
-        for (int iii = 0; iii < argc; iii++) {
-            if (argv[iii] != NULL) {
-                free(argv[iii]);
-            }
-        }
-        free(argv);
-    }
-
-    demo.connection = hInstance;
-    strncpy(demo.name, "Vulkan Cube", APP_NAME_STR_LEN);
-    demo_create_window(&demo);
-    demo_init_vk_swapchain(&demo);
-
-    demo_prepare(&demo);
-
-    done = false;  // initialize loop condition variable
-
-    // main message loop
-    while (!done) {
-        if (demo.pause) {
-            const BOOL succ = WaitMessage();
-
-            if (!succ) {
-                struct demo *tmp = &demo;
-                struct demo *demo = tmp;
-                ERR_EXIT("WaitMessage() failed on paused demo", "event loop error");
-            }
-        }
-        PeekMessage(&msg, NULL, 0, 0, PM_REMOVE);
-        if (msg.message == WM_QUIT)  // check for a quit message
-        {
-            done = true;  // if found, quit app
-        } else {
-            /* Translate and dispatch to event queue*/
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
-        RedrawWindow(demo.window, NULL, NULL, RDW_INTERNALPAINT);
-    }
-
-    demo_cleanup(&demo);
-
-    return (int)msg.wParam;
-}
-
-#elif defined(VK_USE_PLATFORM_METAL_EXT)
+#if defined(VK_USE_PLATFORM_METAL_EXT)
 void demo_main(struct demo *demo, void *caMetalLayer, int argc, const char *argv[]) {
     //demo->VK_GOOGLE_display_timing_enabled = true;
     demo_init(demo, argc, (char **)argv);
@@ -3216,14 +3095,184 @@ void setSizeFull(struct demo *demo, int32_t width, int32_t height) {
     demo_resize(demo);
 }
 
-void createTextureImage(const char* path) {
-    int texWidth, texHeight, texChannels;
-    stbi_uc* pixels = stbi_load(path, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-    //stbi_uc* pixels = stbi_load("vulkan_application/textures/statue-hera.png", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-    VkDeviceSize imageSize = texWidth * texHeight * 4;
+uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
+    VkPhysicalDeviceMemoryProperties memProperties;
+  vkGetPhysicalDeviceMemoryProperties(demo.gpu, &memProperties);
 
-    if (!pixels) {
-        DbgMsg("failed to load texture image!");
-        //exit(1);
+  for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+      if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+          return i;
+      }
+  }
+
+  DbgMsg("failed to find suitable memory type!");
+  exit(1);
+}
+
+VkImage textureImage;
+VkDeviceMemory textureImageMemory;
+
+// from
+// https://github.com/Overv/VulkanTutorial.git
+// ./code/27_model_loading.cpp
+void createTextureImage(struct demo *demo1, const char* path) {
+  demo = *demo1;
+  // read file
+  int texWidth, texHeight, texChannels;
+  stbi_uc* pixels = stbi_load(path, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+  VkDeviceSize imageSize = texWidth * texHeight * 4;
+
+  if (!pixels) {
+    DbgMsg("failed to load texture image!");
+    exit(1);
+  }
+
+  // staging buffer
+  VkBuffer stagingBuffer;
+  VkDeviceMemory stagingBufferMemory;
+  createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, &stagingBufferMemory);
+
+  void* data;
+  vkMapMemory(demo.device, stagingBufferMemory, 0, imageSize, 0, &data);
+  memcpy(data, pixels, (size_t)imageSize);
+  vkUnmapMemory(demo.device, stagingBufferMemory);
+
+  stbi_image_free(pixels);
+
+  // texture image
+  createImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &textureImage, &textureImageMemory);
+
+  transitionImageLayout(&textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+      copyBufferToImage(&stagingBuffer, &textureImage, (uint32_t)texWidth, (uint32_t)texHeight);
+  transitionImageLayout(&textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+  vkDestroyBuffer(demo.device, stagingBuffer, NULL);
+  vkFreeMemory(demo.device, stagingBufferMemory, NULL);
+}
+
+void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer* buffer, VkDeviceMemory* bufferMemory) {
+    VkBufferCreateInfo bufferInfo;
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = size;
+    bufferInfo.usage = usage;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    bufferInfo.pNext = 0;
+
+    if (vkCreateBuffer(demo.device, &bufferInfo, NULL, buffer) != VK_SUCCESS) {
+      DbgMsg("failed to create buffer!");
+      exit(1);
     }
+
+    VkMemoryRequirements memRequirements;
+    vkGetBufferMemoryRequirements(demo.device, *buffer, &memRequirements);
+
+    VkMemoryAllocateInfo allocInfo;
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
+
+    if (vkAllocateMemory(demo.device, &allocInfo, NULL, bufferMemory) != VK_SUCCESS) {
+      DbgMsg("failed to allocate buffer memory!");
+      exit(1);
+    }
+
+    vkBindBufferMemory(demo.device, *buffer, *bufferMemory, 0);
+}
+
+void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage* image, VkDeviceMemory* imageMemory) {
+  VkImageCreateInfo imageInfo;
+  imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+  imageInfo.imageType = VK_IMAGE_TYPE_2D;
+  imageInfo.extent.width = width;
+  imageInfo.extent.height = height;
+  imageInfo.extent.depth = 1;
+  imageInfo.mipLevels = 1;
+  imageInfo.arrayLayers = 1;
+  imageInfo.format = format;
+  imageInfo.tiling = tiling;
+  imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+  imageInfo.usage = usage;
+  imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+  imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+  imageInfo.pNext = 0;
+
+  if (vkCreateImage(demo.device, &imageInfo, NULL, image) != VK_SUCCESS) {
+    DbgMsg("failed to create image!");
+    exit(1);
+  }
+
+  VkMemoryRequirements memRequirements;
+  vkGetImageMemoryRequirements(demo.device, *image, &memRequirements);
+
+  VkMemoryAllocateInfo allocInfo;
+  allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+  allocInfo.allocationSize = memRequirements.size;
+  allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
+
+  if (vkAllocateMemory(demo.device, &allocInfo, NULL, imageMemory) != VK_SUCCESS) {
+    DbgMsg("failed to allocate image memory!");
+    exit(1);
+  }
+
+  vkBindImageMemory(demo.device, *image, *imageMemory, 0);
+}
+
+void transitionImageLayout(VkImage* image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) {
+    VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+
+    endSingleTimeCommands(&commandBuffer);
+}
+
+void copyBufferToImage(VkBuffer* buffer, VkImage* image, uint32_t width, uint32_t height) {
+  VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+
+  VkBufferImageCopy region;
+  region.bufferOffset = 0;
+  region.bufferRowLength = 0;
+  region.bufferImageHeight = 0;
+  region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  region.imageSubresource.mipLevel = 0;
+  region.imageSubresource.baseArrayLayer = 0;
+  region.imageSubresource.layerCount = 1;
+  //region.imageOffset;
+  region.imageExtent.width = width;
+  region.imageExtent.height = height;
+  region.imageExtent.depth = 1;
+  
+  vkCmdCopyBufferToImage(commandBuffer, *buffer, *image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+
+  endSingleTimeCommands(&commandBuffer);
+}
+
+VkCommandBuffer beginSingleTimeCommands() {
+    VkCommandBufferAllocateInfo allocInfo;
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandPool = demo.cmd_pool;
+    allocInfo.commandBufferCount = 1;
+
+    VkCommandBuffer commandBuffer;
+    vkAllocateCommandBuffers(demo.device, &allocInfo, &commandBuffer);
+
+    VkCommandBufferBeginInfo beginInfo;
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+    vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+    return commandBuffer;
+}
+
+void endSingleTimeCommands(VkCommandBuffer* commandBuffer) {
+    vkEndCommandBuffer(*commandBuffer);
+
+    VkSubmitInfo submitInfo;
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = commandBuffer;
+
+    vkQueueSubmit(demo.graphics_queue, 1, &submitInfo, VK_NULL_HANDLE);
+    vkQueueWaitIdle(demo.graphics_queue);
+
+    vkFreeCommandBuffers(demo.device, demo.cmd_pool, 1, commandBuffer);
 }
