@@ -3191,9 +3191,10 @@ void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling
   imageInfo.format = format;
   imageInfo.tiling = tiling;
   imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-  imageInfo.usage = usage;
+  imageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
   imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
   imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+  imageInfo.flags = 0;
   imageInfo.pNext = 0;
 
   if (vkCreateImage(demo.device, &imageInfo, NULL, image) != VK_SUCCESS) {
@@ -3208,6 +3209,7 @@ void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling
   allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
   allocInfo.allocationSize = memRequirements.size;
   allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
+  allocInfo.pNext = 0;
 
   if (vkAllocateMemory(demo.device, &allocInfo, NULL, imageMemory) != VK_SUCCESS) {
     DbgMsg("failed to allocate image memory!");
@@ -3270,6 +3272,7 @@ void endSingleTimeCommands(VkCommandBuffer* commandBuffer) {
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = commandBuffer;
+    submitInfo.pNext = 0;
 
     vkQueueSubmit(demo.graphics_queue, 1, &submitInfo, VK_NULL_HANDLE);
     vkQueueWaitIdle(demo.graphics_queue);
