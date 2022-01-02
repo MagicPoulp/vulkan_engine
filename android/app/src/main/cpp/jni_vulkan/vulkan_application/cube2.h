@@ -1084,43 +1084,7 @@ static void demo_prepare_depth(struct demo *demo) {
     assert(!err);
 }
 
-/* Convert ppm image data from header file into RGBA texture image */
-//#include "lunarg.ppm.h"
 bool loadTexture(const char *filename, uint8_t *rgba_data, VkSubresourceLayout *layout, int32_t *width, int32_t *height) {
-    int lunarg_ppm_len = *width * *height;
-    (void)filename;
-    char *cPtr;
-    cPtr = (char *)lunarg_ppm;
-    if ((unsigned char *)cPtr >= (lunarg_ppm + lunarg_ppm_len) || strncmp(cPtr, "P6\n", 3)) {
-        return false;
-    }
-    while (strncmp(cPtr++, "\n", 1))
-        ;
-    sscanf(cPtr, "%u %u", width, height);
-    if (rgba_data == NULL) {
-        return true;
-    }
-    while (strncmp(cPtr++, "\n", 1))
-        ;
-    if ((unsigned char *)cPtr >= (lunarg_ppm + lunarg_ppm_len) || strncmp(cPtr, "255\n", 4)) {
-        return false;
-    }
-    while (strncmp(cPtr++, "\n", 1))
-        ;
-    for (int y = 0; y < *height; y++) {
-        uint8_t *rowPtr = rgba_data;
-        for (int x = 0; x < *width; x++) {
-            memcpy(rowPtr, cPtr, 3);
-            rowPtr[3] = 255; /* Alpha of 1 */
-            rowPtr += 4;
-            cPtr += 3;
-        }
-        rgba_data += layout->rowPitch;
-    }
-    return true;
-}
-
-bool loadTexture2(const char *filename, uint8_t *rgba_data, VkSubresourceLayout *layout, int32_t *width, int32_t *height) {
     FILE* ptr = fopen(filename,"rb"); // enlever le b pour observer dans le debugger
     void* buffer = (void*) malloc(sizeof(char)* *width * *height * 4);
     char* buffer_start = (char*)buffer;
@@ -1235,7 +1199,7 @@ static void demo_prepare_texture_image(struct demo *demo, const char *filename, 
     VkResult U_ASSERT_ONLY err;
     bool U_ASSERT_ONLY pass;
     int32_t result = -1;
-    if (!loadTexture2(filename, &result, NULL, &tex_width, &tex_height)) {
+    if (!loadTexture(filename, &result, NULL, &tex_width, &tex_height)) {
         ERR_EXIT("1 Failed to load textures", "Load Texture Failure");
     }
 
@@ -1294,20 +1258,9 @@ static void demo_prepare_texture_image(struct demo *demo, const char *filename, 
         err = vkMapMemory(demo->device, tex_obj->mem, 0, tex_obj->mem_alloc.allocationSize, 0, &data);
         assert(!err);
 
-        if (filename[0] == 'h') {
-          if (!loadTexture(filename, data, &layout, &tex_width, &tex_height)) {
-              fprintf(stderr, "Error loading texture: %s\n", filename);
-          }
-        } else {
-          int texChannels;
-          /*stbi_uc* pixels = stbi_load(filename, &tex_width, &tex_height, &texChannels, STBI_rgb_alpha);
-          lunarg_ppm = (char*)pixels;
-          if (!pixels) {
-              ERR_EXIT("--> Failed to load textures", "Load Texture Failure");
-          }*/
-          if (!loadTexture2(filename, data, &layout, &tex_width, &tex_height)) {
-              fprintf(stderr, "Error loading texture: %s\n", filename);
-          }
+        int texChannels;
+        if (!loadTexture(filename, data, &layout, &tex_width, &tex_height)) {
+            fprintf(stderr, "Error loading texture: %s\n", filename);
         }
 
         vkUnmapMemory(demo->device, tex_obj->mem);

@@ -48,7 +48,7 @@
 #define MILLION 1000000L
 #define BILLION 1000000000L
 
-#define DEMO_TEXTURE_COUNT 2
+#define DEMO_TEXTURE_COUNT 1
 #define APP_SHORT_NAME "vkcube"
 #define APP_LONG_NAME "Vulkan Cube"
 
@@ -158,7 +158,7 @@ struct texture_object {
 };
 
 // DEMO_TEXTURE_COUNT must be updated to match this
-static char *tex_files_short[] = { "home8", "statue-hera" };
+static char *tex_files_short[] = { "home8" };
 static char **tex_files;
 static int validation_error = 0;
 
