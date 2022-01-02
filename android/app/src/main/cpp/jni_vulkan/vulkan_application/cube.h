@@ -9,8 +9,6 @@
 #ifndef cube_h
 #define cube_h
 
-#include "utils/stb_image.h"
-
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <stdarg.h>
@@ -50,7 +48,7 @@
 #define MILLION 1000000L
 #define BILLION 1000000000L
 
-#define DEMO_TEXTURE_COUNT 1
+#define DEMO_TEXTURE_COUNT 2
 #define APP_SHORT_NAME "vkcube"
 #define APP_LONG_NAME "Vulkan Cube"
 
@@ -159,10 +157,9 @@ struct texture_object {
     int32_t tex_width, tex_height;
 };
 
-//static char *tex_files[] = {"lunarg.ppm"};
-//static char *tex_files[] = {"lunarg.ppm", "statue"};
-//static char *tex_files[] = {"statue"};
-static char *tex_files[] = {"home8"};
+// DEMO_TEXTURE_COUNT must be updated to match this
+static char *tex_files_short[] = { "home8", "statue-hera" };
+static char **tex_files;
 static int validation_error = 0;
 
 struct vktexcube_vs_uniform {
@@ -439,20 +436,13 @@ struct demo {
     uint32_t queue_family_count;
 };
 
-int demo_main_android(struct demo *demo, struct ANativeWindow* window, int argc, char **argv);
+int demo_main_android(struct demo *demo, struct ANativeWindow* window, int argc, char **argv, const char* texturesPath);
 void demo_draw(struct demo *demo, double elapsedTimeS);
-void demo_main(struct demo *demo,  void *caMetalLayer, int argc, const char *argv[], const char* image1);
+void demo_main(struct demo *demo,  void *caMetalLayer, int argc, const char *argv[]);
+void setTextures(const char* texturesPathl);
+void add_textures(int unused, ...);
 void demo_cleanup(struct demo *demo);
 void demo_resize(struct demo *demo);
-
-void createTextureImage(struct demo *demo1, const char* path);
-void createStagingBuffer(stbi_uc* pixels, VkDeviceSize imageSize);
-uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
-void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer* buffer, VkDeviceMemory* bufferMemory);
-void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage* image, VkDeviceMemory* imageMemory);
-void transitionImageLayout(VkImage* image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
-void copyBufferToImage(VkBuffer* buffer, VkImage* image, uint32_t width, uint32_t height);
-VkCommandBuffer beginSingleTimeCommands(void);
-void endSingleTimeCommands(VkCommandBuffer* commandBuffer);
+void freeResources(void);
 
 #endif /* cube_h */

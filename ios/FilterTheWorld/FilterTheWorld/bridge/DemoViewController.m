@@ -33,6 +33,7 @@
 -(void) dealloc {
 	demo_cleanup(&demo);
 	[displayLink release];
+  freeResources();
 	[super dealloc];
 }
 
@@ -58,15 +59,15 @@
 	const char* argv[] = { "cube" };
 	int argc = sizeof(argv)/sizeof(char*);
 	// the debugger step-in cannot be used in demo-main, BUT it works in a function just after
-  //NSString * path = [[NSBundle mainBundle] pathForResource:  @"statue-hera" ofType: @"png"];
-  NSString * path = [[NSBundle mainBundle] pathForResource:  @"home8" ofType: @"ppm"];
+  NSString * texture1 = [[NSBundle mainBundle] pathForResource:  @"home8" ofType: @"ppm"];
   // https://www.qi-u.com/?qa=924696/c-how-to-fopen-on-the-iphone
-  demo_main(&demo, self.view.layer, argc, argv, [path cStringUsingEncoding:1]);
-  int w = 740;
-  int h = 430;
-  //loadTexture2([path cStringUsingEncoding:1], NULL, NULL, &w, &h);
+  NSArray *split = [texture1 componentsSeparatedByString:@"/"];
+  [split removeObjectAtIndex:[split count]-1];
+  NSString *joined = [split componentsJoinedByString:@"/"];
+  const char *texturesPath = [joined cStringUsingEncoding:1];
+  demo_main(&demo, self.view.layer, argc, argv);
+  setTextures(texturesPath);
   demo_prepare(&demo);
-  //createTextureImage(&demo, [path cStringUsingEncoding:1]);
 	demo_draw(&demo, 0);
 
 	displayLink = [CADisplayLink displayLinkWithTarget: self selector: @selector(renderLoop)];
