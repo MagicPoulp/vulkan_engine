@@ -1,3 +1,7 @@
+# Notes
+
+The image is grey because gamma and cHRM are used, shown on 32 bits via the command xxd on the png.
+
 # Summary
 
 The application must be in C and not in C++. iOS has only the last iOS version for C++.
