@@ -47,6 +47,7 @@
 		221DA84227779D11007612BD /* VulkanViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VulkanViewController.swift; sourceTree = "<group>"; };
 		221E07BD2782161D0001E8B0 /* home8.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = home8.png; sourceTree = "<group>"; };
 		221E07BE2782161D0001E8B0 /* statue-hera.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "statue-hera.png"; sourceTree = "<group>"; };
+		221E07C1278233F20001E8B0 /* stb_image.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stb_image.h; sourceTree = "<group>"; };
 		22528003277C504D00E3109E /* DemoViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DemoViewController.h; sourceTree = "<group>"; };
 		22528004277C504D00E3109E /* FilterTheWorld-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "FilterTheWorld-Bridging-Header.h"; sourceTree = "<group>"; };
 		22528005277C504D00E3109E /* DemoViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DemoViewController.m; sourceTree = "<group>"; };
@@ -170,6 +171,7 @@
 		22594E99277F0E7E0078C781 /* utils */ = {
 			isa = PBXGroup;
 			children = (
+				221E07C1278233F20001E8B0 /* stb_image.h */,
 			);
 			name = utils;
 			path = ../android/app/src/main/cpp/jni_vulkan/vulkan_application/utils;

@@ -28,6 +28,7 @@
 #include "cube.h"
 // cube.c and cube2.h must be exact copies to syn Android and iOS
 #define STB_IMAGE_IMPLEMENTATION
+#include "utils/stb_image.h"
 
 struct demo demo;
 char * lunarg_ppm;
@@ -1085,50 +1086,18 @@ static void demo_prepare_depth(struct demo *demo) {
 }
 
 bool loadTexture(const char *filename, uint8_t *rgba_data, VkSubresourceLayout *layout, int32_t *width, int32_t *height) {
-    FILE* ptr = fopen(filename,"rb"); // enlever le b pour observer dans le debugger
-    void* buffer = (void*) malloc(sizeof(char)* *width * *height * 4);
-    char* buffer_start = (char*)buffer;
-    while (fread(buffer, 1, 100000, ptr) == 100000) {
-      char* temp = buffer;
-      buffer += 100000;
-    }
-    fclose(ptr);
-    char *cPtr;
-    cPtr = buffer_start;
-    if (strncmp(cPtr, "P6\n", 3)) {
-        return false;
-    }
-    while (strncmp(cPtr++, "\n", 1))
-        ;
-    // we use this trick to fetch the widht and height in a first call, and -1 is used to detect this step
-    if (*((int32_t*)rgba_data) == -1) {
-      cPtr[10] = '\0';
-    }
-    sscanf(cPtr, "%u %u", width, height);
-    if (*((int32_t*)rgba_data) == -1)  {
-        return true;
-    }
-    if (rgba_data == NULL) {
-        return true;
-    }
-    while (strncmp(cPtr++, "\n", 1))
-        ;
-    if (strncmp(cPtr, "255\n", 4)) {
-        return false;
-    }
-    while (strncmp(cPtr++, "\n", 1))
-        ;
+    int texChannels;
+    stbi_uc* pixels = stbi_load(filename, width, height, &texChannels, STBI_rgb_alpha);
     for (int y = 0; y < *height; y++) {
         uint8_t *rowPtr = rgba_data;
         for (int x = 0; x < *width; x++) {
-            memcpy(rowPtr, cPtr, 3);
-            rowPtr[3] = 255; /* Alpha of 1 */
+            memcpy(rowPtr, pixels, 4);
+            //rowPtr[3] = 255;
             rowPtr += 4;
-            cPtr += 3;
+            pixels += 4;
         }
         rgba_data += layout->rowPitch;
     }
-    free(buffer_start);
     return true;
 }
 
@@ -1138,7 +1107,8 @@ static void demo_prepare_texture_buffer(struct demo *demo, const char *filename,
     VkResult U_ASSERT_ONLY err;
     bool U_ASSERT_ONLY pass;
 
-    if (!loadTexture(filename, NULL, NULL, &tex_width, &tex_height)) {
+    int texChannels;
+    if (!stbi_load(filename, &tex_width, &tex_height, &texChannels, STBI_rgb_alpha)) {
         ERR_EXIT("Failed to load textures", "Load Texture Failure");
     }
 
@@ -1194,12 +1164,12 @@ static void demo_prepare_texture_buffer(struct demo *demo, const char *filename,
 static void demo_prepare_texture_image(struct demo *demo, const char *filename, struct texture_object *tex_obj,
                                        VkImageTiling tiling, VkImageUsageFlags usage, VkFlags required_props) {
     const VkFormat tex_format = VK_FORMAT_R8G8B8A8_UNORM;
-    int32_t tex_width = 100;
-    int32_t tex_height = 100;
+    int32_t tex_width;
+    int32_t tex_height;
     VkResult U_ASSERT_ONLY err;
     bool U_ASSERT_ONLY pass;
-    int32_t result = -1;
-    if (!loadTexture(filename, &result, NULL, &tex_width, &tex_height)) {
+    int texChannels;
+    if (!stbi_load(filename, &tex_width, &tex_height, &texChannels, STBI_rgb_alpha)) {
         ERR_EXIT("1 Failed to load textures", "Load Texture Failure");
     }
 
@@ -2768,7 +2738,7 @@ static void demo_init_vk_swapchain(struct demo *demo) {
     demo->fpGetRefreshCycleDurationGOOGLE = vkGetRefreshCycleDurationGOOGLE;
     demo->fpGetPastPresentationTimingGOOGLE = vkGetPastPresentationTimingGOOGLE;
 
-    /*
+     /*
     GET_DEVICE_PROC_ADDR(demo->device, CreateSwapchainKHR);
     GET_DEVICE_PROC_ADDR(demo->device, DestroySwapchainKHR);
     GET_DEVICE_PROC_ADDR(demo->device, GetSwapchainImagesKHR);
@@ -2777,7 +2747,8 @@ static void demo_init_vk_swapchain(struct demo *demo) {
     if (demo->VK_GOOGLE_display_timing_enabled) {
         GET_DEVICE_PROC_ADDR(demo->device, GetRefreshCycleDurationGOOGLE);
         GET_DEVICE_PROC_ADDR(demo->device, GetPastPresentationTimingGOOGLE);
-    }*/
+    }
+     */
 
     vkGetDeviceQueue(demo->device, demo->graphics_queue_family_index, 0, &demo->graphics_queue);
     vkGetDeviceQueue(demo->device, demo->graphics_queue_family_index2, 0, &demo->graphics_queue2);
@@ -3073,7 +3044,6 @@ void setTextures(const char* texturesPath) {
     tex_files = (char**) malloc((sizeof (char*)) * DEMO_TEXTURE_COUNT);
     for (int i = 0; i < DEMO_TEXTURE_COUNT; i++) {
       tex_files[i] = (char*) malloc((sizeof(char)) * (strlen(texturesPath) + strlen(tex_files_short[i]) + 6));
-      int vv = strlen(texturesPath);
       snprintf(tex_files[i], strlen(texturesPath) + tex_files_short[i] + 6, "%s/%s.png", texturesPath, tex_files_short[i]);
     }
 }

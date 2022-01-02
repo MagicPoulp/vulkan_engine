@@ -9,6 +9,8 @@
 #ifndef cube_h
 #define cube_h
 
+#include "utils/stb_image.h"
+
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <stdarg.h>
