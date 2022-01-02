@@ -1089,13 +1089,13 @@ bool loadTexture(const char *filename, uint8_t *rgba_data, VkSubresourceLayout *
     void* buffer = (void*) malloc(sizeof(char)* *width * *height * 4);
     char* buffer_start = (char*)buffer;
     while (fread(buffer, 1, 100000, ptr) == 100000) {
+      char* temp = buffer;
       buffer += 100000;
     }
     fclose(ptr);
     char *cPtr;
     cPtr = buffer_start;
     if (strncmp(cPtr, "P6\n", 3)) {
-      int x = strncmp(cPtr, "P6\n", 3);
         return false;
     }
     while (strncmp(cPtr++, "\n", 1))
@@ -3072,7 +3072,7 @@ void setTextures(const char* texturesPath) {
     for (int i = 0; i < DEMO_TEXTURE_COUNT; i++) {
       tex_files[i] = (char*) malloc((sizeof(char)) * (strlen(texturesPath) + strlen(tex_files_short[i]) + 6));
       int vv = strlen(texturesPath);
-      snprintf(tex_files[i], strlen(texturesPath) + tex_files_short[i] + 6, "%s/%s.ppm", texturesPath, tex_files_short[i]);
+      snprintf(tex_files[i], strlen(texturesPath) + tex_files_short[i] + 6, "%s/%s.png", texturesPath, tex_files_short[i]);
     }
 }
 

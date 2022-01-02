@@ -59,7 +59,7 @@
 	const char* argv[] = { "cube" };
 	int argc = sizeof(argv)/sizeof(char*);
 	// the debugger step-in cannot be used in demo-main, BUT it works in a function just after
-  NSString * texture1 = [[NSBundle mainBundle] pathForResource:  @"home8" ofType: @"ppm"];
+  NSString * texture1 = [[NSBundle mainBundle] pathForResource:  @"home8" ofType: @"png"];
   // https://www.qi-u.com/?qa=924696/c-how-to-fopen-on-the-iphone
   NSArray *split = [texture1 componentsSeparatedByString:@"/"];
   [split removeObjectAtIndex:[split count]-1];
