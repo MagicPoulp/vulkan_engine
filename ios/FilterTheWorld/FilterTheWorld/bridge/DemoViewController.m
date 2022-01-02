@@ -66,11 +66,6 @@
   NSString *joined = [split componentsJoinedByString:@"/"];
   const char *texturesPath = [joined cStringUsingEncoding:1];
   demo_main(&demo, self.view.layer, argc, argv);
-  uint8_t *rgba_data;
-  VkSubresourceLayout *layout;
-  int width;
-  int height;
-  //loadTexture([texture1 cStringUsingEncoding:1], rgba_data, layout, &width, &height);
   setTextures(texturesPath);
   demo_prepare(&demo);
 	demo_draw(&demo, 0);
