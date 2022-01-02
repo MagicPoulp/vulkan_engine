@@ -2698,6 +2698,8 @@ static VkSurfaceFormatKHR pick_surface_format(const VkSurfaceFormatKHR *surfaceF
     return surfaceFormats[0];
 }
 
+// use more queues if the work is independent
+// https://stackoverflow.com/questions/37575012/should-i-try-to-use-as-many-queues-as-possible
 static void demo_init_vk_swapchain(struct demo *demo) {
     VkResult U_ASSERT_ONLY err;
 
