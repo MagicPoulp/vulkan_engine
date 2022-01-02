@@ -159,8 +159,10 @@ struct texture_object {
     int32_t tex_width, tex_height;
 };
 
-static char *tex_files[] = {"lunarg.ppm"};
-
+//static char *tex_files[] = {"lunarg.ppm"};
+//static char *tex_files[] = {"lunarg.ppm", "statue"};
+//static char *tex_files[] = {"statue"};
+static char *tex_files[] = {"home8"};
 static int validation_error = 0;
 
 struct vktexcube_vs_uniform {
@@ -439,7 +441,7 @@ struct demo {
 
 int demo_main_android(struct demo *demo, struct ANativeWindow* window, int argc, char **argv);
 void demo_draw(struct demo *demo, double elapsedTimeS);
-void demo_main(struct demo *demo,  void *caMetalLayer, int argc, const char *argv[]);
+void demo_main(struct demo *demo,  void *caMetalLayer, int argc, const char *argv[], const char* image1);
 void demo_cleanup(struct demo *demo);
 void demo_resize(struct demo *demo);
 

@@ -16,6 +16,7 @@
 		221DA82927778F80007612BD /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 221DA82827778F80007612BD /* libc++.tbd */; };
 		221DA82B27779037007612BD /* MoltenVK.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 221DA82A27779037007612BD /* MoltenVK.xcframework */; };
 		221DA84327779D11007612BD /* VulkanViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 221DA84227779D11007612BD /* VulkanViewController.swift */; };
+		223EB85D2781DCF6003ED356 /* home8.ppm in Resources */ = {isa = PBXBuildFile; fileRef = 223EB85C2781DCF6003ED356 /* home8.ppm */; };
 		22528006277C504D00E3109E /* DemoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 22528005277C504D00E3109E /* DemoViewController.m */; };
 		22594EA1277F24EC0078C781 /* statue-hera.png in Resources */ = {isa = PBXBuildFile; fileRef = 22594E9E277F1FDB0078C781 /* statue-hera.png */; };
 		2265FBE1277CEEB8008E1018 /* cube.frag in Resources */ = {isa = PBXBuildFile; fileRef = 2265FBD1277CEEB7008E1018 /* cube.frag */; };
@@ -44,6 +45,7 @@
 		221DA82827778F80007612BD /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "usr/lib/libc++.tbd"; sourceTree = SDKROOT; };
 		221DA82A27779037007612BD /* MoltenVK.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = MoltenVK.xcframework; path = ../../../MoltenVK/Package/Debug/MoltenVK/MoltenVK.xcframework; sourceTree = "<group>"; };
 		221DA84227779D11007612BD /* VulkanViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VulkanViewController.swift; sourceTree = "<group>"; };
+		223EB85C2781DCF6003ED356 /* home8.ppm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = home8.ppm; path = ../../../../../../../../../../../Downloads/home8.ppm; sourceTree = "<group>"; };
 		22528003277C504D00E3109E /* DemoViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DemoViewController.h; sourceTree = "<group>"; };
 		22528004277C504D00E3109E /* FilterTheWorld-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "FilterTheWorld-Bridging-Header.h"; sourceTree = "<group>"; };
 		22528005277C504D00E3109E /* DemoViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DemoViewController.m; sourceTree = "<group>"; };
@@ -179,6 +181,7 @@
 		22594E9B277F0F680078C781 /* textures */ = {
 			isa = PBXGroup;
 			children = (
+				223EB85C2781DCF6003ED356 /* home8.ppm */,
 				22594E9E277F1FDB0078C781 /* statue-hera.png */,
 			);
 			name = textures;
@@ -309,6 +312,7 @@
 				18D775CA22AD944400AE281E /* Preview Assets.xcassets in Resources */,
 				2265FBE1277CEEB8008E1018 /* cube.frag in Resources */,
 				2265FBE5277CEEB8008E1018 /* cube.vert in Resources */,
+				223EB85D2781DCF6003ED356 /* home8.ppm in Resources */,
 				18D775C722AD944400AE281E /* Assets.xcassets in Resources */,
 				2265FBE2277CEEB8008E1018 /* CMakeLists.txt in Resources */,
 			);

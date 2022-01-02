@@ -31,6 +31,7 @@
 #include "utils/stb_image.h"
 
 struct demo demo;
+char * lunarg_ppm;
 
 void dumpMatrix(const char *note, mat4x4 MVP) {
     int i;
@@ -1085,8 +1086,9 @@ static void demo_prepare_depth(struct demo *demo) {
 }
 
 /* Convert ppm image data from header file into RGBA texture image */
-#include "lunarg.ppm.h"
+//#include "lunarg.ppm.h"
 bool loadTexture(const char *filename, uint8_t *rgba_data, VkSubresourceLayout *layout, int32_t *width, int32_t *height) {
+    int lunarg_ppm_len = *width * *height;
     (void)filename;
     char *cPtr;
     cPtr = (char *)lunarg_ppm;
@@ -1116,6 +1118,58 @@ bool loadTexture(const char *filename, uint8_t *rgba_data, VkSubresourceLayout *
         }
         rgba_data += layout->rowPitch;
     }
+    return true;
+}
+
+bool loadTexture2(const char *filename, uint8_t *rgba_data, VkSubresourceLayout *layout, int32_t *width, int32_t *height) {
+/*
+    VkSubresourceLayout layout;
+    memset(&layout, 0, sizeof(layout));
+    layout.rowPitch = *width * 4;
+*/
+    FILE* ptr = fopen(filename,"r");
+    void* buffer = (void*) malloc(sizeof(char)* *width * *height * 4);
+    char* buffer_start = (char*)buffer;
+    //while (fread(buffer, 1, 954615, ptr) != EOF) {
+    //  char* temp = (char*)buffer;
+    //  buffer += 954600;
+    //  int ii = 1;
+    //}
+    fread(buffer, 1, 954615, ptr);
+    fclose(ptr);
+    unsigned char *lunarg_ppm = (unsigned char *)ptr;
+    int lunarg_ppm_len = *width * *height;
+    (void)filename;
+    char *cPtr;
+    cPtr = buffer_start;
+    if (strncmp(cPtr, "P6\n", 3)) {
+      int x = strncmp(cPtr, "P6\n", 3);
+        return false;
+    }
+    while (strncmp(cPtr++, "\n", 1))
+        ;
+    sscanf(cPtr, "%u %u", width, height);
+    if (rgba_data == NULL) {
+        return true;
+    }
+    while (strncmp(cPtr++, "\n", 1))
+        ;
+    if (strncmp(cPtr, "255\n", 4)) {
+        return false;
+    }
+    while (strncmp(cPtr++, "\n", 1))
+        ;
+    for (int y = 0; y < *height; y++) {
+        uint8_t *rowPtr = rgba_data;
+        for (int x = 0; x < *width; x++) {
+            memcpy(rowPtr, cPtr, 3);
+            rowPtr[3] = 255; /* Alpha of 1 */
+            rowPtr += 4;
+            cPtr += 3;
+        }
+        rgba_data += layout->rowPitch;
+    }
+    free(buffer);
     return true;
 }
 
@@ -1185,9 +1239,15 @@ static void demo_prepare_texture_image(struct demo *demo, const char *filename, 
     int32_t tex_height;
     VkResult U_ASSERT_ONLY err;
     bool U_ASSERT_ONLY pass;
-
-    if (!loadTexture(filename, NULL, NULL, &tex_width, &tex_height)) {
-        ERR_EXIT("Failed to load textures", "Load Texture Failure");
+    if (filename[0] == 'h') {
+      if (!loadTexture(filename, NULL, NULL, &tex_width, &tex_height)) {
+          ERR_EXIT("1 Failed to load textures", "Load Texture Failure");
+      }
+    } else {
+      int texChannels;
+      if (!stbi_load(filename, &tex_width, &tex_height, &texChannels, STBI_rgb_alpha)) {
+          ERR_EXIT("2 Failed to load textures", "Load Texture Failure");
+      }
     }
 
     tex_obj->tex_width = tex_width;
@@ -1245,8 +1305,22 @@ static void demo_prepare_texture_image(struct demo *demo, const char *filename, 
         err = vkMapMemory(demo->device, tex_obj->mem, 0, tex_obj->mem_alloc.allocationSize, 0, &data);
         assert(!err);
 
-        if (!loadTexture(filename, data, &layout, &tex_width, &tex_height)) {
-            fprintf(stderr, "Error loading texture: %s\n", filename);
+        if (filename[0] == 'h') {
+          if (!loadTexture(filename, data, &layout, &tex_width, &tex_height)) {
+              fprintf(stderr, "Error loading texture: %s\n", filename);
+          }
+        } else {
+          int texChannels;
+          /*stbi_uc* pixels = stbi_load(filename, &tex_width, &tex_height, &texChannels, STBI_rgb_alpha);
+          lunarg_ppm = (char*)pixels;
+          if (!pixels) {
+              ERR_EXIT("--> Failed to load textures", "Load Texture Failure");
+          }*/
+          if (!loadTexture2(filename, data, &layout, &tex_width, &tex_height)) {
+              fprintf(stderr, "Error loading texture: %s\n", filename);
+          }
+          int temp = 1;
+          //memcpy(data, pixels, tex_width * tex_height * 4);
         }
 
         vkUnmapMemory(demo->device, tex_obj->mem);
@@ -1268,11 +1342,10 @@ static void demo_prepare_textures(struct demo *demo) {
     uint32_t i;
 
     vkGetPhysicalDeviceFormatProperties(demo->gpu, tex_format, &props);
-
     for (i = 0; i < DEMO_TEXTURE_COUNT; i++) {
         VkResult U_ASSERT_ONLY err;
-
         if ((props.linearTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT) && !demo->use_staging_buffer) {
+            NSLog(@"--> Linear tiling is supported");
             /* Device can texture using linear textures */
             demo_prepare_texture_image(demo, tex_files[i], &demo->textures[i], VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_SAMPLED_BIT,
                                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
@@ -3054,17 +3127,19 @@ static void demo_init(struct demo *demo, int argc, char **argv) {
     demo->projection_matrix[1][1] *= -1;  // Flip projection matrix from GL to Vulkan orientation.
 }
 
-#if defined(VK_USE_PLATFORM_METAL_EXT)
-void demo_main(struct demo *demo, void *caMetalLayer, int argc, const char *argv[]) {
+//#if defined(VK_USE_PLATFORM_METAL_EXT)
+void demo_main(struct demo *demo, void *caMetalLayer, int argc, const char *argv[], const char* image1) {
+    tex_files[0] = image1;
+    //tex_files[1] = image1;
     //demo->VK_GOOGLE_display_timing_enabled = true;
     demo_init(demo, argc, (char **)argv);
     demo->caMetalLayer = caMetalLayer;
     demo_init_vk_swapchain(demo);
-    demo_prepare(demo);
+    //demo_prepare(demo);
     // degrees per second
     demo->spin_angle = 8;
 }
-
+#if defined(VK_USE_PLATFORM_METAL_EXT)
 #elif defined(VK_USE_PLATFORM_ANDROID_KHR)
 #include <android/log.h>
 #include <android_native_app_glue.h>
