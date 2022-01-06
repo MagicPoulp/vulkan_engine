@@ -3046,13 +3046,13 @@ void setTextures(const char* texturesPath) {
     tex_files = (char**) malloc((sizeof (char*)) * DEMO_TEXTURE_COUNT);
     for (int i = 0; i < DEMO_TEXTURE_COUNT; i++) {
       // 5+1=6 for \0
-      size_t allocatedSize = strlen(texturesPath) + strln(tex_files_short[i]) + 6;
+      size_t allocatedSize = strlen(texturesPath) + strlen(tex_files_short[i]) + 6;
       tex_files[i] = (char*) malloc((sizeof(char)) * allocatedSize);
       snprintf(tex_files[i], allocatedSize, "%s/%s.png", texturesPath, tex_files_short[i]);
     }
 }
 
-//#if defined(VK_USE_PLATFORM_METAL_EXT)
+#if defined(VK_USE_PLATFORM_METAL_EXT)
 void demo_main(struct demo *demo, void *caMetalLayer, int argc, const char *argv[]) {
     //demo->VK_GOOGLE_display_timing_enabled = true;
     demo_init(demo, argc, (char **)argv);
@@ -3061,7 +3061,6 @@ void demo_main(struct demo *demo, void *caMetalLayer, int argc, const char *argv
     // degrees per second
     demo->spin_angle = 8;
 }
-#if defined(VK_USE_PLATFORM_METAL_EXT)
 #elif defined(VK_USE_PLATFORM_ANDROID_KHR)
 #include <android/log.h>
 #include <android_native_app_glue.h>
