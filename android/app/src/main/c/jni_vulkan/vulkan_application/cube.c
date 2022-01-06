@@ -1097,22 +1097,22 @@ bool loadTexture(const char *filename, uint8_t *rgba_data, VkSubresourceLayout *
       filename,
       AASSET_MODE_BUFFER
     );
-    off_t length1 = AAsset_getLength(asset);
-    char buf1[length1];
-    AAsset_read(asset, &buf1, length1);
-
-    
-    //AAsset_read(asset, buf, 740 * 430 * 3);
-    uint8_t *pixels = (uint8_t)buf1;
-    //IDAT
+    off64_t length1 = AAsset_getLength(asset);
+    void* rawData = AAsset_getBuffer(asset);
+    FILE* file = fmemopen(rawData, length1, "rb");
+    stbi_uc* pixels = stbi_load_from_file(file, width, height, &texChannels, STBI_rgb_alpha);
+    fclose(file);
 #else
     stbi_uc* pixels = stbi_load(filename, width, height, &texChannels, STBI_rgb_alpha);
 #endif
+    if (rgba_data == NULL) {
+        return true;
+    }
     for (int y = 0; y < *height; y++) {
         uint8_t *rowPtr = rgba_data;
         for (int x = 0; x < *width; x++) {
             memcpy(rowPtr, pixels, 4);
-            //rowPtr[3] = 255;
+            //rowPtr[3] = 255; // alhpa = 1
             rowPtr += 4;
             pixels += 4;
         }
