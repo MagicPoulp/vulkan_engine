@@ -26,7 +26,7 @@
  */
 
 #include "cube.h"
-// cube.c and cube2.h must be exact copies to syn Android and iOS
+// cube.c and cube2.h must be exact copies to sycn Android and iOS
 #define STB_IMAGE_IMPLEMENTATION
 #include "utils/stb_image.h"
 
