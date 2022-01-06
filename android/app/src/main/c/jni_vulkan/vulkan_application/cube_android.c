@@ -233,15 +233,15 @@ static void demo_flush_init_cmd(struct demo *demo) {
 
     const VkCommandBuffer cmd_bufs[] = {demo->cmd};
     VkSubmitInfo submit_info = {
-      .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-      .pNext = NULL,
-      .waitSemaphoreCount = 0,
-      .pWaitSemaphores = NULL,
-      .pWaitDstStageMask = NULL,
-      .commandBufferCount = 1,
-      .pCommandBuffers = cmd_bufs,
-      .signalSemaphoreCount = 0,
-      .pSignalSemaphores = NULL
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+            .pNext = NULL,
+            .waitSemaphoreCount = 0,
+            .pWaitSemaphores = NULL,
+            .pWaitDstStageMask = NULL,
+            .commandBufferCount = 1,
+            .pCommandBuffers = cmd_bufs,
+            .signalSemaphoreCount = 0,
+            .pSignalSemaphores = NULL
     };
 
     err = vkQueueSubmit(demo->graphics_queue, 1, &submit_info, fence);
@@ -1118,7 +1118,9 @@ bool loadTexture(const char *filename, uint8_t *rgba_data, VkSubresourceLayout *
         }
         rgba_data += layout->rowPitch;
     }
+#ifdef __ANDROID__
     AAsset_close(asset);
+#endif
     return true;
 }
 
@@ -2583,17 +2585,17 @@ static void demo_create_device(struct demo *demo) {
             .ppEnabledExtensionNames = (const char *const *)demo->extension_names,
             .pEnabledFeatures = NULL,  // If specific features are required, pass them in here
     };
-  /*
-  if (demo->separate_present_queue) {
-        queues[1].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queues[1].pNext = NULL;
-        queues[1].queueFamilyIndex = demo->present_queue_family_index;
-        queues[1].queueCount = 1;
-        queues[1].pQueuePriorities = queue_priorities;
-        queues[1].flags = 0;
-        device.queueCreateInfoCount = 2;
-    }
-  */
+    /*
+    if (demo->separate_present_queue) {
+          queues[1].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+          queues[1].pNext = NULL;
+          queues[1].queueFamilyIndex = demo->present_queue_family_index;
+          queues[1].queueCount = 1;
+          queues[1].pQueuePriorities = queue_priorities;
+          queues[1].flags = 0;
+          device.queueCreateInfoCount = 2;
+      }
+    */
 
     queues[1].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     queues[1].pNext = NULL;
@@ -2765,17 +2767,17 @@ static void demo_init_vk_swapchain(struct demo *demo) {
     demo->fpGetRefreshCycleDurationGOOGLE = vkGetRefreshCycleDurationGOOGLE;
     demo->fpGetPastPresentationTimingGOOGLE = vkGetPastPresentationTimingGOOGLE;
 
-     /*
-    GET_DEVICE_PROC_ADDR(demo->device, CreateSwapchainKHR);
-    GET_DEVICE_PROC_ADDR(demo->device, DestroySwapchainKHR);
-    GET_DEVICE_PROC_ADDR(demo->device, GetSwapchainImagesKHR);
-    GET_DEVICE_PROC_ADDR(demo->device, AcquireNextImageKHR);
-    GET_DEVICE_PROC_ADDR(demo->device, QueuePresentKHR);
-    if (demo->VK_GOOGLE_display_timing_enabled) {
-        GET_DEVICE_PROC_ADDR(demo->device, GetRefreshCycleDurationGOOGLE);
-        GET_DEVICE_PROC_ADDR(demo->device, GetPastPresentationTimingGOOGLE);
-    }
-     */
+    /*
+   GET_DEVICE_PROC_ADDR(demo->device, CreateSwapchainKHR);
+   GET_DEVICE_PROC_ADDR(demo->device, DestroySwapchainKHR);
+   GET_DEVICE_PROC_ADDR(demo->device, GetSwapchainImagesKHR);
+   GET_DEVICE_PROC_ADDR(demo->device, AcquireNextImageKHR);
+   GET_DEVICE_PROC_ADDR(demo->device, QueuePresentKHR);
+   if (demo->VK_GOOGLE_display_timing_enabled) {
+       GET_DEVICE_PROC_ADDR(demo->device, GetRefreshCycleDurationGOOGLE);
+       GET_DEVICE_PROC_ADDR(demo->device, GetPastPresentationTimingGOOGLE);
+   }
+    */
 
     vkGetDeviceQueue(demo->device, demo->graphics_queue_family_index, 0, &demo->graphics_queue);
     vkGetDeviceQueue(demo->device, demo->graphics_queue_family_index2, 0, &demo->graphics_queue2);
@@ -3069,6 +3071,7 @@ static void demo_init(struct demo *demo, int argc, char **argv) {
 
 // https://developer.android.com/ndk/reference/group/asset#group___asset_1ga90c459935e76acf809b9ec90d1872771
 
+#ifdef __ANDROID__
 void set_textures_android(AAssetManager *pAssetManager) {
     assetManager = pAssetManager;
     tex_files = (char**) malloc((sizeof (char*)) * DEMO_TEXTURE_COUNT);
@@ -3079,6 +3082,17 @@ void set_textures_android(AAssetManager *pAssetManager) {
         snprintf(tex_files[i], allocatedSize, "%s/%s.png", "textures", tex_files_short[i]);
     }
 }
+#else
+void setTextures(const char* texturesPath) {
+    tex_files = (char**) malloc((sizeof (char*)) * DEMO_TEXTURE_COUNT);
+    for (int i = 0; i < DEMO_TEXTURE_COUNT; i++) {
+        // 5+1=6 for \0
+        size_t allocatedSize = strlen(texturesPath) + strlen(tex_files_short[i]) + 6;
+        tex_files[i] = (char*) malloc((sizeof(char)) * allocatedSize);
+        snprintf(tex_files[i], allocatedSize, "%s/%s.png", texturesPath, tex_files_short[i]);
+    }
+}
+#endif
 
 #if defined(VK_USE_PLATFORM_METAL_EXT)
 void demo_main(struct demo *demo, void *caMetalLayer, int argc, const char *argv[]) {
@@ -3120,10 +3134,8 @@ void setSizeFull(struct demo *demo, int32_t width, int32_t height) {
 }
 
 void freeResources() {
-  for (int i = 0; i < DEMO_TEXTURE_COUNT; i++) {
-    free(tex_files[i]);
-  }
-  free(tex_files);
+    for (int i = 0; i < DEMO_TEXTURE_COUNT; i++) {
+        free(tex_files[i]);
+    }
+    free(tex_files);
 }
-
-

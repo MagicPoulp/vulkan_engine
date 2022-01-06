@@ -19,7 +19,7 @@ include_directories(volk)
 add_library(
         jni_vulkan
         SHARED
-        VulkanAppBridge.c AndroidGraphicsApplication.c vulkan_application/cube.c)
+        VulkanAppBridge.c AndroidGraphicsApplication.c vulkan_application/cube_android.c)
 
 SET(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -fpermissive -std=c99")
 

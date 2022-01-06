@@ -8,7 +8,7 @@ extern int demo_main_android(struct demo *demo, struct ANativeWindow* window, in
 extern void demo_draw(struct demo *demo, double elapsedTimeS);
 extern void demo_cleanup(struct demo *demo);
 extern void setSizeFull(struct demo *demo, int32_t width, int32_t height);
-extern void set_textures_android(const char *texturesPath);
+extern void set_textures_android(AAssetManager *assetManager);
 
 void createSurface(ANativeWindow* window, AAssetManager* assetManager) {
     if (volkInitialize())

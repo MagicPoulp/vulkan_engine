@@ -25,13 +25,17 @@
  * Author: Bill Hollings <bill.hollings@brenwill.com>
  */
 
+#include <stdio.h>
 #include "cube.h"
 // cube.c and cube2.h must be exact copies to sycn Android and iOS
 #define STB_IMAGE_IMPLEMENTATION
 #include "utils/stb_image.h"
+#ifdef __ANDROID__
+#include <android/native_activity.h>
+AAssetManager *assetManager;
+#endif
 
 struct demo demo;
-char * lunarg_ppm;
 
 void dumpMatrix(const char *note, mat4x4 MVP) {
     int i;
@@ -229,15 +233,15 @@ static void demo_flush_init_cmd(struct demo *demo) {
 
     const VkCommandBuffer cmd_bufs[] = {demo->cmd};
     VkSubmitInfo submit_info = {
-      .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-      .pNext = NULL,
-      .waitSemaphoreCount = 0,
-      .pWaitSemaphores = NULL,
-      .pWaitDstStageMask = NULL,
-      .commandBufferCount = 1,
-      .pCommandBuffers = cmd_bufs,
-      .signalSemaphoreCount = 0,
-      .pSignalSemaphores = NULL
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+            .pNext = NULL,
+            .waitSemaphoreCount = 0,
+            .pWaitSemaphores = NULL,
+            .pWaitDstStageMask = NULL,
+            .commandBufferCount = 1,
+            .pCommandBuffers = cmd_bufs,
+            .signalSemaphoreCount = 0,
+            .pSignalSemaphores = NULL
     };
 
     err = vkQueueSubmit(demo->graphics_queue, 1, &submit_info, fence);
@@ -1087,19 +1091,39 @@ static void demo_prepare_depth(struct demo *demo) {
 
 bool loadTexture(const char *filename, uint8_t *rgba_data, VkSubresourceLayout *layout, int32_t *width, int32_t *height) {
     int texChannels;
+#ifdef __ANDROID__
+    AAsset* asset = AAssetManager_open(
+      assetManager,
+      filename,
+      AASSET_MODE_BUFFER
+    );
+    off64_t length1 = AAsset_getLength(asset);
+    void* rawData = AAsset_getBuffer(asset);
+    FILE* file = fmemopen(rawData, length1, "rb");
+    stbi_uc* pixels = stbi_load_from_file(file, width, height, &texChannels, STBI_rgb_alpha);
+    fclose(file);
+#else
     stbi_uc* pixels = stbi_load(filename, width, height, &texChannels, STBI_rgb_alpha);
+#endif
+    if (rgba_data == NULL) {
+        return true;
+    }
     for (int y = 0; y < *height; y++) {
         uint8_t *rowPtr = rgba_data;
         for (int x = 0; x < *width; x++) {
             memcpy(rowPtr, pixels, 4);
-            //rowPtr[3] = 255;
+            //rowPtr[3] = 255; // alhpa = 1
             rowPtr += 4;
             pixels += 4;
         }
         rgba_data += layout->rowPitch;
     }
+#ifdef __ANDROID__
+    AAsset_close(asset);
+#endif
     return true;
 }
+
 
 static void demo_prepare_texture_buffer(struct demo *demo, const char *filename, struct texture_object *tex_obj) {
     int32_t tex_width;
@@ -1169,10 +1193,15 @@ static void demo_prepare_texture_image(struct demo *demo, const char *filename, 
     VkResult U_ASSERT_ONLY err;
     bool U_ASSERT_ONLY pass;
     int texChannels;
+#ifdef __ANDROID__
+    if (!loadTexture(filename, NULL, NULL, &tex_width, &tex_height)) {
+        fprintf(stderr, "Error loading texture: %s\n", filename);
+    }
+#else
     if (!stbi_load(filename, &tex_width, &tex_height, &texChannels, STBI_rgb_alpha)) {
         ERR_EXIT("1 Failed to load textures", "Load Texture Failure");
     }
-
+#endif
     tex_obj->tex_width = tex_width;
     tex_obj->tex_height = tex_height;
 
@@ -1255,7 +1284,7 @@ static void demo_prepare_textures(struct demo *demo) {
     for (i = 0; i < DEMO_TEXTURE_COUNT; i++) {
         VkResult U_ASSERT_ONLY err;
         if ((props.linearTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT) && !demo->use_staging_buffer) {
-            NSLog(@"--> Linear tiling is supported");
+            //NSLog(@"--> Linear tiling is supported");
             /* Device can texture using linear textures */
             demo_prepare_texture_image(demo, tex_files[i], &demo->textures[i], VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_SAMPLED_BIT,
                                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
@@ -1912,8 +1941,6 @@ static void demo_prepare(struct demo *demo) {
 }
 
 void demo_cleanup(struct demo *demo) {
-    freeResources();
-
     uint32_t i;
 
     demo->prepared = false;
@@ -2558,17 +2585,17 @@ static void demo_create_device(struct demo *demo) {
             .ppEnabledExtensionNames = (const char *const *)demo->extension_names,
             .pEnabledFeatures = NULL,  // If specific features are required, pass them in here
     };
-  /*
-  if (demo->separate_present_queue) {
-        queues[1].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queues[1].pNext = NULL;
-        queues[1].queueFamilyIndex = demo->present_queue_family_index;
-        queues[1].queueCount = 1;
-        queues[1].pQueuePriorities = queue_priorities;
-        queues[1].flags = 0;
-        device.queueCreateInfoCount = 2;
-    }
-  */
+    /*
+    if (demo->separate_present_queue) {
+          queues[1].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+          queues[1].pNext = NULL;
+          queues[1].queueFamilyIndex = demo->present_queue_family_index;
+          queues[1].queueCount = 1;
+          queues[1].pQueuePriorities = queue_priorities;
+          queues[1].flags = 0;
+          device.queueCreateInfoCount = 2;
+      }
+    */
 
     queues[1].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     queues[1].pNext = NULL;
@@ -2740,17 +2767,17 @@ static void demo_init_vk_swapchain(struct demo *demo) {
     demo->fpGetRefreshCycleDurationGOOGLE = vkGetRefreshCycleDurationGOOGLE;
     demo->fpGetPastPresentationTimingGOOGLE = vkGetPastPresentationTimingGOOGLE;
 
-     /*
-    GET_DEVICE_PROC_ADDR(demo->device, CreateSwapchainKHR);
-    GET_DEVICE_PROC_ADDR(demo->device, DestroySwapchainKHR);
-    GET_DEVICE_PROC_ADDR(demo->device, GetSwapchainImagesKHR);
-    GET_DEVICE_PROC_ADDR(demo->device, AcquireNextImageKHR);
-    GET_DEVICE_PROC_ADDR(demo->device, QueuePresentKHR);
-    if (demo->VK_GOOGLE_display_timing_enabled) {
-        GET_DEVICE_PROC_ADDR(demo->device, GetRefreshCycleDurationGOOGLE);
-        GET_DEVICE_PROC_ADDR(demo->device, GetPastPresentationTimingGOOGLE);
-    }
-     */
+    /*
+   GET_DEVICE_PROC_ADDR(demo->device, CreateSwapchainKHR);
+   GET_DEVICE_PROC_ADDR(demo->device, DestroySwapchainKHR);
+   GET_DEVICE_PROC_ADDR(demo->device, GetSwapchainImagesKHR);
+   GET_DEVICE_PROC_ADDR(demo->device, AcquireNextImageKHR);
+   GET_DEVICE_PROC_ADDR(demo->device, QueuePresentKHR);
+   if (demo->VK_GOOGLE_display_timing_enabled) {
+       GET_DEVICE_PROC_ADDR(demo->device, GetRefreshCycleDurationGOOGLE);
+       GET_DEVICE_PROC_ADDR(demo->device, GetPastPresentationTimingGOOGLE);
+   }
+    */
 
     vkGetDeviceQueue(demo->device, demo->graphics_queue_family_index, 0, &demo->graphics_queue);
     vkGetDeviceQueue(demo->device, demo->graphics_queue_family_index2, 0, &demo->graphics_queue2);
@@ -3042,15 +3069,30 @@ static void demo_init(struct demo *demo, int argc, char **argv) {
     demo->projection_matrix[1][1] *= -1;  // Flip projection matrix from GL to Vulkan orientation.
 }
 
+// https://developer.android.com/ndk/reference/group/asset#group___asset_1ga90c459935e76acf809b9ec90d1872771
+
+#ifdef __ANDROID__
+void set_textures_android(AAssetManager *pAssetManager) {
+    assetManager = pAssetManager;
+    tex_files = (char**) malloc((sizeof (char*)) * DEMO_TEXTURE_COUNT);
+    for (int i = 0; i < DEMO_TEXTURE_COUNT; i++) {
+        // 5+1=6 for \0
+        size_t allocatedSize = strlen("textures") + strlen(tex_files_short[i]) + 6;
+        tex_files[i] = (char*) malloc((sizeof(char)) * allocatedSize);
+        snprintf(tex_files[i], allocatedSize, "%s/%s.png", "textures", tex_files_short[i]);
+    }
+}
+#else
 void setTextures(const char* texturesPath) {
     tex_files = (char**) malloc((sizeof (char*)) * DEMO_TEXTURE_COUNT);
     for (int i = 0; i < DEMO_TEXTURE_COUNT; i++) {
-      // 5+1=6 for \0
-      size_t allocatedSize = strlen(texturesPath) + strlen(tex_files_short[i]) + 6;
-      tex_files[i] = (char*) malloc((sizeof(char)) * allocatedSize);
-      snprintf(tex_files[i], allocatedSize, "%s/%s.png", texturesPath, tex_files_short[i]);
+        // 5+1=6 for \0
+        size_t allocatedSize = strlen(texturesPath) + strlen(tex_files_short[i]) + 6;
+        tex_files[i] = (char*) malloc((sizeof(char)) * allocatedSize);
+       snprintf(tex_files[i], allocatedSize, "%s/%s.png", texturesPath, tex_files_short[i]);
     }
 }
+#endif
 
 #if defined(VK_USE_PLATFORM_METAL_EXT)
 void demo_main(struct demo *demo, void *caMetalLayer, int argc, const char *argv[]) {
@@ -3092,12 +3134,8 @@ void setSizeFull(struct demo *demo, int32_t width, int32_t height) {
 }
 
 void freeResources() {
-  for (int i = 0; i < DEMO_TEXTURE_COUNT; i++) {
-    //NSLog(@"--------------------------ZZZ");
-    //NSLog(@"--------------------------%s", tex_files[i]);
-    free(tex_files[i]);
-  }
-  free(tex_files);
+    for (int i = 0; i < DEMO_TEXTURE_COUNT; i++) {
+        free(tex_files[i]);
+    }
+    free(tex_files);
 }
-
-
