@@ -3089,12 +3089,12 @@ void setSizeFull(struct demo *demo, int32_t width, int32_t height) {
 }
 
 void freeResources() {
-  free(tex_files);
   for (int i = 0; i < DEMO_TEXTURE_COUNT; i++) {
     NSLog(@"--------------------------ZZZ");
     //NSLog(@"--------------------------%s", tex_files[i]);
-    //free(tex_files[i]);
+    free(tex_files[i]);
   }
+  free(tex_files);
 }
 
 

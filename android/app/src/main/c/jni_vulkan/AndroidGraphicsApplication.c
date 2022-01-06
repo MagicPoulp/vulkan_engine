@@ -16,6 +16,7 @@ void createSurface(ANativeWindow* window) {
     }
     const char* argv[] = { "cube" };
     int argc = sizeof(argv)/sizeof(char*);
+    setTextures(texturesPath);
     demo_main_android(&demo, window, argc, (char **)argv);
 }
 
