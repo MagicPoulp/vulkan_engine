@@ -89,6 +89,7 @@ void DbgMsg(char *fmt, ...) {
 #elif defined __ANDROID__
 #define VARARGS_WORKS_ON_ANDROID
 #include <android/log.h>
+#include <android/native_activity.h>
 #define ERR_EXIT(err_msg, err_class)                                           \
     do {                                                                       \
         ((void)__android_log_print(ANDROID_LOG_INFO, "Vulkan Cube", err_msg)); \
@@ -277,41 +278,7 @@ typedef struct {
 } SwapchainImageResources;
 
 struct demo {
-#if defined(VK_USE_PLATFORM_WIN32_KHR)
-    #define APP_NAME_STR_LEN 80
-    HINSTANCE connection;         // hInstance - Windows Instance
-    char name[APP_NAME_STR_LEN];  // Name to put on the window/icon
-    HWND window;                  // hWnd - window handle
-    POINT minsize;                // minimum window size
-#elif defined(VK_USE_PLATFORM_XLIB_KHR)
-    Display *display;
-    Window xlib_window;
-    Atom xlib_wm_delete_window;
-#elif defined(VK_USE_PLATFORM_XCB_KHR)
-    Display *display;
-    xcb_connection_t *connection;
-    xcb_screen_t *screen;
-    xcb_window_t xcb_window;
-    xcb_intern_atom_reply_t *atom_wm_delete_window;
-#elif defined(VK_USE_PLATFORM_WAYLAND_KHR)
-    struct wl_display *display;
-    struct wl_registry *registry;
-    struct wl_compositor *compositor;
-    struct wl_surface *window;
-    struct xdg_wm_base *xdg_wm_base;
-    struct zxdg_decoration_manager_v1 *xdg_decoration_mgr;
-    struct zxdg_toplevel_decoration_v1 *toplevel_decoration;
-    struct xdg_surface *xdg_surface;
-    int xdg_surface_has_been_configured;
-    struct xdg_toplevel *xdg_toplevel;
-    struct wl_seat *seat;
-    struct wl_pointer *pointer;
-    struct wl_keyboard *keyboard;
-#elif defined(VK_USE_PLATFORM_DIRECTFB_EXT)
-    IDirectFB *dfb;
-    IDirectFBSurface *window;
-    IDirectFBEventBuffer *event_buffer;
-#elif defined(VK_USE_PLATFORM_ANDROID_KHR)
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
     struct ANativeWindow *window;
 #elif defined(VK_USE_PLATFORM_METAL_EXT)
     void *caMetalLayer;
@@ -438,11 +405,13 @@ struct demo {
     uint32_t queue_family_count;
 };
 
-int demo_main_android(struct demo *demo, struct ANativeWindow* window, int argc, char **argv, const char* texturesPath);
+int demo_main_android(struct demo *demo, struct ANativeWindow* window, int argc, char **argv);
 void demo_draw(struct demo *demo, double elapsedTimeS);
 void demo_main(struct demo *demo,  void *caMetalLayer, int argc, const char *argv[]);
-void setTextures(const char* texturesPathl);
-void add_textures(int unused, ...);
+void setTextures(const char* texturesPath);
+#ifdef __ANDROID__
+void set_textures_android(AAssetManager *assetManager);
+#endif
 void demo_cleanup(struct demo *demo);
 void demo_resize(struct demo *demo);
 void freeResources(void);

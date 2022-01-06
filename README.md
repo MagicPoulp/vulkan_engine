@@ -2,6 +2,13 @@
 
 The image is grey because gamma and cHRM are used, shown on 32 bits via the command xxd on the png.
 
+# Setup
+
+clone MoltenVK
+./fetchDependency --ios
+make ios
+change the MOLTENVK_PATH in the project settings
+
 # Summary
 
 The application must be in C and not in C++. iOS has only the last iOS version for C++.
@@ -36,7 +43,7 @@ https://www.khronos.org/registry/vulkan/specs/1.1-extensions/html/vkspec.html#co
 for the camera in SwiftUI
 https://www.raywenderlich.com/26244793-building-a-camera-app-with-swiftui-and-combine
 
-# Summary of what worked
+# Summary of what worked to run the demo
 
 follow the instructions and add the include path using ${MOLTENVK_PATH}/include
 
@@ -44,13 +51,14 @@ set the path variable in project settings / build settings / user defined
 MOLTENVK_PATH
 
 ./fetchdependencies --ios
+make ios
+remove the file in gtx, the quaternion.inl from build phases copy Bundle Resources
+
 open the packaging .xcproj and build the iOS only scheme on any iOS device
 or better use the make
-make iossim iossim-debug ios ios-debug
-then the Demos will work
 
 
-This must be changed in cube.c
+This was changed in cube.c compared to the demo
 // we do not want opaque
 compositeAlpha = VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR;
 VkSwapchainCreateInfoKHR swapchain_ci

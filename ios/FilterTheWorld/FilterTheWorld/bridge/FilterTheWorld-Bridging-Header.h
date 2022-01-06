@@ -7,6 +7,6 @@
 #define FilterTheWorld_Bridging_Header_h
 
 #include "DemoViewController.h"
-#include "../../vulkan_application/cube.h"
+#include "../../vulkan_application/cube_ios.h"
 
 #endif /* FilterTheWorld_Bridging_Header_h */
