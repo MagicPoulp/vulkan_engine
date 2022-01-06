@@ -4,7 +4,7 @@
 #include <android/native_window_jni.h>
 #include <android/asset_manager_jni.h>
 
-extern void createSurface(ANativeWindow* window);
+extern void createSurface(ANativeWindow* window, AAssetManager* assetManager);
 extern void demoDestroy();
 extern void drawFrame();
 extern void setSize(int32_t width, int32_t height);
@@ -24,7 +24,8 @@ Java_com_thierry_android_1surface_1view_1with_1vulkan_VulkanAppBridge_nativeCrea
     __android_log_print(ANDROID_LOG_DEBUG, "mc-native-VulkanAppBridge", "create");
     ANativeWindow* window = ANativeWindow_fromSurface(env, surface);
     __android_log_print(ANDROID_LOG_VERBOSE, "AndroidGraphicsApplication", "createSurface");
-    createSurface(window);
+    AAssetManager* pAssetManager2 = AAssetManager_fromJava(env, pAssetManager);
+    createSurface(window, pAssetManager2);
 }
 
 JNIEXPORT void JNICALL

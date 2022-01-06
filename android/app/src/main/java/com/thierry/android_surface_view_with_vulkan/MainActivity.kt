@@ -39,8 +39,6 @@ class MainActivity : AppCompatActivity() {
             val cameraProvider = cameraProviderFuture.get()
             bindPreview(cameraProvider)
         }, ContextCompat.getMainExecutor(this))
-
-          context.getAssets()
     }
 
     // https://developer.android.com/training/camerax/preview

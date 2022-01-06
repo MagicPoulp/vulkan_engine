@@ -7,7 +7,7 @@
 #define VOLK_IMPLEMENTATION
 #include "volk_setup.h"
 
-void createSurface(ANativeWindow* window);
+void createSurface(ANativeWindow* window, AAssetManager* assetManager);
 void setSize(int32_t width, int32_t height);
 void drawFrame(double elapsedTimeS);
 void demoDestroy();

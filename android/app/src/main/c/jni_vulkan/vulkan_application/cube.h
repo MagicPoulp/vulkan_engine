@@ -89,6 +89,7 @@ void DbgMsg(char *fmt, ...) {
 #elif defined __ANDROID__
 #define VARARGS_WORKS_ON_ANDROID
 #include <android/log.h>
+#include <android/native_activity.h>
 #define ERR_EXIT(err_msg, err_class)                                           \
     do {                                                                       \
         ((void)__android_log_print(ANDROID_LOG_INFO, "Vulkan Cube", err_msg)); \
@@ -438,11 +439,11 @@ struct demo {
     uint32_t queue_family_count;
 };
 
-int demo_main_android(struct demo *demo, struct ANativeWindow* window, int argc, char **argv, const char* texturesPath);
+int demo_main_android(struct demo *demo, struct ANativeWindow* window, int argc, char **argv);
 void demo_draw(struct demo *demo, double elapsedTimeS);
 void demo_main(struct demo *demo,  void *caMetalLayer, int argc, const char *argv[]);
-void setTextures(const char* texturesPathl);
-void add_textures(int unused, ...);
+void setTextures(const char* texturesPath);
+void set_textures_android(AAssetManager *assetManager);
 void demo_cleanup(struct demo *demo);
 void demo_resize(struct demo *demo);
 void freeResources(void);

@@ -1912,6 +1912,8 @@ static void demo_prepare(struct demo *demo) {
 }
 
 void demo_cleanup(struct demo *demo) {
+    freeResources();
+
     uint32_t i;
 
     demo->prepared = false;
@@ -3043,8 +3045,10 @@ static void demo_init(struct demo *demo, int argc, char **argv) {
 void setTextures(const char* texturesPath) {
     tex_files = (char**) malloc((sizeof (char*)) * DEMO_TEXTURE_COUNT);
     for (int i = 0; i < DEMO_TEXTURE_COUNT; i++) {
-      tex_files[i] = (char*) malloc((sizeof(char)) * (strlen(texturesPath) + strlen(tex_files_short[i]) + 6));
-      snprintf(tex_files[i], strlen(texturesPath) + tex_files_short[i] + 6, "%s/%s.png", texturesPath, tex_files_short[i]);
+      // 5+1=6 for \0
+      size_t allocatedSize = strlen(texturesPath) + strln(tex_files_short[i]) + 6;
+      tex_files[i] = (char*) malloc((sizeof(char)) * allocatedSize);
+      snprintf(tex_files[i], allocatedSize, "%s/%s.png", texturesPath, tex_files_short[i]);
     }
 }
 
@@ -3090,7 +3094,7 @@ void setSizeFull(struct demo *demo, int32_t width, int32_t height) {
 
 void freeResources() {
   for (int i = 0; i < DEMO_TEXTURE_COUNT; i++) {
-    NSLog(@"--------------------------ZZZ");
+    //NSLog(@"--------------------------ZZZ");
     //NSLog(@"--------------------------%s", tex_files[i]);
     free(tex_files[i]);
   }
