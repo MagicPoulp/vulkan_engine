@@ -63,7 +63,8 @@
   NSString * texture1 = [[NSBundle mainBundle] pathForResource:  @"home8" ofType: @"png"];
   // https://www.qi-u.com/?qa=924696/c-how-to-fopen-on-the-iphone
   NSArray *split = [texture1 componentsSeparatedByString:@"/"];
-  [split removeObjectAtIndex:[split count]-1];
+  NSMutableArray *split2 = [split mutableCopy];
+  [split2 removeObjectAtIndex:[split count]-1];
   NSString *joined = [split componentsJoinedByString:@"/"];
   const char *texturesPath = [joined cStringUsingEncoding:1];
   demo_main(&demo, self.view.layer, argc, argv);

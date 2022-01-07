@@ -1235,7 +1235,6 @@ static void demo_prepare_texture_image(struct demo *demo, const char *filename, 
         err = vkMapMemory(demo->device, tex_obj->mem, 0, tex_obj->mem_alloc.allocationSize, 0, &data);
         assert(!err);
 
-        int texChannels;
         if (!loadTexture(filename, data, &layout, &tex_width, &tex_height)) {
             fprintf(stderr, "Error loading texture: %s\n", filename);
         }
@@ -2041,26 +2040,6 @@ void demo_resize(struct demo *demo) {
     // swapchain:
     demo_prepare(demo);
 }
-
-// On MS-Windows, make this a global, so it's available to WndProc()
-struct demo demo;
-
-#if defined(VK_USE_PLATFORM_ANDROID_KHR)
-static void demo_run(struct demo *demo) {
-    if (!demo->prepared) return;
-
-    demo_draw(demo, 0);
-    demo->curFrame++;
-}
-#elif defined(VK_USE_PLATFORM_METAL_EXT)
-static void demo_run(struct demo *demo) {
-    //demo_draw(demo, 0);
-    demo->curFrame++;
-    if (demo->frameCount != INT32_MAX && demo->curFrame == demo->frameCount) {
-        demo->quit = TRUE;
-    }
-}
-#endif
 
 /*
  * Return 1 (true) if all layer names specified in check_names
@@ -3086,11 +3065,8 @@ void demo_main(struct demo *demo, void *caMetalLayer, int argc, const char *argv
 #include <android_native_app_glue.h>
 #endif
 
-struct demo demo;
-
 #ifdef __ANDROID__
 int demo_main_android(struct demo *demo, struct ANativeWindow* window, int argc, char **argv) {
-    memset(demo, 0, sizeof(*demo));
     demo->window = window;
 
     demo_init(demo, argc, argv);
@@ -3099,7 +3075,7 @@ int demo_main_android(struct demo *demo, struct ANativeWindow* window, int argc,
 
     demo_prepare(demo);
 
-    demo_run(demo);
+    demo_draw(demo, 0);
 
     return validation_error;
 }
