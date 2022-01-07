@@ -21,7 +21,7 @@ include_directories(volk)
 add_library(
         jni_vulkan
         SHARED
-        VulkanAppBridge.c AndroidGraphicsApplication.c vulkan_application/DSL_vulkan.c)
+        VulkanAppBridge.c AndroidGraphicsApplication.c vulkan_application/DSL_vulkan.c vulkan_application/assets_management/assets_fetcher.c)
 
 SET(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -fpermissive -std=c99")
 

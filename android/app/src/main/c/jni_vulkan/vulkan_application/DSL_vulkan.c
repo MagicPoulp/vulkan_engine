@@ -1572,14 +1572,14 @@ static VkShaderModule demo_prepare_shader_module(struct demo *demo, const uint32
 
 static void demo_prepare_vs(struct demo *demo) {
     const uint32_t vs_code[] = {
-#include "cube.vert.inc"
+#include "shaders/cube.vert.inc"
     };
     demo->vert_shader_module = demo_prepare_shader_module(demo, vs_code, sizeof(vs_code));
 }
 
 static void demo_prepare_fs(struct demo *demo) {
     const uint32_t fs_code[] = {
-#include "cube.frag.inc"
+#include "shaders/cube.frag.inc"
     };
     demo->frag_shader_module = demo_prepare_shader_module(demo, fs_code, sizeof(fs_code));
 }
