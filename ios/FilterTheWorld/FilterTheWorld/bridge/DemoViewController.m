@@ -19,7 +19,7 @@
 #import "DemoViewController.h"
 
 #include <MoltenVK/mvk_vulkan.h>
-#include "../../vulkan_application/cube_ios.h"
+#include "../../vulkan_application/DSL_vulkan.h"
 
 #pragma mark -
 #pragma mark DemoViewController

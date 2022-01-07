@@ -23,6 +23,7 @@
 		224FEBCC2787A0FA0081190D /* cube.frag.inc in Sources */ = {isa = PBXBuildFile; fileRef = 224FEBC02787A0F90081190D /* cube.frag.inc */; };
 		224FED492787A8270081190D /* MoltenVK.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 224FEBD02787A35E0081190D /* MoltenVK.xcframework */; };
 		22528006277C504D00E3109E /* DemoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 22528005277C504D00E3109E /* DemoViewController.m */; };
+		226327292788D29E002EC6B2 /* DSL_vulkan.c in Sources */ = {isa = PBXBuildFile; fileRef = 226327232788D1AC002EC6B2 /* DSL_vulkan.c */; };
 		9F69EE4C26942A8A00746CD7 /* CameraError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F69EE4B26942A8A00746CD7 /* CameraError.swift */; };
 		9F69EE4E26942CD500746CD7 /* CameraManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F69EE4D26942CD500746CD7 /* CameraManager.swift */; };
 		9F69EE5226957E1300746CD7 /* FrameManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F69EE5126957E1300746CD7 /* FrameManager.swift */; };
@@ -44,25 +45,26 @@
 		221DA82827778F80007612BD /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "usr/lib/libc++.tbd"; sourceTree = SDKROOT; };
 		221DA82A27779037007612BD /* MoltenVK.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = MoltenVK.xcframework; path = ../../../MoltenVK/Package/Debug/MoltenVK/MoltenVK.xcframework; sourceTree = "<group>"; };
 		221DA84227779D11007612BD /* VulkanViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VulkanViewController.swift; sourceTree = "<group>"; };
-		224FEBB22787A0F60081190D /* cube_ios.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = cube_ios.h; path = ../android/app/src/main/c/jni_vulkan/vulkan_application/cube_ios.h; sourceTree = "<group>"; };
 		224FEBB42787A0F70081190D /* cube.vert.inc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.pascal; name = cube.vert.inc; path = ../android/app/src/main/c/jni_vulkan/vulkan_application/cube.vert.inc; sourceTree = "<group>"; };
-		224FEBB52787A0F70081190D /* gettime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gettime.h; path = ../android/app/src/main/c/jni_vulkan/vulkan_application/gettime.h; sourceTree = "<group>"; };
 		224FEBB62787A0F70081190D /* cube.vert */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = cube.vert; path = ../android/app/src/main/c/jni_vulkan/vulkan_application/cube.vert; sourceTree = "<group>"; };
 		224FEBB72787A0F70081190D /* cube.frag */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; name = cube.frag; path = ../android/app/src/main/c/jni_vulkan/vulkan_application/cube.frag; sourceTree = "<group>"; };
-		224FEBB92787A0F80081190D /* linmath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = linmath.h; path = ../android/app/src/main/c/jni_vulkan/vulkan_application/linmath.h; sourceTree = "<group>"; };
 		224FEBBC2787A0F80081190D /* 15-draw_cube.vert.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "15-draw_cube.vert.h"; path = "../android/app/src/main/c/jni_vulkan/vulkan_application/15-draw_cube.vert.h"; sourceTree = "<group>"; };
 		224FEBBE2787A0F90081190D /* home8.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = home8.png; sourceTree = "<group>"; };
 		224FEBBF2787A0F90081190D /* statue-hera.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "statue-hera.png"; sourceTree = "<group>"; };
 		224FEBC02787A0F90081190D /* cube.frag.inc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.pascal; name = cube.frag.inc; path = ../android/app/src/main/c/jni_vulkan/vulkan_application/cube.frag.inc; sourceTree = "<group>"; };
 		224FEBC42787A0FA0081190D /* cube_data.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = cube_data.h; path = ../android/app/src/main/c/jni_vulkan/vulkan_application/cube_data.h; sourceTree = "<group>"; };
 		224FEBC62787A0FA0081190D /* object_type_string_helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = object_type_string_helper.h; path = ../android/app/src/main/c/jni_vulkan/vulkan_application/object_type_string_helper.h; sourceTree = "<group>"; };
-		224FEBCF2787A13D0081190D /* cube.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = cube.h; path = ../android/app/src/main/c/jni_vulkan/vulkan_application/cube.h; sourceTree = "<group>"; };
 		224FEBD02787A35E0081190D /* MoltenVK.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = MoltenVK.xcframework; path = ../../../MoltenVK/MoltenVK/MoltenVK.xcframework; sourceTree = "<group>"; };
 		224FEBD22787A4970081190D /* 15-draw_cube.frag.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "15-draw_cube.frag.h"; path = "../15-draw_cube.frag.h"; sourceTree = "<group>"; };
 		224FED482787A4DC0081190D /* 15-draw_cube.frag.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "15-draw_cube.frag.h"; path = "../android/app/src/main/c/jni_vulkan/vulkan_application/15-draw_cube.frag.h"; sourceTree = "<group>"; };
 		22528003277C504D00E3109E /* DemoViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DemoViewController.h; sourceTree = "<group>"; };
 		22528004277C504D00E3109E /* FilterTheWorld-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "FilterTheWorld-Bridging-Header.h"; sourceTree = "<group>"; };
 		22528005277C504D00E3109E /* DemoViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DemoViewController.m; sourceTree = "<group>"; };
+		226327232788D1AC002EC6B2 /* DSL_vulkan.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = DSL_vulkan.c; path = ../android/app/src/main/c/jni_vulkan/vulkan_application/DSL_vulkan.c; sourceTree = "<group>"; };
+		226327242788D1AC002EC6B2 /* DSL_vulkan.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DSL_vulkan.h; path = ../android/app/src/main/c/jni_vulkan/vulkan_application/DSL_vulkan.h; sourceTree = "<group>"; };
+		226327262788D1CD002EC6B2 /* linmath.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = linmath.h; sourceTree = "<group>"; };
+		226327272788D1CD002EC6B2 /* stb_image.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stb_image.h; sourceTree = "<group>"; };
+		2263272A2788D4CB002EC6B2 /* gettime.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gettime.h; sourceTree = "<group>"; };
 		9F69EE4B26942A8A00746CD7 /* CameraError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraError.swift; sourceTree = "<group>"; };
 		9F69EE4D26942CD500746CD7 /* CameraManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraManager.swift; sourceTree = "<group>"; };
 		9F69EE5126957E1300746CD7 /* FrameManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameManager.swift; sourceTree = "<group>"; };
@@ -178,21 +180,31 @@
 			path = bridge;
 			sourceTree = "<group>";
 		};
+		226327252788D1CD002EC6B2 /* utils */ = {
+			isa = PBXGroup;
+			children = (
+				226327262788D1CD002EC6B2 /* linmath.h */,
+				2263272A2788D4CB002EC6B2 /* gettime.h */,
+				226327272788D1CD002EC6B2 /* stb_image.h */,
+			);
+			name = utils;
+			path = ../android/app/src/main/c/jni_vulkan/vulkan_application/utils;
+			sourceTree = "<group>";
+		};
 		2265FBCF277CEEB7008E1018 /* vulkan_application */ = {
 			isa = PBXGroup;
 			children = (
+				226327252788D1CD002EC6B2 /* utils */,
 				224FEBBD2787A0F90081190D /* textures */,
 				224FEBBC2787A0F80081190D /* 15-draw_cube.vert.h */,
 				224FED482787A4DC0081190D /* 15-draw_cube.frag.h */,
-				224FEBCF2787A13D0081190D /* cube.h */,
 				224FEBC42787A0FA0081190D /* cube_data.h */,
-				224FEBB22787A0F60081190D /* cube_ios.h */,
 				224FEBB72787A0F70081190D /* cube.frag */,
 				224FEBB62787A0F70081190D /* cube.vert */,
 				224FEBB42787A0F70081190D /* cube.vert.inc */,
 				224FEBC02787A0F90081190D /* cube.frag.inc */,
-				224FEBB52787A0F70081190D /* gettime.h */,
-				224FEBB92787A0F80081190D /* linmath.h */,
+				226327232788D1AC002EC6B2 /* DSL_vulkan.c */,
+				226327242788D1AC002EC6B2 /* DSL_vulkan.h */,
 				224FEBC62787A0FA0081190D /* object_type_string_helper.h */,
 			);
 			name = vulkan_application;
@@ -325,6 +337,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				226327292788D29E002EC6B2 /* DSL_vulkan.c in Sources */,
 				9F69EE542695837100746CD7 /* FrameView.swift in Sources */,
 				9F69EE5226957E1300746CD7 /* FrameManager.swift in Sources */,
 				9F69EE602698210900746CD7 /* VulkanView.swift in Sources */,
