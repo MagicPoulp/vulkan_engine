@@ -9,7 +9,7 @@ android {
     ndkVersion "23.1.7779620"
 
     defaultConfig {
-        applicationId "com.thierry.android_surface_view_with_vulkan"
+        applicationId "com.getwemap.vulkan_engine"
         minSdkVersion 28
         targetSdkVersion 31
         versionCode 1

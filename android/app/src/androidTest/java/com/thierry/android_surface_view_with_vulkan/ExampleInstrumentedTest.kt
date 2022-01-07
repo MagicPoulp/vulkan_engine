@@ -1,4 +1,4 @@
-package com.thierry.android_surface_view_with_vulkan
+package com.getwemap.vulkan_engine
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("com.thierry.android_surface_view_with_vulkan", appContext.packageName)
+        assertEquals("com.getwemap.vulkan_engine", appContext.packageName)
     }
 }

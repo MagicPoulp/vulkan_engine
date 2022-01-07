@@ -1,4 +1,4 @@
-package com.thierry.android_surface_view_with_vulkan
+package com.getwemap.vulkan_engine
 
 import android.view.Choreographer
 

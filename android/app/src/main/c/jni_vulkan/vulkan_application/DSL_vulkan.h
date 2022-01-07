@@ -6,8 +6,8 @@
 //  Copyright © 2021 Ray Wenderlich. All rights reserved.
 //
 
-#ifndef cube_h
-#define cube_h
+#ifndef DSL_VULKAN_h
+#define DSL_VULKAN_h
 
 #include "utils/gettime.h"
 #include "utils/stb_image.h"

@@ -1,4 +1,4 @@
-package com.thierry.android_surface_view_with_vulkan
+package com.getwemap.vulkan_engine
 
 import android.app.Application
 import androidx.camera.camera2.Camera2Config
