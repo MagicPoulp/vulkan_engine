@@ -5,7 +5,7 @@ THe CMakeLists copies to a .c
 
 
 #include "utils/gettime.h"
-#include "DSL_vulkan_header.h"
+#include "DSL_vulkan.h"
 // cube.c and cube2.h must be exact copies to sycn Android and iOS
 #define STB_IMAGE_IMPLEMENTATION
 #include "utils/stb_image.h"
