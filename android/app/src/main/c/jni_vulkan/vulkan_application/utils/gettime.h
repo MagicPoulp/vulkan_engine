@@ -18,9 +18,9 @@
  * Port done by: Ian Elliott <ianelliott@google.com>
  **************************************************************************/
 
-#include "../../../../../../../../../../Library/Android/sdk/ndk/23.1.7779620/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/time.h"
-#include "../../../../../../../../../../Library/Android/sdk/ndk/23.1.7779620/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/assert.h"
-#include "../../../../../../../../../../Library/Android/sdk/ndk/23.1.7779620/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/vulkan/vk_platform.h"
+#include <time.h>
+#include <assert.h>
+#include <vulkan/vk_platform.h>
 
 #if defined(_WIN32)
 
@@ -28,7 +28,7 @@
 
 #elif defined(__unix__) || defined(__linux) || defined(__linux__) || defined(__FreeBSD__) || defined(__ANDROID__) || defined(__EPOC32__) || defined(__QNX__)
 
-#include "../../../../../../../../../../Library/Android/sdk/ndk/23.1.7779620/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/time.h"
+#include <time.h>
 
 #elif defined(__APPLE__)
 

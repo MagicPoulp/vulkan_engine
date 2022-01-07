@@ -9,6 +9,7 @@
 #ifndef cube_h
 #define cube_h
 
+#include "utils/gettime.h"
 #include "utils/stb_image.h"
 
 #define _GNU_SOURCE
@@ -389,9 +390,12 @@ struct demo {
     uint32_t queue_family_count;
 };
 
+#ifdef __ANDROID__
 int demo_main_android(struct demo *demo, struct ANativeWindow* window, int argc, char **argv);
+#endif
 void demo_draw(struct demo *demo, double elapsedTimeS);
 void demo_main(struct demo *demo,  void *caMetalLayer, int argc, const char *argv[]);
+void demo_prepare(struct demo *demo);
 void setTextures(const char* texturesPath);
 #ifdef __ANDROID__
 void set_textures_android(AAssetManager *assetManager);
