@@ -1,3 +1,7 @@
+# obj loader
+https://github.com/syoyo/tinyobjloader-c
+Geometry can be mad in the software called Blender, then exported as a .obj
+
 # Notes
 
 The image is grey because gamma and cHRM are used, shown on 32 bits via the command xxd on the png.
