@@ -52,7 +52,6 @@
 		224FEBBF2787A0F90081190D /* statue-hera.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "statue-hera.png"; sourceTree = "<group>"; };
 		224FEBC02787A0F90081190D /* cube.frag.inc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.pascal; name = cube.frag.inc; path = ../android/app/src/main/c/jni_vulkan/vulkan_application/cube.frag.inc; sourceTree = "<group>"; };
 		224FEBC42787A0FA0081190D /* cube_data.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = cube_data.h; path = ../android/app/src/main/c/jni_vulkan/vulkan_application/cube_data.h; sourceTree = "<group>"; };
-		224FEBC62787A0FA0081190D /* object_type_string_helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = object_type_string_helper.h; path = ../android/app/src/main/c/jni_vulkan/vulkan_application/object_type_string_helper.h; sourceTree = "<group>"; };
 		224FEBD02787A35E0081190D /* MoltenVK.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = MoltenVK.xcframework; path = ../../../MoltenVK/MoltenVK/MoltenVK.xcframework; sourceTree = "<group>"; };
 		224FEBD22787A4970081190D /* 15-draw_cube.frag.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "15-draw_cube.frag.h"; path = "../15-draw_cube.frag.h"; sourceTree = "<group>"; };
 		224FED482787A4DC0081190D /* 15-draw_cube.frag.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "15-draw_cube.frag.h"; path = "../android/app/src/main/c/jni_vulkan/vulkan_application/15-draw_cube.frag.h"; sourceTree = "<group>"; };
@@ -204,7 +203,6 @@
 				224FEBC02787A0F90081190D /* cube.frag.inc */,
 				226327232788D1AC002EC6B2 /* DSL_vulkan.c */,
 				226327242788D1AC002EC6B2 /* DSL_vulkan.h */,
-				224FEBC62787A0FA0081190D /* object_type_string_helper.h */,
 			);
 			name = vulkan_application;
 			path = ../../vulkan_application;

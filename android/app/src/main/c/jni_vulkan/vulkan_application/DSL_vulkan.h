@@ -44,7 +44,7 @@
 #endif
 
 #include "utils/linmath.h"
-#include "object_type_string_helper.h"
+#include "utils/object_type_string_helper.h"
 
 #include "inttypes.h"
 #define MILLION 1000000L
