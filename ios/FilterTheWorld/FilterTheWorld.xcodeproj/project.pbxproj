@@ -23,7 +23,6 @@
 		224FEBCC2787A0FA0081190D /* cube.frag.inc in Sources */ = {isa = PBXBuildFile; fileRef = 224FEBC02787A0F90081190D /* cube.frag.inc */; };
 		224FED492787A8270081190D /* MoltenVK.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 224FEBD02787A35E0081190D /* MoltenVK.xcframework */; };
 		22528006277C504D00E3109E /* DemoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 22528005277C504D00E3109E /* DemoViewController.m */; };
-		226327292788D29E002EC6B2 /* DSL_vulkan.c in Sources */ = {isa = PBXBuildFile; fileRef = 226327232788D1AC002EC6B2 /* DSL_vulkan.c */; };
 		9F69EE4C26942A8A00746CD7 /* CameraError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F69EE4B26942A8A00746CD7 /* CameraError.swift */; };
 		9F69EE4E26942CD500746CD7 /* CameraManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F69EE4D26942CD500746CD7 /* CameraManager.swift */; };
 		9F69EE5226957E1300746CD7 /* FrameManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F69EE5126957E1300746CD7 /* FrameManager.swift */; };
@@ -337,7 +336,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				226327292788D29E002EC6B2 /* DSL_vulkan.c in Sources */,
 				9F69EE542695837100746CD7 /* FrameView.swift in Sources */,
 				9F69EE5226957E1300746CD7 /* FrameManager.swift in Sources */,
 				9F69EE602698210900746CD7 /* VulkanView.swift in Sources */,

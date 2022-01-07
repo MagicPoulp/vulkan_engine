@@ -16,10 +16,11 @@
  * limitations under the License.
  */
 
-#import "DemoViewController.h"
-
 #include <MoltenVK/mvk_vulkan.h>
-#include "../../vulkan_application/DSL_vulkan.h"
+
+#import "DemoViewController.h"
+// To make the build simple, it is enough to include here all the .c files
+#include "../../vulkan_application/DSL_vulkan.c"
 
 #pragma mark -
 #pragma mark DemoViewController
