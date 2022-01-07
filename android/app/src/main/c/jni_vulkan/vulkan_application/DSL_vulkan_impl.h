@@ -1,38 +1,18 @@
 /*
- * Copyright (c) 2015-2019 The Khronos Group Inc.
- * Copyright (c) 2015-2019 Valve Corporation
- * Copyright (c) 2015-2019 LunarG, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file exdemo_maincept in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- * Author: Chia-I Wu <olv@lunarg.com>
- * Author: Courtney Goeltzenleuchter <courtney@LunarG.com>
- * Author: Ian Elliott <ian@LunarG.com>
- * Author: Ian Elliott <ianelliott@google.com>
- * Author: Jon Ashburn <jon@lunarg.com>
- * Author: Gwan-gyeong Mun <elongbug@gmail.com>
- * Author: Tony Barbour <tony@LunarG.com>
- * Author: Bill Hollings <bill.hollings@brenwill.com>
- */
+The implementation file is in a .h and not a .c to simplify the build on iOS.
+THe CMakeLists copies to a .c
+*/
 
-#include <stdio.h>
-#include "cube.h"
+
+#include "utils/gettime.h"
+#include "DSL_vulkan_header.h"
 // cube.c and cube2.h must be exact copies to sycn Android and iOS
 #define STB_IMAGE_IMPLEMENTATION
 #include "utils/stb_image.h"
 #ifdef __ANDROID__
 #include <android/native_activity.h>
 AAssetManager *assetManager;
+#include <stdio.h>
 #endif
 
 struct demo demo;
@@ -1098,7 +1078,7 @@ bool loadTexture(const char *filename, uint8_t *rgba_data, VkSubresourceLayout *
       AASSET_MODE_BUFFER
     );
     off64_t length1 = AAsset_getLength(asset);
-    void* rawData = AAsset_getBuffer(asset);
+    void* rawData = (void*)AAsset_getBuffer(asset);
     FILE* file = fmemopen(rawData, length1, "rb");
     stbi_uc* pixels = stbi_load_from_file(file, width, height, &texChannels, STBI_rgb_alpha);
     fclose(file);

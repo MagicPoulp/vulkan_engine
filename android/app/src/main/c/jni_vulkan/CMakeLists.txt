@@ -16,10 +16,12 @@ endif()
 
 include_directories(volk)
 
+configure_file(vulkan_application/DSL_vulkan_impl.h vulkan_application/DSL_vulkan_impl.c COPYONLY)
+
 add_library(
         jni_vulkan
         SHARED
-        VulkanAppBridge.c AndroidGraphicsApplication.c vulkan_application/cube_android.c)
+        VulkanAppBridge.c AndroidGraphicsApplication.c vulkan_application/DSL_vulkan_impl.c)
 
 SET(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -fpermissive -std=c99")
 

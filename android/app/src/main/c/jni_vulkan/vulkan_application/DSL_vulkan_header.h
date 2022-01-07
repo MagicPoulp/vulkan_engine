@@ -42,10 +42,9 @@
 #include <vulkan/vk_sdk_platform.h>
 #endif
 
-#include "linmath.h"
+#include "utils/linmath.h"
 #include "object_type_string_helper.h"
 
-#include "gettime.h"
 #include "inttypes.h"
 #define MILLION 1000000L
 #define BILLION 1000000000L
@@ -71,22 +70,7 @@
 #define UNUSED
 #endif
 
-#ifdef _WIN32
-bool in_callback = false;
-#define ERR_EXIT(err_msg, err_class)                                             \
-    do {                                                                         \
-        if (!demo->suppress_popups) MessageBox(NULL, err_msg, err_class, MB_OK); \
-        exit(1);                                                                 \
-    } while (0)
-void DbgMsg(char *fmt, ...) {
-    va_list va;
-    va_start(va, fmt);
-    vprintf(fmt, va);
-    va_end(va);
-    fflush(stdout);
-}
-
-#elif defined __ANDROID__
+#if defined __ANDROID__
 #define VARARGS_WORKS_ON_ANDROID
 #include <android/log.h>
 #include <android/native_activity.h>
