@@ -41,6 +41,7 @@ void get_file_data(
     *len = obj->length;
 }
 
+// bmax, bmin give the dimensions in order to scale the object in the world
 int AssetsFetcher__LoadObjAndConvert(float bmin[3], float bmax[3], const char* filename, struct ObjAsset* obj) {
     tinyobj_attrib_t attrib;
     tinyobj_shape_t* shapes = NULL;
