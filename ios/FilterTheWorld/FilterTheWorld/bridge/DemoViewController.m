@@ -19,22 +19,24 @@
 #include <MoltenVK/mvk_vulkan.h>
 
 #import "DemoViewController.h"
-// To make the build simple, it is enough to include here all the .c files
-#include "../../vulkan_application/DSL_vulkan.c"
+
+#include "../../vulkan_application/Program.h"
+
+// Other C files are built automatically
+// We just need an include file for the Program struct that we use
 
 #pragma mark -
 #pragma mark DemoViewController
 
 @implementation DemoViewController {
 	CADisplayLink* displayLink;
-	struct demo demo;
+  struct Program* program;
   BOOL initDone;
 }
 
 -(void) dealloc {
-	demo_cleanup(&demo);
+  Program__destroy(program);
 	[displayLink release];
-  freeResources();
 	[super dealloc];
 }
 
@@ -47,7 +49,7 @@
     return self;
 }
 
-/** Since this is a single-view app, init Vulkan when the view is loaded. */
+// Since this is a single-view app, init Vulkan when the view is loaded.
 -(void) viewWillLayoutSubviews {
 	[super viewWillLayoutSubviews];
   if (initDone) {
@@ -57,20 +59,17 @@
 
   self.view.contentScaleFactor = UIScreen.mainScreen.nativeScale;
 
-	const char* argv[] = { "cube" };
-	int argc = sizeof(argv)/sizeof(char*);
 	// the debugger step-in cannot be used in demo-main, BUT it works in a function just after
   NSString * texture1 = [[NSBundle mainBundle] pathForResource:  @"home8" ofType: @"png"];
   // https://www.qi-u.com/?qa=924696/c-how-to-fopen-on-the-iphone
   NSArray *split = [texture1 componentsSeparatedByString:@"/"];
   NSMutableArray *split2 = [split mutableCopy];
   [split2 removeObjectAtIndex:[split count]-1];
-  NSString *joined = [split componentsJoinedByString:@"/"];
+  NSString *joined = [split2 componentsJoinedByString:@"/"];
   const char *texturesPath = [joined cStringUsingEncoding:1];
-  demo_main(&demo, self.view.layer, argc, argv);
-  setTextures(texturesPath);
-  demo_prepare(&demo);
-	demo_draw(&demo, 0);
+  program = Program__create();
+  program->vulkanDSL->caMetalLayer = self.view.layer;
+  vulkanDSL_main(program->vulkanDSL, &program->assetsFetcher, texturesPath);
 
 	displayLink = [CADisplayLink displayLinkWithTarget: self selector: @selector(renderLoop)];
   [displayLink addToRunLoop: NSRunLoop.currentRunLoop forMode: NSDefaultRunLoopMode];
@@ -78,13 +77,13 @@
 
 -(void) renderLoop {
   double elapsedTimeS = displayLink.targetTimestamp - displayLink.timestamp;
-	demo_draw(&demo, elapsedTimeS);
+	demo_draw(program->vulkanDSL, elapsedTimeS);
 }
 
 // Allow device rotation to resize the swapchain
 -(void)viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(id)coordinator {
 	[super viewWillTransitionToSize:size withTransitionCoordinator:coordinator];
-	demo_resize(&demo);
+	demo_resize(program->vulkanDSL);
 }
 
 @end

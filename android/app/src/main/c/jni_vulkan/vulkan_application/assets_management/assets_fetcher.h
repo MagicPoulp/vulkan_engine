@@ -1,8 +1,0 @@
-//
-// Created by Thierry Vilmart on 2022-01-07.
-//
-
-#ifndef VULKAN_ENGINE_ASSETS_FETCHER_H
-#define VULKAN_ENGINE_ASSETS_FETCHER_H
-
-#endif //VULKAN_ENGINE_ASSETS_FETCHER_H

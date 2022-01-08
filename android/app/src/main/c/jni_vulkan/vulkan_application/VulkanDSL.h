@@ -9,9 +9,16 @@
 #ifndef DSL_VULKAN_h
 #define DSL_VULKAN_h
 
-#include "utils/gettime.h"
-#include "utils/stb_image.h"
+// linking a speparate .c in XCode does not set the metal flag from MoltenVK
+#ifndef __ANDROID__
+#ifndef VK_USE_PLATFORM_METAL_EXT
+#define VK_USE_PLATFORM_METAL_EXT
+#endif
+#endif
 
+#define DEMO_TEXTURE_COUNT 1
+
+#include "assets_management/AssetsFetcher.h"
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <stdarg.h>
@@ -50,7 +57,6 @@
 #define MILLION 1000000L
 #define BILLION 1000000000L
 
-#define DEMO_TEXTURE_COUNT 1
 #define APP_SHORT_NAME "vkcube"
 #define APP_LONG_NAME "Vulkan Cube"
 
@@ -71,49 +77,10 @@
 #define UNUSED
 #endif
 
-#if defined __ANDROID__
-#define VARARGS_WORKS_ON_ANDROID
-#include <android/log.h>
-#include <android/native_activity.h>
-#define ERR_EXIT(err_msg, err_class)                                           \
-    do {                                                                       \
-        ((void)__android_log_print(ANDROID_LOG_INFO, "Vulkan Cube", err_msg)); \
-        exit(1);                                                               \
-    } while (0)
-#ifdef VARARGS_WORKS_ON_ANDROID
-void DbgMsg(const char *fmt, ...) {
-    va_list va;
-    va_start(va, fmt);
-    __android_log_print(ANDROID_LOG_INFO, "Vulkan Cube", fmt, va);
-    va_end(va);
-}
-#else  // VARARGS_WORKS_ON_ANDROID
-#define DbgMsg(fmt, ...)                                                                  \
-    do {                                                                                  \
-        ((void)__android_log_print(ANDROID_LOG_INFO, "Vulkan Cube", fmt, ##__VA_ARGS__)); \
-    } while (0)
-#endif  // VARARGS_WORKS_ON_ANDROID
-#else
-
-#define ERR_EXIT(err_msg, err_class) \
-    do {                             \
-        printf("%s\n", err_msg);     \
-        fflush(stdout);              \
-        exit(1);                     \
-    } while (0)
-void DbgMsg(char *fmt, ...) {
-    va_list va;
-    va_start(va, fmt);
-    vprintf(fmt, va);
-    va_end(va);
-    fflush(stdout);
-}
-#endif
-
 #define GET_INSTANCE_PROC_ADDR(inst, entrypoint)                                                              \
     {                                                                                                         \
-        demo->fp##entrypoint = (PFN_vk##entrypoint)vkGetInstanceProcAddr(inst, "vk" #entrypoint);             \
-        if (demo->fp##entrypoint == NULL) {                                                                   \
+        vulkanDSL->fp##entrypoint = (PFN_vk##entrypoint)vkGetInstanceProcAddr(inst, "vk" #entrypoint);             \
+        if (vulkanDSL->fp##entrypoint == NULL) {                                                                   \
             ERR_EXIT("vkGetInstanceProcAddr failed to find vk" #entrypoint, "vkGetInstanceProcAddr Failure"); \
         }                                                                                                     \
     }
@@ -122,9 +89,9 @@ static PFN_vkGetDeviceProcAddr g_gdpa = NULL;
 
 #define GET_DEVICE_PROC_ADDR(dev, entrypoint)                                                                    \
     {                                                                                                            \
-        if (!g_gdpa) g_gdpa = (PFN_vkGetDeviceProcAddr)vkGetInstanceProcAddr(demo->inst, "vkGetDeviceProcAddr"); \
-        demo->fp##entrypoint = (PFN_vk##entrypoint)g_gdpa(dev, "vk" #entrypoint);                                \
-        if (demo->fp##entrypoint == NULL) {                                                                      \
+        if (!g_gdpa) g_gdpa = (PFN_vkGetDeviceProcAddr)vkGetInstanceProcAddr(vulkanDSL->inst, "vkGetDeviceProcAddr"); \
+        vulkanDSL->fp##entrypoint = (PFN_vk##entrypoint)g_gdpa(dev, "vk" #entrypoint);                                \
+        if (vulkanDSL->fp##entrypoint == NULL) {                                                                      \
             ERR_EXIT("vkGetDeviceProcAddr failed to find vk" #entrypoint, "vkGetDeviceProcAddr Failure");        \
         }                                                                                                        \
     }
@@ -145,8 +112,6 @@ struct texture_object {
     int32_t tex_width, tex_height;
 };
 
-// DEMO_TEXTURE_COUNT must be updated to match this
-static char *tex_files_short[] = { "home8" };
 static char **tex_files;
 static int validation_error = 0;
 
@@ -262,7 +227,7 @@ typedef struct {
     VkDescriptorSet descriptor_set;
 } SwapchainImageResources;
 
-struct demo {
+struct VulkanDSL {
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
     struct ANativeWindow *window;
 #elif defined(VK_USE_PLATFORM_METAL_EXT)
@@ -390,18 +355,13 @@ struct demo {
     uint32_t queue_family_count;
 };
 
-#ifdef __ANDROID__
-int demo_main_android(struct demo *demo, struct ANativeWindow* window, int argc, char **argv);
-#endif
-void demo_draw(struct demo *demo, double elapsedTimeS);
-void demo_main(struct demo *demo,  void *caMetalLayer, int argc, const char *argv[]);
-void demo_prepare(struct demo *demo);
-void setTextures(const char* texturesPath);
-#ifdef __ANDROID__
-void set_textures_android(AAssetManager *assetManager);
-#endif
-void demo_cleanup(struct demo *demo);
-void demo_resize(struct demo *demo);
-void freeResources(void);
+void vulkanDSL_main(struct VulkanDSL *vulkanDSL, struct AssetsFetcher *assetsFetcher, const char* assetsPath);
+void setTextures(struct AssetsFetcher *assetsFetcher, const char* assetsPath);
+void demo_draw(struct VulkanDSL *vulkanDSL, double elapsedTimeS);
+void demo_prepare(struct VulkanDSL *vulkanDSL);
+void demo_cleanup(struct VulkanDSL *vulkanDSL);
+void demo_resize(struct VulkanDSL *vulkanDSL);
+void VulkanDSL__setSize(struct VulkanDSL *vulkanDSL, int32_t width, int32_t height);
+void VulkanDSL__freeResources(void);
 
-#endif /* cube_h */
+#endif

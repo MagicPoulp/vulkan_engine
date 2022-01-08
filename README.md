@@ -2,6 +2,9 @@
 https://github.com/syoyo/tinyobjloader-c
 Geometry can be mad in the software called Blender, then exported as a .obj
 
+OOP in C
+https://www.codementor.io/@michaelsafyan/object-oriented-programming-in-c-du1081gw2
+
 # Notes
 
 The image is grey because gamma and cHRM are used, shown on 32 bits via the command xxd on the png.

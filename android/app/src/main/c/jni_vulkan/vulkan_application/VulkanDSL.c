@@ -3,17 +3,56 @@ The implementation file is in a .h and not a .c to simplify the build on iOS.
 THe CMakeLists copies to a .c
 */
 
-#include "DSL_vulkan.h"
-// cube.c and cube2.h must be exact copies to sycn Android and iOS
+#include <utils/gettime.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include "utils/stb_image.h"
 #ifdef __ANDROID__
 #include <android/native_activity.h>
-AAssetManager *assetManager;
 #include <stdio.h>
 #endif
+#include "VulkanDSL.h"
+#include "Program.h"
 
-struct demo demo;
+
+#if defined __ANDROID__
+#define VARARGS_WORKS_ON_ANDROID
+#include <android/log.h>
+#include <android/native_activity.h>
+#define ERR_EXIT(err_msg, err_class)                                           \
+    do {                                                                       \
+        ((void)__android_log_print(ANDROID_LOG_INFO, "Vulkan Cube", err_msg)); \
+        exit(1);                                                               \
+    } while (0)
+#ifdef VARARGS_WORKS_ON_ANDROID
+void DbgMsg(const char *fmt, ...) {
+    va_list va;
+    va_start(va, fmt);
+    __android_log_print(ANDROID_LOG_INFO, "Vulkan Cube", fmt, va);
+    va_end(va);
+}
+#else  // VARARGS_WORKS_ON_ANDROID
+#define DbgMsg(fmt, ...)                                                                  \
+    do {                                                                                  \
+        ((void)__android_log_print(ANDROID_LOG_INFO, "Vulkan Cube", fmt, ##__VA_ARGS__)); \
+    } while (0)
+#endif  // VARARGS_WORKS_ON_ANDROID
+#else
+#define ERR_EXIT(err_msg, err_class) \
+    do {                             \
+        printf("%s\n", err_msg);     \
+        fflush(stdout);              \
+        exit(1);                     \
+    } while (0)
+void DbgMsg(char *fmt, ...) {
+    va_list va;
+    va_start(va, fmt);
+    vprintf(fmt, va);
+    va_end(va);
+    fflush(stdout);
+}
+#endif
+
+extern struct Program *program;
 
 void dumpMatrix(const char *note, mat4x4 MVP) {
     int i;
@@ -40,9 +79,9 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debug_messenger_callback(VkDebugUtilsMessageSever
     char prefix[64] = "";
     char *message = (char *)malloc(strlen(pCallbackData->pMessage) + 5000);
     assert(message);
-    struct demo *demo = (struct demo *)pUserData;
+    struct VulkanDSL *vulkanDSL = (struct VulkanDSL *)pUserData;
 
-    if (demo->use_break) {
+    if (vulkanDSL->use_break) {
 #ifndef WIN32
         raise(SIGTRAP);
 #else
@@ -110,7 +149,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debug_messenger_callback(VkDebugUtilsMessageSever
 #ifdef _WIN32
 
     in_callback = true;
-    if (!demo->suppress_popups) MessageBox(NULL, message, "Alert", MB_OK);
+    if (!vulkanDSL->suppress_popups) MessageBox(NULL, message, "Alert", MB_OK);
     in_callback = false;
 
 #elif defined(ANDROID)
@@ -175,15 +214,15 @@ bool CanPresentEarlier(uint64_t earliest, uint64_t actual, uint64_t margin, uint
 }
 
 // Forward declarations:
-void demo_resize(struct demo *demo);
-static void demo_create_surface(struct demo *demo);
+void demo_resize(struct VulkanDSL *vulkanDSL);
+static void demo_create_surface(struct VulkanDSL *vulkanDSL);
 
-static bool memory_type_from_properties(struct demo *demo, uint32_t typeBits, VkFlags requirements_mask, uint32_t *typeIndex) {
+static bool memory_type_from_properties(struct VulkanDSL *vulkanDSL, uint32_t typeBits, VkFlags requirements_mask, uint32_t *typeIndex) {
     // Search memtypes to find first index with those properties
     for (uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; i++) {
         if ((typeBits & 1) == 1) {
             // Type is available, does it match user properties?
-            if ((demo->memory_properties.memoryTypes[i].propertyFlags & requirements_mask) == requirements_mask) {
+            if ((vulkanDSL->memory_properties.memoryTypes[i].propertyFlags & requirements_mask) == requirements_mask) {
                 *typeIndex = i;
                 return true;
             }
@@ -194,22 +233,22 @@ static bool memory_type_from_properties(struct demo *demo, uint32_t typeBits, Vk
     return false;
 }
 
-static void demo_flush_init_cmd(struct demo *demo) {
+static void demo_flush_init_cmd(struct VulkanDSL *vulkanDSL) {
     VkResult U_ASSERT_ONLY err;
 
     // This function could get called twice if the texture uses a staging buffer
     // In that case the second call should be ignored
-    if (demo->cmd == VK_NULL_HANDLE) return;
+    if (vulkanDSL->cmd == VK_NULL_HANDLE) return;
 
-    err = vkEndCommandBuffer(demo->cmd);
+    err = vkEndCommandBuffer(vulkanDSL->cmd);
     assert(!err);
 
     VkFence fence;
     VkFenceCreateInfo fence_ci = {.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO, .pNext = NULL, .flags = 0};
-    err = vkCreateFence(demo->device, &fence_ci, NULL, &fence);
+    err = vkCreateFence(vulkanDSL->device, &fence_ci, NULL, &fence);
     assert(!err);
 
-    const VkCommandBuffer cmd_bufs[] = {demo->cmd};
+    const VkCommandBuffer cmd_bufs[] = {vulkanDSL->cmd};
     VkSubmitInfo submit_info = {
             .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
             .pNext = NULL,
@@ -222,21 +261,21 @@ static void demo_flush_init_cmd(struct demo *demo) {
             .pSignalSemaphores = NULL
     };
 
-    err = vkQueueSubmit(demo->graphics_queue, 1, &submit_info, fence);
+    err = vkQueueSubmit(vulkanDSL->graphics_queue, 1, &submit_info, fence);
     assert(!err);
 
-    err = vkWaitForFences(demo->device, 1, &fence, VK_TRUE, UINT64_MAX);
+    err = vkWaitForFences(vulkanDSL->device, 1, &fence, VK_TRUE, UINT64_MAX);
     assert(!err);
 
-    vkFreeCommandBuffers(demo->device, demo->cmd_pool, 1, cmd_bufs);
-    vkDestroyFence(demo->device, fence, NULL);
-    demo->cmd = VK_NULL_HANDLE;
+    vkFreeCommandBuffers(vulkanDSL->device, vulkanDSL->cmd_pool, 1, cmd_bufs);
+    vkDestroyFence(vulkanDSL->device, fence, NULL);
+    vulkanDSL->cmd = VK_NULL_HANDLE;
 }
 
-static void demo_set_image_layout(struct demo *demo, VkImage image, VkImageAspectFlags aspectMask, VkImageLayout old_image_layout,
+static void demo_set_image_layout(struct VulkanDSL *vulkanDSL, VkImage image, VkImageAspectFlags aspectMask, VkImageLayout old_image_layout,
                                   VkImageLayout new_image_layout, VkAccessFlagBits srcAccessMask, VkPipelineStageFlags src_stages,
                                   VkPipelineStageFlags dest_stages) {
-    assert(demo->cmd);
+    assert(vulkanDSL->cmd);
 
     VkImageMemoryBarrier image_memory_barrier = {.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
             .pNext = NULL,
@@ -282,10 +321,10 @@ static void demo_set_image_layout(struct demo *demo, VkImage image, VkImageAspec
 
     VkImageMemoryBarrier *pmemory_barrier = &image_memory_barrier;
 
-    vkCmdPipelineBarrier(demo->cmd, src_stages, dest_stages, 0, 0, NULL, 0, NULL, 1, pmemory_barrier);
+    vkCmdPipelineBarrier(vulkanDSL->cmd, src_stages, dest_stages, 0, 0, NULL, 0, NULL, 1, pmemory_barrier);
 }
 
-static void demo_draw_build_cmd(struct demo *demo, VkCommandBuffer cmd_buf) {
+static void demo_draw_build_cmd(struct VulkanDSL *vulkanDSL, VkCommandBuffer cmd_buf) {
     VkDebugUtilsLabelEXT label;
     memset(&label, 0, sizeof(label));
     const VkCommandBufferBeginInfo cmd_buf_info = {
@@ -301,12 +340,12 @@ static void demo_draw_build_cmd(struct demo *demo, VkCommandBuffer cmd_buf) {
     const VkRenderPassBeginInfo rp_begin = {
             .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
             .pNext = NULL,
-            .renderPass = demo->render_pass,
-            .framebuffer = demo->swapchain_image_resources[demo->current_buffer].framebuffer,
+            .renderPass = vulkanDSL->render_pass,
+            .framebuffer = vulkanDSL->swapchain_image_resources[vulkanDSL->current_buffer].framebuffer,
             .renderArea.offset.x = 0,
             .renderArea.offset.y = 0,
-            .renderArea.extent.width = demo->width,
-            .renderArea.extent.height = demo->height,
+            .renderArea.extent.width = vulkanDSL->width,
+            .renderArea.extent.height = vulkanDSL->height,
             .clearValueCount = 2,
             .pClearValues = clear_values,
     };
@@ -314,7 +353,7 @@ static void demo_draw_build_cmd(struct demo *demo, VkCommandBuffer cmd_buf) {
 
     err = vkBeginCommandBuffer(cmd_buf, &cmd_buf_info);
 
-    if (demo->validate) {
+    if (vulkanDSL->validate) {
         // Set a name for the command buffer
         VkDebugUtilsObjectNameInfoEXT cmd_buf_name = {
                 .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
@@ -323,7 +362,7 @@ static void demo_draw_build_cmd(struct demo *demo, VkCommandBuffer cmd_buf) {
                 .objectHandle = (uint64_t)cmd_buf,
                 .pObjectName = "CubeDrawCommandBuf",
         };
-        demo->SetDebugUtilsObjectNameEXT(demo->device, &cmd_buf_name);
+        vulkanDSL->SetDebugUtilsObjectNameEXT(vulkanDSL->device, &cmd_buf_name);
 
         label.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
         label.pNext = NULL;
@@ -332,13 +371,13 @@ static void demo_draw_build_cmd(struct demo *demo, VkCommandBuffer cmd_buf) {
         label.color[1] = 0.3f;
         label.color[2] = 0.2f;
         label.color[3] = 0.1f;
-        demo->CmdBeginDebugUtilsLabelEXT(cmd_buf, &label);
+        vulkanDSL->CmdBeginDebugUtilsLabelEXT(cmd_buf, &label);
     }
 
     assert(!err);
     vkCmdBeginRenderPass(cmd_buf, &rp_begin, VK_SUBPASS_CONTENTS_INLINE);
 
-    if (demo->validate) {
+    if (vulkanDSL->validate) {
         label.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
         label.pNext = NULL;
         label.pLabelName = "InsideRenderPass";
@@ -346,21 +385,21 @@ static void demo_draw_build_cmd(struct demo *demo, VkCommandBuffer cmd_buf) {
         label.color[1] = 7.3f;
         label.color[2] = 6.2f;
         label.color[3] = 7.1f;
-        demo->CmdBeginDebugUtilsLabelEXT(cmd_buf, &label);
+        vulkanDSL->CmdBeginDebugUtilsLabelEXT(cmd_buf, &label);
     }
 
-    vkCmdBindPipeline(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, demo->pipeline);
-    vkCmdBindDescriptorSets(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, demo->pipeline_layout, 0, 1,
-                            &demo->swapchain_image_resources[demo->current_buffer].descriptor_set, 0, NULL);
+    vkCmdBindPipeline(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanDSL->pipeline);
+    vkCmdBindDescriptorSets(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanDSL->pipeline_layout, 0, 1,
+                            &vulkanDSL->swapchain_image_resources[vulkanDSL->current_buffer].descriptor_set, 0, NULL);
     VkViewport viewport;
     memset(&viewport, 0, sizeof(viewport));
     float viewport_dimension;
-    if (demo->width < demo->height) {
-        viewport_dimension = (float)demo->width;
-        viewport.y = (demo->height - demo->width) / 2.0f;
+    if (vulkanDSL->width < vulkanDSL->height) {
+        viewport_dimension = (float)vulkanDSL->width;
+        viewport.y = (vulkanDSL->height - vulkanDSL->width) / 2.0f;
     } else {
-        viewport_dimension = (float)demo->height;
-        viewport.x = (demo->width - demo->height) / 2.0f;
+        viewport_dimension = (float)vulkanDSL->height;
+        viewport.x = (vulkanDSL->width - vulkanDSL->height) / 2.0f;
     }
     viewport.height = viewport_dimension;
     viewport.width = viewport_dimension;
@@ -370,13 +409,13 @@ static void demo_draw_build_cmd(struct demo *demo, VkCommandBuffer cmd_buf) {
 
     VkRect2D scissor;
     memset(&scissor, 0, sizeof(scissor));
-    scissor.extent.width = demo->width;
-    scissor.extent.height = demo->height;
+    scissor.extent.width = vulkanDSL->width;
+    scissor.extent.height = vulkanDSL->height;
     scissor.offset.x = 0;
     scissor.offset.y = 0;
     vkCmdSetScissor(cmd_buf, 0, 1, &scissor);
 
-    if (demo->validate) {
+    if (vulkanDSL->validate) {
         label.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
         label.pNext = NULL;
         label.pLabelName = "ActualDraw";
@@ -384,22 +423,22 @@ static void demo_draw_build_cmd(struct demo *demo, VkCommandBuffer cmd_buf) {
         label.color[1] = -0.3f;
         label.color[2] = -0.2f;
         label.color[3] = -0.1f;
-        demo->CmdBeginDebugUtilsLabelEXT(cmd_buf, &label);
+        vulkanDSL->CmdBeginDebugUtilsLabelEXT(cmd_buf, &label);
     }
 
     vkCmdDraw(cmd_buf, 12 * 3, 1, 0, 0);
-    if (demo->validate) {
-        demo->CmdEndDebugUtilsLabelEXT(cmd_buf);
+    if (vulkanDSL->validate) {
+        vulkanDSL->CmdEndDebugUtilsLabelEXT(cmd_buf);
     }
 
     // Note that ending the renderpass changes the image's layout from
     // COLOR_ATTACHMENT_OPTIMAL to PRESENT_SRC_KHR
     vkCmdEndRenderPass(cmd_buf);
-    if (demo->validate) {
-        demo->CmdEndDebugUtilsLabelEXT(cmd_buf);
+    if (vulkanDSL->validate) {
+        vulkanDSL->CmdEndDebugUtilsLabelEXT(cmd_buf);
     }
 
-    if (demo->separate_present_queue) {
+    if (vulkanDSL->separate_present_queue) {
         // We have to transfer ownership from the graphics queue family to the
         // present queue family to be able to present.  Note that we don't have
         // to transfer from present queue family back to graphics queue family at
@@ -411,22 +450,22 @@ static void demo_draw_build_cmd(struct demo *demo, VkCommandBuffer cmd_buf) {
                 .dstAccessMask = 0,
                 .oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
                 .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-                .srcQueueFamilyIndex = demo->graphics_queue_family_index,
-                .dstQueueFamilyIndex = demo->present_queue_family_index,
-                .image = demo->swapchain_image_resources[demo->current_buffer].image,
+                .srcQueueFamilyIndex = vulkanDSL->graphics_queue_family_index,
+                .dstQueueFamilyIndex = vulkanDSL->present_queue_family_index,
+                .image = vulkanDSL->swapchain_image_resources[vulkanDSL->current_buffer].image,
                 .subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}};
 
         vkCmdPipelineBarrier(cmd_buf, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0, 0, NULL, 0,
                              NULL, 1, &image_ownership_barrier);
     }
-    if (demo->validate) {
-        demo->CmdEndDebugUtilsLabelEXT(cmd_buf);
+    if (vulkanDSL->validate) {
+        vulkanDSL->CmdEndDebugUtilsLabelEXT(cmd_buf);
     }
     err = vkEndCommandBuffer(cmd_buf);
     assert(!err);
 }
 
-void demo_build_image_ownership_cmd(struct demo *demo, int i) {
+void demo_build_image_ownership_cmd(struct VulkanDSL *vulkanDSL, int i) {
     VkResult U_ASSERT_ONLY err;
 
     const VkCommandBufferBeginInfo cmd_buf_info = {
@@ -435,7 +474,7 @@ void demo_build_image_ownership_cmd(struct demo *demo, int i) {
             .flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT,
             .pInheritanceInfo = NULL,
     };
-    err = vkBeginCommandBuffer(demo->swapchain_image_resources[i].graphics_to_present_cmd, &cmd_buf_info);
+    err = vkBeginCommandBuffer(vulkanDSL->swapchain_image_resources[i].graphics_to_present_cmd, &cmd_buf_info);
     assert(!err);
 
     VkImageMemoryBarrier image_ownership_barrier = {.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -444,56 +483,56 @@ void demo_build_image_ownership_cmd(struct demo *demo, int i) {
             .dstAccessMask = 0,
             .oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
             .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-            .srcQueueFamilyIndex = demo->graphics_queue_family_index,
-            .dstQueueFamilyIndex = demo->present_queue_family_index,
-            .image = demo->swapchain_image_resources[i].image,
+            .srcQueueFamilyIndex = vulkanDSL->graphics_queue_family_index,
+            .dstQueueFamilyIndex = vulkanDSL->present_queue_family_index,
+            .image = vulkanDSL->swapchain_image_resources[i].image,
             .subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}};
 
-    vkCmdPipelineBarrier(demo->swapchain_image_resources[i].graphics_to_present_cmd, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+    vkCmdPipelineBarrier(vulkanDSL->swapchain_image_resources[i].graphics_to_present_cmd, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
                          VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0, 0, NULL, 0, NULL, 1, &image_ownership_barrier);
-    err = vkEndCommandBuffer(demo->swapchain_image_resources[i].graphics_to_present_cmd);
+    err = vkEndCommandBuffer(vulkanDSL->swapchain_image_resources[i].graphics_to_present_cmd);
     assert(!err);
 }
 
-void demo_update_data_buffer(struct demo *demo, double elapsedTimeS) {
+void demo_update_data_buffer(struct VulkanDSL *vulkanDSL, double elapsedTimeS) {
     mat4x4 MVP, Model, VP;
     int matrixSize = sizeof(MVP);
 
-    mat4x4_mul(VP, demo->projection_matrix, demo->view_matrix);
+    mat4x4_mul(VP, vulkanDSL->projection_matrix, vulkanDSL->view_matrix);
 
     // Rotate around the Y axis
-    mat4x4_dup(Model, demo->model_matrix);
+    mat4x4_dup(Model, vulkanDSL->model_matrix);
     // degrees per second
-    double movedAngle = demo->spin_angle * elapsedTimeS;
-    //__android_log_print(ANDROID_LOG_INFO, "LOG", "%lf - &lf - %lf", demo->spin_angle, elapsedTimeS, movedAngle);
+    double movedAngle = vulkanDSL->spin_angle * elapsedTimeS;
+    //__android_log_print(ANDROID_LOG_INFO, "LOG", "%lf - &lf - %lf", vulkanDSL->spin_angle, elapsedTimeS, movedAngle);
     //NSLog(@"%lf", movedAngle);
-    mat4x4_rotate_Y(demo->model_matrix, Model, (float)degreesToRadians(movedAngle));
-    mat4x4_orthonormalize(demo->model_matrix, demo->model_matrix);
-    mat4x4_mul(MVP, VP, demo->model_matrix);
+    mat4x4_rotate_Y(vulkanDSL->model_matrix, Model, (float)degreesToRadians(movedAngle));
+    mat4x4_orthonormalize(vulkanDSL->model_matrix, vulkanDSL->model_matrix);
+    mat4x4_mul(MVP, VP, vulkanDSL->model_matrix);
 
-    memcpy(demo->swapchain_image_resources[demo->current_buffer].uniform_memory_ptr, (const void *)&MVP[0][0], matrixSize);
+    memcpy(vulkanDSL->swapchain_image_resources[vulkanDSL->current_buffer].uniform_memory_ptr, (const void *)&MVP[0][0], matrixSize);
 }
 
-void DemoUpdateTargetIPD(struct demo *demo) {
+void DemoUpdateTargetIPD(struct VulkanDSL *vulkanDSL) {
     // Look at what happened to previous presents, and make appropriate
     // adjustments in timing:
     VkResult U_ASSERT_ONLY err;
     VkPastPresentationTimingGOOGLE *past = NULL;
     uint32_t count = 0;
 
-    err = demo->fpGetPastPresentationTimingGOOGLE(demo->device, demo->swapchain, &count, NULL);
+    err = vulkanDSL->fpGetPastPresentationTimingGOOGLE(vulkanDSL->device, vulkanDSL->swapchain, &count, NULL);
     assert(!err);
     if (count) {
         past = (VkPastPresentationTimingGOOGLE *)malloc(sizeof(VkPastPresentationTimingGOOGLE) * count);
         assert(past);
-        err = demo->fpGetPastPresentationTimingGOOGLE(demo->device, demo->swapchain, &count, past);
+        err = vulkanDSL->fpGetPastPresentationTimingGOOGLE(vulkanDSL->device, vulkanDSL->swapchain, &count, past);
         assert(!err);
 
         bool early = false;
         bool late = false;
         bool calibrate_next = false;
         for (uint32_t i = 0; i < count; i++) {
-            if (!demo->syncd_with_actual_presents) {
+            if (!vulkanDSL->syncd_with_actual_presents) {
                 // This is the first time that we've received an
                 // actualPresentTime for this swapchain.  In order to not
                 // perceive these early frames as "late", we need to sync-up
@@ -503,57 +542,57 @@ void DemoUpdateTargetIPD(struct demo *demo) {
 
                 // So that we don't suspect any pending presents as late,
                 // record them all as suspected-late presents:
-                demo->last_late_id = demo->next_present_id - 1;
-                demo->last_early_id = 0;
-                demo->syncd_with_actual_presents = true;
+                vulkanDSL->last_late_id = vulkanDSL->next_present_id - 1;
+                vulkanDSL->last_early_id = 0;
+                vulkanDSL->syncd_with_actual_presents = true;
                 break;
             } else if (CanPresentEarlier(past[i].earliestPresentTime, past[i].actualPresentTime, past[i].presentMargin,
-                                         demo->refresh_duration)) {
+                                         vulkanDSL->refresh_duration)) {
                 // This image could have been presented earlier.  We don't want
                 // to decrease the target_IPD until we've seen early presents
                 // for at least two seconds.
-                if (demo->last_early_id == past[i].presentID) {
+                if (vulkanDSL->last_early_id == past[i].presentID) {
                     // We've now seen two seconds worth of early presents.
                     // Flag it as such, and reset the counter:
                     early = true;
-                    demo->last_early_id = 0;
-                } else if (demo->last_early_id == 0) {
+                    vulkanDSL->last_early_id = 0;
+                } else if (vulkanDSL->last_early_id == 0) {
                     // This is the first early present we've seen.
                     // Calculate the presentID for two seconds from now.
                     uint64_t lastEarlyTime = past[i].actualPresentTime + (2 * BILLION);
-                    uint32_t howManyPresents = (uint32_t)((lastEarlyTime - past[i].actualPresentTime) / demo->target_IPD);
-                    demo->last_early_id = past[i].presentID + howManyPresents;
+                    uint32_t howManyPresents = (uint32_t)((lastEarlyTime - past[i].actualPresentTime) / vulkanDSL->target_IPD);
+                    vulkanDSL->last_early_id = past[i].presentID + howManyPresents;
                 } else {
                     // We are in the midst of a set of early images,
                     // and so we won't do anything.
                 }
                 late = false;
-                demo->last_late_id = 0;
-            } else if (ActualTimeLate(past[i].desiredPresentTime, past[i].actualPresentTime, demo->refresh_duration)) {
+                vulkanDSL->last_late_id = 0;
+            } else if (ActualTimeLate(past[i].desiredPresentTime, past[i].actualPresentTime, vulkanDSL->refresh_duration)) {
                 // This image was presented after its desired time.  Since
                 // there's a delay between calling vkQueuePresentKHR and when
                 // we get the timing data, several presents may have been late.
                 // Thus, we need to threat all of the outstanding presents as
                 // being likely late, so that we only increase the target_IPD
                 // once for all of those presents.
-                if ((demo->last_late_id == 0) || (demo->last_late_id < past[i].presentID)) {
+                if ((vulkanDSL->last_late_id == 0) || (vulkanDSL->last_late_id < past[i].presentID)) {
                     late = true;
                     // Record the last suspected-late present:
-                    demo->last_late_id = demo->next_present_id - 1;
+                    vulkanDSL->last_late_id = vulkanDSL->next_present_id - 1;
                 } else {
                     // We are in the midst of a set of likely-late images,
                     // and so we won't do anything.
                 }
                 early = false;
-                demo->last_early_id = 0;
+                vulkanDSL->last_early_id = 0;
             } else {
                 // Since this image was not presented early or late, reset
                 // any sets of early or late presentIDs:
                 early = false;
                 late = false;
                 calibrate_next = true;
-                demo->last_early_id = 0;
-                demo->last_late_id = 0;
+                vulkanDSL->last_early_id = 0;
+                vulkanDSL->last_late_id = 0;
             }
         }
 
@@ -564,13 +603,13 @@ void DemoUpdateTargetIPD(struct demo *demo) {
             //
             // TODO(ianelliott): Try to calculate a better target_IPD based
             // on the most recently-seen present (this is overly-simplistic).
-            demo->refresh_duration_multiplier--;
-            if (demo->refresh_duration_multiplier == 0) {
+            vulkanDSL->refresh_duration_multiplier--;
+            if (vulkanDSL->refresh_duration_multiplier == 0) {
                 // This should never happen, but in case it does, don't
                 // try to go faster.
-                demo->refresh_duration_multiplier = 1;
+                vulkanDSL->refresh_duration_multiplier = 1;
             }
-            demo->target_IPD = demo->refresh_duration * demo->refresh_duration_multiplier;
+            vulkanDSL->target_IPD = vulkanDSL->refresh_duration * vulkanDSL->refresh_duration_multiplier;
         }
         if (late) {
             // Since we found a new instance of a late present, we want to
@@ -578,54 +617,54 @@ void DemoUpdateTargetIPD(struct demo *demo) {
             //
             // TODO(ianelliott): Try to calculate a better target_IPD based
             // on the most recently-seen present (this is overly-simplistic).
-            demo->refresh_duration_multiplier++;
-            demo->target_IPD = demo->refresh_duration * demo->refresh_duration_multiplier;
+            vulkanDSL->refresh_duration_multiplier++;
+            vulkanDSL->target_IPD = vulkanDSL->refresh_duration * vulkanDSL->refresh_duration_multiplier;
         }
 
         if (calibrate_next) {
-            int64_t multiple = demo->next_present_id - past[count - 1].presentID;
-            demo->prev_desired_present_time = (past[count - 1].actualPresentTime + (multiple * demo->target_IPD));
+            int64_t multiple = vulkanDSL->next_present_id - past[count - 1].presentID;
+            vulkanDSL->prev_desired_present_time = (past[count - 1].actualPresentTime + (multiple * vulkanDSL->target_IPD));
         }
         free(past);
     }
 }
 
-void demo_draw(struct demo *demo, double elapsedTimeS) {
+void demo_draw(struct VulkanDSL *vulkanDSL, double elapsedTimeS) {
     VkResult U_ASSERT_ONLY err;
 
     // Ensure no more than FRAME_LAG renderings are outstanding
-    vkWaitForFences(demo->device, 1, &demo->fences[demo->frame_index], VK_TRUE, UINT64_MAX);
-    vkResetFences(demo->device, 1, &demo->fences[demo->frame_index]);
+    vkWaitForFences(vulkanDSL->device, 1, &vulkanDSL->fences[vulkanDSL->frame_index], VK_TRUE, UINT64_MAX);
+    vkResetFences(vulkanDSL->device, 1, &vulkanDSL->fences[vulkanDSL->frame_index]);
 
     do {
         // Get the index of the next available swapchain image:
         err =
-                demo->fpAcquireNextImageKHR(demo->device, demo->swapchain, UINT64_MAX,
-                                            demo->image_acquired_semaphores[demo->frame_index], VK_NULL_HANDLE, &demo->current_buffer);
+                vulkanDSL->fpAcquireNextImageKHR(vulkanDSL->device, vulkanDSL->swapchain, UINT64_MAX,
+                                            vulkanDSL->image_acquired_semaphores[vulkanDSL->frame_index], VK_NULL_HANDLE, &vulkanDSL->current_buffer);
 
         if (err == VK_ERROR_OUT_OF_DATE_KHR) {
-            // demo->swapchain is out of date (e.g. the window was resized) and
+            // vulkanDSL->swapchain is out of date (e.g. the window was resized) and
             // must be recreated:
-            demo_resize(demo);
+            demo_resize(vulkanDSL);
         } else if (err == VK_SUBOPTIMAL_KHR) {
-            // demo->swapchain is not as optimal as it could be, but the platform's
+            // vulkanDSL->swapchain is not as optimal as it could be, but the platform's
             // presentation engine will still present the image correctly.
             break;
         } else if (err == VK_ERROR_SURFACE_LOST_KHR) {
-            vkDestroySurfaceKHR(demo->inst, demo->surface, NULL);
-            demo_create_surface(demo);
-            demo_resize(demo);
+            vkDestroySurfaceKHR(vulkanDSL->inst, vulkanDSL->surface, NULL);
+            demo_create_surface(vulkanDSL);
+            demo_resize(vulkanDSL);
         } else {
             assert(!err);
         }
     } while (err != VK_SUCCESS);
 
-    demo_update_data_buffer(demo, elapsedTimeS);
+    demo_update_data_buffer(vulkanDSL, elapsedTimeS);
 
-    if (demo->VK_GOOGLE_display_timing_enabled) {
+    if (vulkanDSL->VK_GOOGLE_display_timing_enabled) {
         // Look at what happened to previous presents, and make appropriate
         // adjustments in timing:
-        DemoUpdateTargetIPD(demo);
+        DemoUpdateTargetIPD(vulkanDSL);
 
         // Note: a real application would position its geometry to that it's in
         // the correct location for when the next image is presented.  It might
@@ -645,27 +684,27 @@ void demo_draw(struct demo *demo, double elapsedTimeS) {
     pipe_stage_flags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
     submit_info.pWaitDstStageMask = &pipe_stage_flags;
     submit_info.waitSemaphoreCount = 1;
-    submit_info.pWaitSemaphores = &demo->image_acquired_semaphores[demo->frame_index];
+    submit_info.pWaitSemaphores = &vulkanDSL->image_acquired_semaphores[vulkanDSL->frame_index];
     submit_info.commandBufferCount = 1;
-    submit_info.pCommandBuffers = &demo->swapchain_image_resources[demo->current_buffer].cmd;
+    submit_info.pCommandBuffers = &vulkanDSL->swapchain_image_resources[vulkanDSL->current_buffer].cmd;
     submit_info.signalSemaphoreCount = 1;
-    submit_info.pSignalSemaphores = &demo->draw_complete_semaphores[demo->frame_index];
-    err = vkQueueSubmit(demo->graphics_queue, 1, &submit_info, demo->fences[demo->frame_index]);
+    submit_info.pSignalSemaphores = &vulkanDSL->draw_complete_semaphores[vulkanDSL->frame_index];
+    err = vkQueueSubmit(vulkanDSL->graphics_queue, 1, &submit_info, vulkanDSL->fences[vulkanDSL->frame_index]);
     assert(!err);
 
-    if (demo->separate_present_queue) {
+    if (vulkanDSL->separate_present_queue) {
         // If we are using separate queues, change image ownership to the
         // present queue before presenting, waiting for the draw complete
         // semaphore and signalling the ownership released semaphore when finished
         VkFence nullFence = VK_NULL_HANDLE;
         pipe_stage_flags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
         submit_info.waitSemaphoreCount = 1;
-        submit_info.pWaitSemaphores = &demo->draw_complete_semaphores[demo->frame_index];
+        submit_info.pWaitSemaphores = &vulkanDSL->draw_complete_semaphores[vulkanDSL->frame_index];
         submit_info.commandBufferCount = 1;
-        submit_info.pCommandBuffers = &demo->swapchain_image_resources[demo->current_buffer].graphics_to_present_cmd;
+        submit_info.pCommandBuffers = &vulkanDSL->swapchain_image_resources[vulkanDSL->current_buffer].graphics_to_present_cmd;
         submit_info.signalSemaphoreCount = 1;
-        submit_info.pSignalSemaphores = &demo->image_ownership_semaphores[demo->frame_index];
-        err = vkQueueSubmit(demo->present_queue, 1, &submit_info, nullFence);
+        submit_info.pSignalSemaphores = &vulkanDSL->image_ownership_semaphores[vulkanDSL->frame_index];
+        err = vkQueueSubmit(vulkanDSL->present_queue, 1, &submit_info, nullFence);
         assert(!err);
     }
 
@@ -675,25 +714,25 @@ void demo_draw(struct demo *demo, double elapsedTimeS) {
             .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
             .pNext = NULL,
             .waitSemaphoreCount = 1,
-            .pWaitSemaphores = (demo->separate_present_queue) ? &demo->image_ownership_semaphores[demo->frame_index]
-                                                              : &demo->draw_complete_semaphores[demo->frame_index],
+            .pWaitSemaphores = (vulkanDSL->separate_present_queue) ? &vulkanDSL->image_ownership_semaphores[vulkanDSL->frame_index]
+                                                              : &vulkanDSL->draw_complete_semaphores[vulkanDSL->frame_index],
             .swapchainCount = 1,
-            .pSwapchains = &demo->swapchain,
-            .pImageIndices = &demo->current_buffer,
+            .pSwapchains = &vulkanDSL->swapchain,
+            .pImageIndices = &vulkanDSL->current_buffer,
     };
 
     VkRectLayerKHR rect;
     VkPresentRegionKHR region;
     VkPresentRegionsKHR regions;
-    if (demo->VK_KHR_incremental_present_enabled) {
+    if (vulkanDSL->VK_KHR_incremental_present_enabled) {
         // If using VK_KHR_incremental_present, we provide a hint of the region
         // that contains changed content relative to the previously-presented
         // image.  The implementation can use this hint in order to save
         // work/power (by only copying the region in the hint).  The
         // implementation is free to ignore the hint though, and so we must
         // ensure that the entire image has the correctly-drawn content.
-        uint32_t eighthOfWidth = demo->width / 8;
-        uint32_t eighthOfHeight = demo->height / 8;
+        uint32_t eighthOfWidth = vulkanDSL->width / 8;
+        uint32_t eighthOfHeight = vulkanDSL->height / 8;
 
         rect.offset.x = eighthOfWidth;
         rect.offset.y = eighthOfHeight;
@@ -711,10 +750,10 @@ void demo_draw(struct demo *demo, double elapsedTimeS) {
         present.pNext = &regions;
     }
 
-    if (demo->VK_GOOGLE_display_timing_enabled) {
+    if (vulkanDSL->VK_GOOGLE_display_timing_enabled) {
         VkPresentTimeGOOGLE ptime;
 
-        if (demo->prev_desired_present_time == 0) {
+        if (vulkanDSL->prev_desired_present_time == 0) {
             // This must be the first present for this swapchain.
             //
             // We don't know where we are relative to the presentation engine's
@@ -728,15 +767,15 @@ void demo_draw(struct demo *demo, double elapsedTimeS) {
                 // desiredPresentTime:
                 ptime.desiredPresentTime = 0;
             } else {
-                ptime.desiredPresentTime = curtime + (demo->target_IPD >> 1);
+                ptime.desiredPresentTime = curtime + (vulkanDSL->target_IPD >> 1);
             }
         } else {
-            ptime.desiredPresentTime = (demo->prev_desired_present_time + demo->target_IPD);
+            ptime.desiredPresentTime = (vulkanDSL->prev_desired_present_time + vulkanDSL->target_IPD);
         }
 
         //ptime.desiredPresentTime = (uint64_t)(elapsedTimeS * 1000000000);
-        ptime.presentID = demo->next_present_id++;
-        demo->prev_desired_present_time = ptime.desiredPresentTime;
+        ptime.presentID = vulkanDSL->next_present_id++;
+        vulkanDSL->prev_desired_present_time = ptime.desiredPresentTime;
 
         VkPresentTimesInfoGOOGLE present_time = {
                 .sType = VK_STRUCTURE_TYPE_PRESENT_TIMES_INFO_GOOGLE,
@@ -744,52 +783,52 @@ void demo_draw(struct demo *demo, double elapsedTimeS) {
                 .swapchainCount = present.swapchainCount,
                 .pTimes = &ptime,
         };
-        if (demo->VK_GOOGLE_display_timing_enabled) {
+        if (vulkanDSL->VK_GOOGLE_display_timing_enabled) {
             present.pNext = &present_time;
         }
     }
 
-    err = demo->fpQueuePresentKHR(demo->present_queue, &present);
-    demo->frame_index += 1;
-    demo->frame_index %= FRAME_LAG;
+    err = vulkanDSL->fpQueuePresentKHR(vulkanDSL->present_queue, &present);
+    vulkanDSL->frame_index += 1;
+    vulkanDSL->frame_index %= FRAME_LAG;
 
     if (err == VK_ERROR_OUT_OF_DATE_KHR) {
-        // demo->swapchain is out of date (e.g. the window was resized) and
+        // vulkanDSL->swapchain is out of date (e.g. the window was resized) and
         // must be recreated:
-        demo_resize(demo);
+        demo_resize(vulkanDSL);
     } else if (err == VK_SUBOPTIMAL_KHR) {
         // SUBOPTIMAL could be due to a resize
         VkSurfaceCapabilitiesKHR surfCapabilities;
-        err = demo->fpGetPhysicalDeviceSurfaceCapabilitiesKHR(demo->gpu, demo->surface, &surfCapabilities);
+        err = vulkanDSL->fpGetPhysicalDeviceSurfaceCapabilitiesKHR(vulkanDSL->gpu, vulkanDSL->surface, &surfCapabilities);
         assert(!err);
-        if (surfCapabilities.currentExtent.width != (uint32_t)demo->width ||
-            surfCapabilities.currentExtent.height != (uint32_t)demo->height) {
-            demo_resize(demo);
+        if (surfCapabilities.currentExtent.width != (uint32_t)vulkanDSL->width ||
+            surfCapabilities.currentExtent.height != (uint32_t)vulkanDSL->height) {
+            demo_resize(vulkanDSL);
         }
     } else if (err == VK_ERROR_SURFACE_LOST_KHR) {
-        vkDestroySurfaceKHR(demo->inst, demo->surface, NULL);
-        demo_create_surface(demo);
-        demo_resize(demo);
+        vkDestroySurfaceKHR(vulkanDSL->inst, vulkanDSL->surface, NULL);
+        demo_create_surface(vulkanDSL);
+        demo_resize(vulkanDSL);
     } else {
         assert(!err);
     }
 }
 
-static void demo_prepare_buffers(struct demo *demo) {
+static void demo_prepare_buffers(struct VulkanDSL *vulkanDSL) {
     VkResult U_ASSERT_ONLY err;
-    VkSwapchainKHR oldSwapchain = demo->swapchain;
+    VkSwapchainKHR oldSwapchain = vulkanDSL->swapchain;
 
     // Check the surface capabilities and formats
     VkSurfaceCapabilitiesKHR surfCapabilities;
-    err = demo->fpGetPhysicalDeviceSurfaceCapabilitiesKHR(demo->gpu, demo->surface, &surfCapabilities);
+    err = vulkanDSL->fpGetPhysicalDeviceSurfaceCapabilitiesKHR(vulkanDSL->gpu, vulkanDSL->surface, &surfCapabilities);
     assert(!err);
 
     uint32_t presentModeCount;
-    err = demo->fpGetPhysicalDeviceSurfacePresentModesKHR(demo->gpu, demo->surface, &presentModeCount, NULL);
+    err = vulkanDSL->fpGetPhysicalDeviceSurfacePresentModesKHR(vulkanDSL->gpu, vulkanDSL->surface, &presentModeCount, NULL);
     assert(!err);
     VkPresentModeKHR *presentModes = (VkPresentModeKHR *)malloc(presentModeCount * sizeof(VkPresentModeKHR));
     assert(presentModes);
-    err = demo->fpGetPhysicalDeviceSurfacePresentModesKHR(demo->gpu, demo->surface, &presentModeCount, presentModes);
+    err = vulkanDSL->fpGetPhysicalDeviceSurfacePresentModesKHR(vulkanDSL->gpu, vulkanDSL->surface, &presentModeCount, presentModes);
     assert(!err);
 
     VkExtent2D swapchainExtent;
@@ -798,8 +837,8 @@ static void demo_prepare_buffers(struct demo *demo) {
         // If the surface size is undefined, the size is set to the size
         // of the images requested, which must fit within the minimum and
         // maximum values.
-        swapchainExtent.width = demo->width;
-        swapchainExtent.height = demo->height;
+        swapchainExtent.width = vulkanDSL->width;
+        swapchainExtent.height = vulkanDSL->height;
 
         if (swapchainExtent.width < surfCapabilities.minImageExtent.width) {
             swapchainExtent.width = surfCapabilities.minImageExtent.width;
@@ -815,15 +854,15 @@ static void demo_prepare_buffers(struct demo *demo) {
     } else {
         // If the surface size is defined, the swap chain size must match
         swapchainExtent = surfCapabilities.currentExtent;
-        demo->width = surfCapabilities.currentExtent.width;
-        demo->height = surfCapabilities.currentExtent.height;
+        vulkanDSL->width = surfCapabilities.currentExtent.width;
+        vulkanDSL->height = surfCapabilities.currentExtent.height;
     }
 
     if (surfCapabilities.maxImageExtent.width == 0 || surfCapabilities.maxImageExtent.height == 0) {
-        demo->is_minimized = true;
+        vulkanDSL->is_minimized = true;
         return;
     } else {
-        demo->is_minimized = false;
+        vulkanDSL->is_minimized = false;
     }
 
     // The FIFO present mode is guaranteed by the spec to be supported
@@ -857,15 +896,15 @@ static void demo_prepare_buffers(struct demo *demo) {
     // the application wants the late image to be immediately displayed, even
     // though that may mean some tearing.
 
-    if (demo->presentMode != swapchainPresentMode) {
+    if (vulkanDSL->presentMode != swapchainPresentMode) {
         for (size_t i = 0; i < presentModeCount; ++i) {
-            if (presentModes[i] == demo->presentMode) {
-                swapchainPresentMode = demo->presentMode;
+            if (presentModes[i] == vulkanDSL->presentMode) {
+                swapchainPresentMode = vulkanDSL->presentMode;
                 break;
             }
         }
     }
-    if (swapchainPresentMode != demo->presentMode) {
+    if (swapchainPresentMode != vulkanDSL->presentMode) {
         ERR_EXIT("Present mode specified is not supported\n", "Present mode unsupported");
     }
 
@@ -911,10 +950,10 @@ static void demo_prepare_buffers(struct demo *demo) {
     VkSwapchainCreateInfoKHR swapchain_ci = {
             .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
             .pNext = NULL,
-            .surface = demo->surface,
+            .surface = vulkanDSL->surface,
             .minImageCount = desiredNumOfSwapchainImages,
-            .imageFormat = demo->format,
-            .imageColorSpace = demo->color_space,
+            .imageFormat = vulkanDSL->format,
+            .imageColorSpace = vulkanDSL->color_space,
             .imageExtent =
                     {
                             .width = swapchainExtent.width,
@@ -932,7 +971,7 @@ static void demo_prepare_buffers(struct demo *demo) {
             .clipped = true,
     };
     uint32_t i;
-    err = demo->fpCreateSwapchainKHR(demo->device, &swapchain_ci, NULL, &demo->swapchain);
+    err = vulkanDSL->fpCreateSwapchainKHR(vulkanDSL->device, &swapchain_ci, NULL, &vulkanDSL->swapchain);
     assert(!err);
 
     // If we just re-created an existing swapchain, we should destroy the old
@@ -940,26 +979,26 @@ static void demo_prepare_buffers(struct demo *demo) {
     // Note: destroying the swapchain also cleans up all its associated
     // presentable images once the platform is done with them.
     if (oldSwapchain != VK_NULL_HANDLE) {
-        demo->fpDestroySwapchainKHR(demo->device, oldSwapchain, NULL);
+        vulkanDSL->fpDestroySwapchainKHR(vulkanDSL->device, oldSwapchain, NULL);
     }
 
-    err = demo->fpGetSwapchainImagesKHR(demo->device, demo->swapchain, &demo->swapchainImageCount, NULL);
+    err = vulkanDSL->fpGetSwapchainImagesKHR(vulkanDSL->device, vulkanDSL->swapchain, &vulkanDSL->swapchainImageCount, NULL);
     assert(!err);
 
-    VkImage *swapchainImages = (VkImage *)malloc(demo->swapchainImageCount * sizeof(VkImage));
+    VkImage *swapchainImages = (VkImage *)malloc(vulkanDSL->swapchainImageCount * sizeof(VkImage));
     assert(swapchainImages);
-    err = demo->fpGetSwapchainImagesKHR(demo->device, demo->swapchain, &demo->swapchainImageCount, swapchainImages);
+    err = vulkanDSL->fpGetSwapchainImagesKHR(vulkanDSL->device, vulkanDSL->swapchain, &vulkanDSL->swapchainImageCount, swapchainImages);
     assert(!err);
 
-    demo->swapchain_image_resources =
-            (SwapchainImageResources *)malloc(sizeof(SwapchainImageResources) * demo->swapchainImageCount);
-    assert(demo->swapchain_image_resources);
+    vulkanDSL->swapchain_image_resources =
+            (SwapchainImageResources *)malloc(sizeof(SwapchainImageResources) * vulkanDSL->swapchainImageCount);
+    assert(vulkanDSL->swapchain_image_resources);
 
-    for (i = 0; i < demo->swapchainImageCount; i++) {
+    for (i = 0; i < vulkanDSL->swapchainImageCount; i++) {
         VkImageViewCreateInfo color_image_view = {
                 .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
                 .pNext = NULL,
-                .format = demo->format,
+                .format = vulkanDSL->format,
                 .components =
                         {
                                 .r = VK_COMPONENT_SWIZZLE_IDENTITY,
@@ -973,26 +1012,26 @@ static void demo_prepare_buffers(struct demo *demo) {
                 .flags = 0,
         };
 
-        demo->swapchain_image_resources[i].image = swapchainImages[i];
+        vulkanDSL->swapchain_image_resources[i].image = swapchainImages[i];
 
-        color_image_view.image = demo->swapchain_image_resources[i].image;
+        color_image_view.image = vulkanDSL->swapchain_image_resources[i].image;
 
-        err = vkCreateImageView(demo->device, &color_image_view, NULL, &demo->swapchain_image_resources[i].view);
+        err = vkCreateImageView(vulkanDSL->device, &color_image_view, NULL, &vulkanDSL->swapchain_image_resources[i].view);
         assert(!err);
     }
 
-    if (demo->VK_GOOGLE_display_timing_enabled) {
+    if (vulkanDSL->VK_GOOGLE_display_timing_enabled) {
         VkRefreshCycleDurationGOOGLE rc_dur;
-        err = demo->fpGetRefreshCycleDurationGOOGLE(demo->device, demo->swapchain, &rc_dur);
+        err = vulkanDSL->fpGetRefreshCycleDurationGOOGLE(vulkanDSL->device, vulkanDSL->swapchain, &rc_dur);
         assert(!err);
-        demo->refresh_duration = rc_dur.refreshDuration;
+        vulkanDSL->refresh_duration = rc_dur.refreshDuration;
 
-        demo->syncd_with_actual_presents = false;
+        vulkanDSL->syncd_with_actual_presents = false;
         // Initially target 1X the refresh duration:
-        demo->target_IPD = demo->refresh_duration;
-        demo->refresh_duration_multiplier = 1;
-        demo->prev_desired_present_time = 0;
-        demo->next_present_id = 1;
+        vulkanDSL->target_IPD = vulkanDSL->refresh_duration;
+        vulkanDSL->refresh_duration_multiplier = 1;
+        vulkanDSL->prev_desired_present_time = 0;
+        vulkanDSL->next_present_id = 1;
     }
 
     if (NULL != swapchainImages) {
@@ -1004,14 +1043,14 @@ static void demo_prepare_buffers(struct demo *demo) {
     }
 }
 
-static void demo_prepare_depth(struct demo *demo) {
+static void demo_prepare_depth(struct VulkanDSL *vulkanDSL) {
     const VkFormat depth_format = VK_FORMAT_D16_UNORM;
     const VkImageCreateInfo image = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
             .pNext = NULL,
             .imageType = VK_IMAGE_TYPE_2D,
             .format = depth_format,
-            .extent = {demo->width, demo->height, 1},
+            .extent = {vulkanDSL->width, vulkanDSL->height, 1},
             .mipLevels = 1,
             .arrayLayers = 1,
             .samples = VK_SAMPLE_COUNT_1_BIT,
@@ -1035,35 +1074,35 @@ static void demo_prepare_depth(struct demo *demo) {
     VkResult U_ASSERT_ONLY err;
     bool U_ASSERT_ONLY pass;
 
-    demo->depth.format = depth_format;
+    vulkanDSL->depth.format = depth_format;
 
     /* create image */
-    err = vkCreateImage(demo->device, &image, NULL, &demo->depth.image);
+    err = vkCreateImage(vulkanDSL->device, &image, NULL, &vulkanDSL->depth.image);
     assert(!err);
 
-    vkGetImageMemoryRequirements(demo->device, demo->depth.image, &mem_reqs);
+    vkGetImageMemoryRequirements(vulkanDSL->device, vulkanDSL->depth.image, &mem_reqs);
     assert(!err);
 
-    demo->depth.mem_alloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    demo->depth.mem_alloc.pNext = NULL;
-    demo->depth.mem_alloc.allocationSize = mem_reqs.size;
-    demo->depth.mem_alloc.memoryTypeIndex = 0;
+    vulkanDSL->depth.mem_alloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    vulkanDSL->depth.mem_alloc.pNext = NULL;
+    vulkanDSL->depth.mem_alloc.allocationSize = mem_reqs.size;
+    vulkanDSL->depth.mem_alloc.memoryTypeIndex = 0;
 
-    pass = memory_type_from_properties(demo, mem_reqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                                       &demo->depth.mem_alloc.memoryTypeIndex);
+    pass = memory_type_from_properties(vulkanDSL, mem_reqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                                       &vulkanDSL->depth.mem_alloc.memoryTypeIndex);
     assert(pass);
 
     /* allocate memory */
-    err = vkAllocateMemory(demo->device, &demo->depth.mem_alloc, NULL, &demo->depth.mem);
+    err = vkAllocateMemory(vulkanDSL->device, &vulkanDSL->depth.mem_alloc, NULL, &vulkanDSL->depth.mem);
     assert(!err);
 
     /* bind memory */
-    err = vkBindImageMemory(demo->device, demo->depth.image, demo->depth.mem, 0);
+    err = vkBindImageMemory(vulkanDSL->device, vulkanDSL->depth.image, vulkanDSL->depth.mem, 0);
     assert(!err);
 
     /* create image view */
-    view.image = demo->depth.image;
-    err = vkCreateImageView(demo->device, &view, NULL, &demo->depth.view);
+    view.image = vulkanDSL->depth.image;
+    err = vkCreateImageView(vulkanDSL->device, &view, NULL, &vulkanDSL->depth.view);
     assert(!err);
 }
 
@@ -1071,7 +1110,7 @@ bool loadTexture(const char *filename, uint8_t *rgba_data, VkSubresourceLayout *
     int texChannels;
 #ifdef __ANDROID__
     AAsset* asset = AAssetManager_open(
-      assetManager,
+      program->assetsFetcher.assetManager,
       filename,
       AASSET_MODE_BUFFER
     );
@@ -1103,7 +1142,7 @@ bool loadTexture(const char *filename, uint8_t *rgba_data, VkSubresourceLayout *
 }
 
 
-static void demo_prepare_texture_buffer(struct demo *demo, const char *filename, struct texture_object *tex_obj) {
+static void demo_prepare_texture_buffer(struct VulkanDSL *vulkanDSL, const char *filename, struct texture_object *tex_obj) {
     int32_t tex_width;
     int32_t tex_height;
     VkResult U_ASSERT_ONLY err;
@@ -1126,11 +1165,11 @@ static void demo_prepare_texture_buffer(struct demo *demo, const char *filename,
             .queueFamilyIndexCount = 0,
             .pQueueFamilyIndices = NULL};
 
-    err = vkCreateBuffer(demo->device, &buffer_create_info, NULL, &tex_obj->buffer);
+    err = vkCreateBuffer(vulkanDSL->device, &buffer_create_info, NULL, &tex_obj->buffer);
     assert(!err);
 
     VkMemoryRequirements mem_reqs;
-    vkGetBufferMemoryRequirements(demo->device, tex_obj->buffer, &mem_reqs);
+    vkGetBufferMemoryRequirements(vulkanDSL->device, tex_obj->buffer, &mem_reqs);
 
     tex_obj->mem_alloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     tex_obj->mem_alloc.pNext = NULL;
@@ -1138,14 +1177,14 @@ static void demo_prepare_texture_buffer(struct demo *demo, const char *filename,
     tex_obj->mem_alloc.memoryTypeIndex = 0;
 
     VkFlags requirements = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-    pass = memory_type_from_properties(demo, mem_reqs.memoryTypeBits, requirements, &tex_obj->mem_alloc.memoryTypeIndex);
+    pass = memory_type_from_properties(vulkanDSL, mem_reqs.memoryTypeBits, requirements, &tex_obj->mem_alloc.memoryTypeIndex);
     assert(pass);
 
-    err = vkAllocateMemory(demo->device, &tex_obj->mem_alloc, NULL, &(tex_obj->mem));
+    err = vkAllocateMemory(vulkanDSL->device, &tex_obj->mem_alloc, NULL, &(tex_obj->mem));
     assert(!err);
 
     /* bind memory */
-    err = vkBindBufferMemory(demo->device, tex_obj->buffer, tex_obj->mem, 0);
+    err = vkBindBufferMemory(vulkanDSL->device, tex_obj->buffer, tex_obj->mem, 0);
     assert(!err);
 
     VkSubresourceLayout layout;
@@ -1153,17 +1192,17 @@ static void demo_prepare_texture_buffer(struct demo *demo, const char *filename,
     layout.rowPitch = tex_width * 4;
 
     void *data;
-    err = vkMapMemory(demo->device, tex_obj->mem, 0, tex_obj->mem_alloc.allocationSize, 0, &data);
+    err = vkMapMemory(vulkanDSL->device, tex_obj->mem, 0, tex_obj->mem_alloc.allocationSize, 0, &data);
     assert(!err);
 
     if (!loadTexture(filename, data, &layout, &tex_width, &tex_height)) {
         fprintf(stderr, "Error loading texture: %s\n", filename);
     }
 
-    vkUnmapMemory(demo->device, tex_obj->mem);
+    vkUnmapMemory(vulkanDSL->device, tex_obj->mem);
 }
 
-static void demo_prepare_texture_image(struct demo *demo, const char *filename, struct texture_object *tex_obj,
+static void demo_prepare_texture_image(struct VulkanDSL *vulkanDSL, const char *filename, struct texture_object *tex_obj,
                                        VkImageTiling tiling, VkImageUsageFlags usage, VkFlags required_props) {
     const VkFormat tex_format = VK_FORMAT_R8G8B8A8_UNORM;
     int32_t tex_width;
@@ -1200,25 +1239,25 @@ static void demo_prepare_texture_image(struct demo *demo, const char *filename, 
 
     VkMemoryRequirements mem_reqs;
 
-    err = vkCreateImage(demo->device, &image_create_info, NULL, &tex_obj->image);
+    err = vkCreateImage(vulkanDSL->device, &image_create_info, NULL, &tex_obj->image);
     assert(!err);
 
-    vkGetImageMemoryRequirements(demo->device, tex_obj->image, &mem_reqs);
+    vkGetImageMemoryRequirements(vulkanDSL->device, tex_obj->image, &mem_reqs);
 
     tex_obj->mem_alloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     tex_obj->mem_alloc.pNext = NULL;
     tex_obj->mem_alloc.allocationSize = mem_reqs.size;
     tex_obj->mem_alloc.memoryTypeIndex = 0;
 
-    pass = memory_type_from_properties(demo, mem_reqs.memoryTypeBits, required_props, &tex_obj->mem_alloc.memoryTypeIndex);
+    pass = memory_type_from_properties(vulkanDSL, mem_reqs.memoryTypeBits, required_props, &tex_obj->mem_alloc.memoryTypeIndex);
     assert(pass);
 
     /* allocate memory */
-    err = vkAllocateMemory(demo->device, &tex_obj->mem_alloc, NULL, &(tex_obj->mem));
+    err = vkAllocateMemory(vulkanDSL->device, &tex_obj->mem_alloc, NULL, &(tex_obj->mem));
     assert(!err);
 
     /* bind memory */
-    err = vkBindImageMemory(demo->device, tex_obj->image, tex_obj->mem, 0);
+    err = vkBindImageMemory(vulkanDSL->device, tex_obj->image, tex_obj->mem, 0);
     assert(!err);
 
     if (required_props & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {
@@ -1230,75 +1269,75 @@ static void demo_prepare_texture_image(struct demo *demo, const char *filename, 
         VkSubresourceLayout layout;
         void *data;
 
-        vkGetImageSubresourceLayout(demo->device, tex_obj->image, &subres, &layout);
+        vkGetImageSubresourceLayout(vulkanDSL->device, tex_obj->image, &subres, &layout);
 
-        err = vkMapMemory(demo->device, tex_obj->mem, 0, tex_obj->mem_alloc.allocationSize, 0, &data);
+        err = vkMapMemory(vulkanDSL->device, tex_obj->mem, 0, tex_obj->mem_alloc.allocationSize, 0, &data);
         assert(!err);
 
         if (!loadTexture(filename, data, &layout, &tex_width, &tex_height)) {
             fprintf(stderr, "Error loading texture: %s\n", filename);
         }
 
-        vkUnmapMemory(demo->device, tex_obj->mem);
+        vkUnmapMemory(vulkanDSL->device, tex_obj->mem);
     }
 
     tex_obj->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 }
 
-static void demo_destroy_texture(struct demo *demo, struct texture_object *tex_objs) {
+static void demo_destroy_texture(struct VulkanDSL *vulkanDSL, struct texture_object *tex_objs) {
     /* clean up staging resources */
-    vkFreeMemory(demo->device, tex_objs->mem, NULL);
-    if (tex_objs->image) vkDestroyImage(demo->device, tex_objs->image, NULL);
-    if (tex_objs->buffer) vkDestroyBuffer(demo->device, tex_objs->buffer, NULL);
+    vkFreeMemory(vulkanDSL->device, tex_objs->mem, NULL);
+    if (tex_objs->image) vkDestroyImage(vulkanDSL->device, tex_objs->image, NULL);
+    if (tex_objs->buffer) vkDestroyBuffer(vulkanDSL->device, tex_objs->buffer, NULL);
 }
 
-static void demo_prepare_textures(struct demo *demo) {
+static void demo_prepare_textures(struct VulkanDSL *vulkanDSL) {
     const VkFormat tex_format = VK_FORMAT_R8G8B8A8_UNORM;
     VkFormatProperties props;
     uint32_t i;
 
-    vkGetPhysicalDeviceFormatProperties(demo->gpu, tex_format, &props);
+    vkGetPhysicalDeviceFormatProperties(vulkanDSL->gpu, tex_format, &props);
     for (i = 0; i < DEMO_TEXTURE_COUNT; i++) {
         VkResult U_ASSERT_ONLY err;
-        if ((props.linearTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT) && !demo->use_staging_buffer) {
+        if ((props.linearTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT) && !vulkanDSL->use_staging_buffer) {
             //NSLog(@"--> Linear tiling is supported");
             /* Device can texture using linear textures */
-            demo_prepare_texture_image(demo, tex_files[i], &demo->textures[i], VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_SAMPLED_BIT,
+            demo_prepare_texture_image(vulkanDSL, tex_files[i], &vulkanDSL->textures[i], VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_SAMPLED_BIT,
                                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
             // Nothing in the pipeline needs to be complete to start, and don't allow fragment
             // shader to run until layout transition completes
-            demo_set_image_layout(demo, demo->textures[i].image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_PREINITIALIZED,
-                                  demo->textures[i].imageLayout, 0, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+            demo_set_image_layout(vulkanDSL, vulkanDSL->textures[i].image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_PREINITIALIZED,
+                                  vulkanDSL->textures[i].imageLayout, 0, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
                                   VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
-            demo->staging_texture.image = 0;
+            vulkanDSL->staging_texture.image = 0;
         } else if (props.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT) {
             /* Must use staging buffer to copy linear texture to optimized */
 
-            memset(&demo->staging_texture, 0, sizeof(demo->staging_texture));
-            demo_prepare_texture_buffer(demo, tex_files[i], &demo->staging_texture);
+            memset(&vulkanDSL->staging_texture, 0, sizeof(vulkanDSL->staging_texture));
+            demo_prepare_texture_buffer(vulkanDSL, tex_files[i], &vulkanDSL->staging_texture);
 
-            demo_prepare_texture_image(demo, tex_files[i], &demo->textures[i], VK_IMAGE_TILING_OPTIMAL,
+            demo_prepare_texture_image(vulkanDSL, tex_files[i], &vulkanDSL->textures[i], VK_IMAGE_TILING_OPTIMAL,
                                        (VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT),
                                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-            demo_set_image_layout(demo, demo->textures[i].image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_PREINITIALIZED,
+            demo_set_image_layout(vulkanDSL, vulkanDSL->textures[i].image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_PREINITIALIZED,
                                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
                                   VK_PIPELINE_STAGE_TRANSFER_BIT);
 
             VkBufferImageCopy copy_region = {
                     .bufferOffset = 0,
-                    .bufferRowLength = demo->staging_texture.tex_width,
-                    .bufferImageHeight = demo->staging_texture.tex_height,
+                    .bufferRowLength = vulkanDSL->staging_texture.tex_width,
+                    .bufferImageHeight = vulkanDSL->staging_texture.tex_height,
                     .imageSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
                     .imageOffset = {0, 0, 0},
-                    .imageExtent = {demo->staging_texture.tex_width, demo->staging_texture.tex_height, 1},
+                    .imageExtent = {vulkanDSL->staging_texture.tex_width, vulkanDSL->staging_texture.tex_height, 1},
             };
 
-            vkCmdCopyBufferToImage(demo->cmd, demo->staging_texture.buffer, demo->textures[i].image,
+            vkCmdCopyBufferToImage(vulkanDSL->cmd, vulkanDSL->staging_texture.buffer, vulkanDSL->textures[i].image,
                                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy_region);
 
-            demo_set_image_layout(demo, demo->textures[i].image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                                  demo->textures[i].imageLayout, VK_ACCESS_TRANSFER_WRITE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+            demo_set_image_layout(vulkanDSL, vulkanDSL->textures[i].image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                  vulkanDSL->textures[i].imageLayout, VK_ACCESS_TRANSFER_WRITE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
                                   VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
 
         } else {
@@ -1343,17 +1382,17 @@ static void demo_prepare_textures(struct demo *demo) {
         };
 
         /* create sampler */
-        err = vkCreateSampler(demo->device, &sampler, NULL, &demo->textures[i].sampler);
+        err = vkCreateSampler(vulkanDSL->device, &sampler, NULL, &vulkanDSL->textures[i].sampler);
         assert(!err);
 
         /* create image view */
-        view.image = demo->textures[i].image;
-        err = vkCreateImageView(demo->device, &view, NULL, &demo->textures[i].view);
+        view.image = vulkanDSL->textures[i].image;
+        err = vkCreateImageView(vulkanDSL->device, &view, NULL, &vulkanDSL->textures[i].view);
         assert(!err);
     }
 }
 
-void demo_prepare_cube_data_buffers(struct demo *demo) {
+void demo_prepare_cube_data_buffers(struct VulkanDSL *vulkanDSL) {
     VkBufferCreateInfo buf_info;
     VkMemoryRequirements mem_reqs;
     VkMemoryAllocateInfo mem_alloc;
@@ -1362,8 +1401,8 @@ void demo_prepare_cube_data_buffers(struct demo *demo) {
     bool U_ASSERT_ONLY pass;
     struct vktexcube_vs_uniform data;
 
-    mat4x4_mul(VP, demo->projection_matrix, demo->view_matrix);
-    mat4x4_mul(MVP, VP, demo->model_matrix);
+    mat4x4_mul(VP, vulkanDSL->projection_matrix, vulkanDSL->view_matrix);
+    mat4x4_mul(MVP, VP, vulkanDSL->model_matrix);
     memcpy(data.mvp, MVP, sizeof(MVP));
     //    dumpMatrix("MVP", MVP);
 
@@ -1383,38 +1422,38 @@ void demo_prepare_cube_data_buffers(struct demo *demo) {
     buf_info.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
     buf_info.size = sizeof(data);
 
-    for (unsigned int i = 0; i < demo->swapchainImageCount; i++) {
-        err = vkCreateBuffer(demo->device, &buf_info, NULL, &demo->swapchain_image_resources[i].uniform_buffer);
+    for (unsigned int i = 0; i < vulkanDSL->swapchainImageCount; i++) {
+        err = vkCreateBuffer(vulkanDSL->device, &buf_info, NULL, &vulkanDSL->swapchain_image_resources[i].uniform_buffer);
         assert(!err);
 
-        vkGetBufferMemoryRequirements(demo->device, demo->swapchain_image_resources[i].uniform_buffer, &mem_reqs);
+        vkGetBufferMemoryRequirements(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_buffer, &mem_reqs);
 
         mem_alloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
         mem_alloc.pNext = NULL;
         mem_alloc.allocationSize = mem_reqs.size;
         mem_alloc.memoryTypeIndex = 0;
 
-        pass = memory_type_from_properties(demo, mem_reqs.memoryTypeBits,
+        pass = memory_type_from_properties(vulkanDSL, mem_reqs.memoryTypeBits,
                                            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                                            &mem_alloc.memoryTypeIndex);
         assert(pass);
 
-        err = vkAllocateMemory(demo->device, &mem_alloc, NULL, &demo->swapchain_image_resources[i].uniform_memory);
+        err = vkAllocateMemory(vulkanDSL->device, &mem_alloc, NULL, &vulkanDSL->swapchain_image_resources[i].uniform_memory);
         assert(!err);
 
-        err = vkMapMemory(demo->device, demo->swapchain_image_resources[i].uniform_memory, 0, VK_WHOLE_SIZE, 0,
-                          &demo->swapchain_image_resources[i].uniform_memory_ptr);
+        err = vkMapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_memory, 0, VK_WHOLE_SIZE, 0,
+                          &vulkanDSL->swapchain_image_resources[i].uniform_memory_ptr);
         assert(!err);
 
-        memcpy(demo->swapchain_image_resources[i].uniform_memory_ptr, &data, sizeof data);
+        memcpy(vulkanDSL->swapchain_image_resources[i].uniform_memory_ptr, &data, sizeof data);
 
-        err = vkBindBufferMemory(demo->device, demo->swapchain_image_resources[i].uniform_buffer,
-                                 demo->swapchain_image_resources[i].uniform_memory, 0);
+        err = vkBindBufferMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_buffer,
+                                 vulkanDSL->swapchain_image_resources[i].uniform_memory, 0);
         assert(!err);
     }
 }
 
-static void demo_prepare_descriptor_layout(struct demo *demo) {
+static void demo_prepare_descriptor_layout(struct VulkanDSL *vulkanDSL) {
     const VkDescriptorSetLayoutBinding layout_bindings[2] = {
             [0] =
                     {
@@ -1441,21 +1480,21 @@ static void demo_prepare_descriptor_layout(struct demo *demo) {
     };
     VkResult U_ASSERT_ONLY err;
 
-    err = vkCreateDescriptorSetLayout(demo->device, &descriptor_layout, NULL, &demo->desc_layout);
+    err = vkCreateDescriptorSetLayout(vulkanDSL->device, &descriptor_layout, NULL, &vulkanDSL->desc_layout);
     assert(!err);
 
     const VkPipelineLayoutCreateInfo pPipelineLayoutCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
             .pNext = NULL,
             .setLayoutCount = 1,
-            .pSetLayouts = &demo->desc_layout,
+            .pSetLayouts = &vulkanDSL->desc_layout,
     };
 
-    err = vkCreatePipelineLayout(demo->device, &pPipelineLayoutCreateInfo, NULL, &demo->pipeline_layout);
+    err = vkCreatePipelineLayout(vulkanDSL->device, &pPipelineLayoutCreateInfo, NULL, &vulkanDSL->pipeline_layout);
     assert(!err);
 }
 
-static void demo_prepare_render_pass(struct demo *demo) {
+static void demo_prepare_render_pass(struct VulkanDSL *vulkanDSL) {
     // The initial layout for the color and depth attachments will be LAYOUT_UNDEFINED
     // because at the start of the renderpass, we don't care about their contents.
     // At the start of the subpass, the color attachment's layout will be transitioned
@@ -1467,7 +1506,7 @@ static void demo_prepare_render_pass(struct demo *demo) {
     const VkAttachmentDescription attachments[2] = {
             [0] =
                     {
-                            .format = demo->format,
+                            .format = vulkanDSL->format,
                             .flags = 0,
                             .samples = VK_SAMPLE_COUNT_1_BIT,
                             .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
@@ -1479,7 +1518,7 @@ static void demo_prepare_render_pass(struct demo *demo) {
                     },
             [1] =
                     {
-                            .format = demo->depth.format,
+                            .format = vulkanDSL->depth.format,
                             .flags = 0,
                             .samples = VK_SAMPLE_COUNT_1_BIT,
                             .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
@@ -1549,11 +1588,11 @@ static void demo_prepare_render_pass(struct demo *demo) {
     };
     VkResult U_ASSERT_ONLY err;
 
-    err = vkCreateRenderPass(demo->device, &rp_info, NULL, &demo->render_pass);
+    err = vkCreateRenderPass(vulkanDSL->device, &rp_info, NULL, &vulkanDSL->render_pass);
     assert(!err);
 }
 
-static VkShaderModule demo_prepare_shader_module(struct demo *demo, const uint32_t *code, size_t size) {
+static VkShaderModule demo_prepare_shader_module(struct VulkanDSL *vulkanDSL, const uint32_t *code, size_t size) {
     VkShaderModule module;
     VkShaderModuleCreateInfo moduleCreateInfo;
     VkResult U_ASSERT_ONLY err;
@@ -1564,27 +1603,27 @@ static VkShaderModule demo_prepare_shader_module(struct demo *demo, const uint32
     moduleCreateInfo.codeSize = size;
     moduleCreateInfo.pCode = code;
 
-    err = vkCreateShaderModule(demo->device, &moduleCreateInfo, NULL, &module);
+    err = vkCreateShaderModule(vulkanDSL->device, &moduleCreateInfo, NULL, &module);
     assert(!err);
 
     return module;
 }
 
-static void demo_prepare_vs(struct demo *demo) {
+static void demo_prepare_vs(struct VulkanDSL *vulkanDSL) {
     const uint32_t vs_code[] = {
 #include "shaders/cube.vert.inc"
     };
-    demo->vert_shader_module = demo_prepare_shader_module(demo, vs_code, sizeof(vs_code));
+    vulkanDSL->vert_shader_module = demo_prepare_shader_module(vulkanDSL, vs_code, sizeof(vs_code));
 }
 
-static void demo_prepare_fs(struct demo *demo) {
+static void demo_prepare_fs(struct VulkanDSL *vulkanDSL) {
     const uint32_t fs_code[] = {
 #include "shaders/cube.frag.inc"
     };
-    demo->frag_shader_module = demo_prepare_shader_module(demo, fs_code, sizeof(fs_code));
+    vulkanDSL->frag_shader_module = demo_prepare_shader_module(vulkanDSL, fs_code, sizeof(fs_code));
 }
 
-static void demo_prepare_pipeline(struct demo *demo) {
+static void demo_prepare_pipeline(struct VulkanDSL *vulkanDSL) {
 #define NUM_DYNAMIC_STATES 2 /*Viewport + Scissor*/
 
     VkGraphicsPipelineCreateInfo pipeline;
@@ -1607,7 +1646,7 @@ static void demo_prepare_pipeline(struct demo *demo) {
 
     memset(&pipeline, 0, sizeof(pipeline));
     pipeline.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-    pipeline.layout = demo->pipeline_layout;
+    pipeline.layout = vulkanDSL->pipeline_layout;
 
     memset(&vi, 0, sizeof(vi));
     vi.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -1659,8 +1698,8 @@ static void demo_prepare_pipeline(struct demo *demo) {
     ms.pSampleMask = NULL;
     ms.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 
-    demo_prepare_vs(demo);
-    demo_prepare_fs(demo);
+    demo_prepare_vs(vulkanDSL);
+    demo_prepare_fs(vulkanDSL);
 
     // Two stages: vs and fs
     VkPipelineShaderStageCreateInfo shaderStages[2];
@@ -1668,18 +1707,18 @@ static void demo_prepare_pipeline(struct demo *demo) {
 
     shaderStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     shaderStages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
-    shaderStages[0].module = demo->vert_shader_module;
+    shaderStages[0].module = vulkanDSL->vert_shader_module;
     shaderStages[0].pName = "main";
 
     shaderStages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     shaderStages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-    shaderStages[1].module = demo->frag_shader_module;
+    shaderStages[1].module = vulkanDSL->frag_shader_module;
     shaderStages[1].pName = "main";
 
     memset(&pipelineCache, 0, sizeof(pipelineCache));
     pipelineCache.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
 
-    err = vkCreatePipelineCache(demo->device, &pipelineCache, NULL, &demo->pipelineCache);
+    err = vkCreatePipelineCache(vulkanDSL->device, &pipelineCache, NULL, &vulkanDSL->pipelineCache);
     assert(!err);
 
     pipeline.pVertexInputState = &vi;
@@ -1691,54 +1730,54 @@ static void demo_prepare_pipeline(struct demo *demo) {
     pipeline.pDepthStencilState = &ds;
     pipeline.stageCount = ARRAY_SIZE(shaderStages);
     pipeline.pStages = shaderStages;
-    pipeline.renderPass = demo->render_pass;
+    pipeline.renderPass = vulkanDSL->render_pass;
     pipeline.pDynamicState = &dynamicState;
 
-    pipeline.renderPass = demo->render_pass;
+    pipeline.renderPass = vulkanDSL->render_pass;
 
-    err = vkCreateGraphicsPipelines(demo->device, demo->pipelineCache, 1, &pipeline, NULL, &demo->pipeline);
+    err = vkCreateGraphicsPipelines(vulkanDSL->device, vulkanDSL->pipelineCache, 1, &pipeline, NULL, &vulkanDSL->pipeline);
     assert(!err);
 
-    vkDestroyShaderModule(demo->device, demo->frag_shader_module, NULL);
-    vkDestroyShaderModule(demo->device, demo->vert_shader_module, NULL);
+    vkDestroyShaderModule(vulkanDSL->device, vulkanDSL->frag_shader_module, NULL);
+    vkDestroyShaderModule(vulkanDSL->device, vulkanDSL->vert_shader_module, NULL);
 }
 
-static void demo_prepare_descriptor_pool(struct demo *demo) {
+static void demo_prepare_descriptor_pool(struct VulkanDSL *vulkanDSL) {
     const VkDescriptorPoolSize type_counts[2] = {
             [0] =
                     {
                             .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                            .descriptorCount = demo->swapchainImageCount,
+                            .descriptorCount = vulkanDSL->swapchainImageCount,
                     },
             [1] =
                     {
                             .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                            .descriptorCount = demo->swapchainImageCount * DEMO_TEXTURE_COUNT,
+                            .descriptorCount = vulkanDSL->swapchainImageCount * DEMO_TEXTURE_COUNT,
                     },
     };
     const VkDescriptorPoolCreateInfo descriptor_pool = {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
             .pNext = NULL,
-            .maxSets = demo->swapchainImageCount,
+            .maxSets = vulkanDSL->swapchainImageCount,
             .poolSizeCount = 2,
             .pPoolSizes = type_counts,
     };
     VkResult U_ASSERT_ONLY err;
 
-    err = vkCreateDescriptorPool(demo->device, &descriptor_pool, NULL, &demo->desc_pool);
+    err = vkCreateDescriptorPool(vulkanDSL->device, &descriptor_pool, NULL, &vulkanDSL->desc_pool);
     assert(!err);
 }
 
-static void demo_prepare_descriptor_set(struct demo *demo) {
+static void demo_prepare_descriptor_set(struct VulkanDSL *vulkanDSL) {
     VkDescriptorImageInfo tex_descs[DEMO_TEXTURE_COUNT];
     VkWriteDescriptorSet writes[2];
     VkResult U_ASSERT_ONLY err;
 
     VkDescriptorSetAllocateInfo alloc_info = {.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
             .pNext = NULL,
-            .descriptorPool = demo->desc_pool,
+            .descriptorPool = vulkanDSL->desc_pool,
             .descriptorSetCount = 1,
-            .pSetLayouts = &demo->desc_layout};
+            .pSetLayouts = &vulkanDSL->desc_layout};
 
     VkDescriptorBufferInfo buffer_info;
     buffer_info.offset = 0;
@@ -1746,8 +1785,8 @@ static void demo_prepare_descriptor_set(struct demo *demo) {
 
     memset(&tex_descs, 0, sizeof(tex_descs));
     for (unsigned int i = 0; i < DEMO_TEXTURE_COUNT; i++) {
-        tex_descs[i].sampler = demo->textures[i].sampler;
-        tex_descs[i].imageView = demo->textures[i].view;
+        tex_descs[i].sampler = vulkanDSL->textures[i].sampler;
+        tex_descs[i].imageView = vulkanDSL->textures[i].view;
         tex_descs[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     }
 
@@ -1764,89 +1803,89 @@ static void demo_prepare_descriptor_set(struct demo *demo) {
     writes[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     writes[1].pImageInfo = tex_descs;
 
-    for (unsigned int i = 0; i < demo->swapchainImageCount; i++) {
-        err = vkAllocateDescriptorSets(demo->device, &alloc_info, &demo->swapchain_image_resources[i].descriptor_set);
+    for (unsigned int i = 0; i < vulkanDSL->swapchainImageCount; i++) {
+        err = vkAllocateDescriptorSets(vulkanDSL->device, &alloc_info, &vulkanDSL->swapchain_image_resources[i].descriptor_set);
         assert(!err);
-        buffer_info.buffer = demo->swapchain_image_resources[i].uniform_buffer;
-        writes[0].dstSet = demo->swapchain_image_resources[i].descriptor_set;
-        writes[1].dstSet = demo->swapchain_image_resources[i].descriptor_set;
-        vkUpdateDescriptorSets(demo->device, 2, writes, 0, NULL);
+        buffer_info.buffer = vulkanDSL->swapchain_image_resources[i].uniform_buffer;
+        writes[0].dstSet = vulkanDSL->swapchain_image_resources[i].descriptor_set;
+        writes[1].dstSet = vulkanDSL->swapchain_image_resources[i].descriptor_set;
+        vkUpdateDescriptorSets(vulkanDSL->device, 2, writes, 0, NULL);
     }
 }
 
-static void demo_prepare_framebuffers(struct demo *demo) {
+static void demo_prepare_framebuffers(struct VulkanDSL *vulkanDSL) {
     VkImageView attachments[2];
-    attachments[1] = demo->depth.view;
+    attachments[1] = vulkanDSL->depth.view;
 
     const VkFramebufferCreateInfo fb_info = {
             .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
             .pNext = NULL,
-            .renderPass = demo->render_pass,
+            .renderPass = vulkanDSL->render_pass,
             .attachmentCount = 2,
             .pAttachments = attachments,
-            .width = demo->width,
-            .height = demo->height,
+            .width = vulkanDSL->width,
+            .height = vulkanDSL->height,
             .layers = 1,
     };
     VkResult U_ASSERT_ONLY err;
     uint32_t i;
 
-    for (i = 0; i < demo->swapchainImageCount; i++) {
-        attachments[0] = demo->swapchain_image_resources[i].view;
-        err = vkCreateFramebuffer(demo->device, &fb_info, NULL, &demo->swapchain_image_resources[i].framebuffer);
+    for (i = 0; i < vulkanDSL->swapchainImageCount; i++) {
+        attachments[0] = vulkanDSL->swapchain_image_resources[i].view;
+        err = vkCreateFramebuffer(vulkanDSL->device, &fb_info, NULL, &vulkanDSL->swapchain_image_resources[i].framebuffer);
         assert(!err);
     }
 }
 
-void demo_prepare(struct demo *demo) {
-    demo_prepare_buffers(demo);
+void demo_prepare(struct VulkanDSL *vulkanDSL) {
+    demo_prepare_buffers(vulkanDSL);
 
-    if (demo->is_minimized) {
-        demo->prepared = false;
+    if (vulkanDSL->is_minimized) {
+        vulkanDSL->prepared = false;
         return;
     }
 
     VkResult U_ASSERT_ONLY err;
-    if (demo->cmd_pool2 == VK_NULL_HANDLE) {
+    if (vulkanDSL->cmd_pool2 == VK_NULL_HANDLE) {
         const VkCommandPoolCreateInfo cmd_pool_info2 = {
                 .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
                 .pNext = NULL,
-                .queueFamilyIndex = demo->graphics_queue_family_index2,
+                .queueFamilyIndex = vulkanDSL->graphics_queue_family_index2,
                 .flags = 0,
         };
-        err = vkCreateCommandPool(demo->device, &cmd_pool_info2, NULL, &demo->cmd_pool2);
+        err = vkCreateCommandPool(vulkanDSL->device, &cmd_pool_info2, NULL, &vulkanDSL->cmd_pool2);
         assert(!err);
     }
 
     const VkCommandBufferAllocateInfo cmd2 = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
             .pNext = NULL,
-            .commandPool = demo->cmd_pool2,
+            .commandPool = vulkanDSL->cmd_pool2,
             .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
             .commandBufferCount = 1,
     };
-    err = vkAllocateCommandBuffers(demo->device, &cmd2, &demo->cmd2);
+    err = vkAllocateCommandBuffers(vulkanDSL->device, &cmd2, &vulkanDSL->cmd2);
     assert(!err);
 
-    if (demo->cmd_pool == VK_NULL_HANDLE) {
+    if (vulkanDSL->cmd_pool == VK_NULL_HANDLE) {
         const VkCommandPoolCreateInfo cmd_pool_info = {
                 .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
                 .pNext = NULL,
-                .queueFamilyIndex = demo->graphics_queue_family_index,
+                .queueFamilyIndex = vulkanDSL->graphics_queue_family_index,
                 .flags = 0,
         };
-        err = vkCreateCommandPool(demo->device, &cmd_pool_info, NULL, &demo->cmd_pool);
+        err = vkCreateCommandPool(vulkanDSL->device, &cmd_pool_info, NULL, &vulkanDSL->cmd_pool);
         assert(!err);
     }
 
     const VkCommandBufferAllocateInfo cmd = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
             .pNext = NULL,
-            .commandPool = demo->cmd_pool,
+            .commandPool = vulkanDSL->cmd_pool,
             .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
             .commandBufferCount = 1,
     };
-    err = vkAllocateCommandBuffers(demo->device, &cmd, &demo->cmd);
+    err = vkAllocateCommandBuffers(vulkanDSL->device, &cmd, &vulkanDSL->cmd);
     assert(!err);
     VkCommandBufferBeginInfo cmd_buf_info = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -1854,142 +1893,142 @@ void demo_prepare(struct demo *demo) {
             .flags = 0,
             .pInheritanceInfo = NULL,
     };
-    err = vkBeginCommandBuffer(demo->cmd, &cmd_buf_info);
+    err = vkBeginCommandBuffer(vulkanDSL->cmd, &cmd_buf_info);
     assert(!err);
 
-    demo_prepare_depth(demo);
-    demo_prepare_textures(demo);
-    demo_prepare_cube_data_buffers(demo);
+    demo_prepare_depth(vulkanDSL);
+    demo_prepare_textures(vulkanDSL);
+    demo_prepare_cube_data_buffers(vulkanDSL);
 
-    demo_prepare_descriptor_layout(demo);
-    demo_prepare_render_pass(demo);
-    demo_prepare_pipeline(demo);
+    demo_prepare_descriptor_layout(vulkanDSL);
+    demo_prepare_render_pass(vulkanDSL);
+    demo_prepare_pipeline(vulkanDSL);
 
-    for (uint32_t i = 0; i < demo->swapchainImageCount; i++) {
-        err = vkAllocateCommandBuffers(demo->device, &cmd, &demo->swapchain_image_resources[i].cmd);
+    for (uint32_t i = 0; i < vulkanDSL->swapchainImageCount; i++) {
+        err = vkAllocateCommandBuffers(vulkanDSL->device, &cmd, &vulkanDSL->swapchain_image_resources[i].cmd);
         assert(!err);
     }
 
-    if (demo->separate_present_queue) {
+    if (vulkanDSL->separate_present_queue) {
         const VkCommandPoolCreateInfo present_cmd_pool_info = {
                 .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
                 .pNext = NULL,
-                .queueFamilyIndex = demo->present_queue_family_index,
+                .queueFamilyIndex = vulkanDSL->present_queue_family_index,
                 .flags = 0,
         };
-        err = vkCreateCommandPool(demo->device, &present_cmd_pool_info, NULL, &demo->present_cmd_pool);
+        err = vkCreateCommandPool(vulkanDSL->device, &present_cmd_pool_info, NULL, &vulkanDSL->present_cmd_pool);
         assert(!err);
         const VkCommandBufferAllocateInfo present_cmd_info = {
                 .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
                 .pNext = NULL,
-                .commandPool = demo->present_cmd_pool,
+                .commandPool = vulkanDSL->present_cmd_pool,
                 .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
                 .commandBufferCount = 1,
         };
-        for (uint32_t i = 0; i < demo->swapchainImageCount; i++) {
-            err = vkAllocateCommandBuffers(demo->device, &present_cmd_info,
-                                           &demo->swapchain_image_resources[i].graphics_to_present_cmd);
+        for (uint32_t i = 0; i < vulkanDSL->swapchainImageCount; i++) {
+            err = vkAllocateCommandBuffers(vulkanDSL->device, &present_cmd_info,
+                                           &vulkanDSL->swapchain_image_resources[i].graphics_to_present_cmd);
             assert(!err);
-            demo_build_image_ownership_cmd(demo, i);
+            demo_build_image_ownership_cmd(vulkanDSL, i);
         }
     }
 
-    demo_prepare_descriptor_pool(demo);
-    demo_prepare_descriptor_set(demo);
+    demo_prepare_descriptor_pool(vulkanDSL);
+    demo_prepare_descriptor_set(vulkanDSL);
 
-    demo_prepare_framebuffers(demo);
+    demo_prepare_framebuffers(vulkanDSL);
 
-    for (uint32_t i = 0; i < demo->swapchainImageCount; i++) {
-        demo->current_buffer = i;
-        demo_draw_build_cmd(demo, demo->swapchain_image_resources[i].cmd);
+    for (uint32_t i = 0; i < vulkanDSL->swapchainImageCount; i++) {
+        vulkanDSL->current_buffer = i;
+        demo_draw_build_cmd(vulkanDSL, vulkanDSL->swapchain_image_resources[i].cmd);
     }
 
     /*
      * Prepare functions above may generate pipeline commands
      * that need to be flushed before beginning the render loop.
      */
-    demo_flush_init_cmd(demo);
-    if (demo->staging_texture.buffer) {
-        demo_destroy_texture(demo, &demo->staging_texture);
+    demo_flush_init_cmd(vulkanDSL);
+    if (vulkanDSL->staging_texture.buffer) {
+        demo_destroy_texture(vulkanDSL, &vulkanDSL->staging_texture);
     }
 
-    demo->current_buffer = 0;
-    demo->prepared = true;
+    vulkanDSL->current_buffer = 0;
+    vulkanDSL->prepared = true;
 }
 
-void demo_cleanup(struct demo *demo) {
+void demo_cleanup(struct VulkanDSL *vulkanDSL) {
     uint32_t i;
 
-    demo->prepared = false;
-    vkDeviceWaitIdle(demo->device);
+    vulkanDSL->prepared = false;
+    vkDeviceWaitIdle(vulkanDSL->device);
 
     // Wait for fences from present operations
     for (i = 0; i < FRAME_LAG; i++) {
-        vkWaitForFences(demo->device, 1, &demo->fences[i], VK_TRUE, UINT64_MAX);
-        vkDestroyFence(demo->device, demo->fences[i], NULL);
-        vkDestroySemaphore(demo->device, demo->image_acquired_semaphores[i], NULL);
-        vkDestroySemaphore(demo->device, demo->draw_complete_semaphores[i], NULL);
-        if (demo->separate_present_queue) {
-            vkDestroySemaphore(demo->device, demo->image_ownership_semaphores[i], NULL);
+        vkWaitForFences(vulkanDSL->device, 1, &vulkanDSL->fences[i], VK_TRUE, UINT64_MAX);
+        vkDestroyFence(vulkanDSL->device, vulkanDSL->fences[i], NULL);
+        vkDestroySemaphore(vulkanDSL->device, vulkanDSL->image_acquired_semaphores[i], NULL);
+        vkDestroySemaphore(vulkanDSL->device, vulkanDSL->draw_complete_semaphores[i], NULL);
+        if (vulkanDSL->separate_present_queue) {
+            vkDestroySemaphore(vulkanDSL->device, vulkanDSL->image_ownership_semaphores[i], NULL);
         }
     }
 
     // If the window is currently minimized, demo_resize has already done some cleanup for us.
-    if (!demo->is_minimized) {
-        for (i = 0; i < demo->swapchainImageCount; i++) {
-            vkDestroyFramebuffer(demo->device, demo->swapchain_image_resources[i].framebuffer, NULL);
+    if (!vulkanDSL->is_minimized) {
+        for (i = 0; i < vulkanDSL->swapchainImageCount; i++) {
+            vkDestroyFramebuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].framebuffer, NULL);
         }
-        vkDestroyDescriptorPool(demo->device, demo->desc_pool, NULL);
+        vkDestroyDescriptorPool(vulkanDSL->device, vulkanDSL->desc_pool, NULL);
 
-        vkDestroyPipeline(demo->device, demo->pipeline, NULL);
-        vkDestroyPipelineCache(demo->device, demo->pipelineCache, NULL);
-        vkDestroyRenderPass(demo->device, demo->render_pass, NULL);
-        vkDestroyPipelineLayout(demo->device, demo->pipeline_layout, NULL);
-        vkDestroyDescriptorSetLayout(demo->device, demo->desc_layout, NULL);
+        vkDestroyPipeline(vulkanDSL->device, vulkanDSL->pipeline, NULL);
+        vkDestroyPipelineCache(vulkanDSL->device, vulkanDSL->pipelineCache, NULL);
+        vkDestroyRenderPass(vulkanDSL->device, vulkanDSL->render_pass, NULL);
+        vkDestroyPipelineLayout(vulkanDSL->device, vulkanDSL->pipeline_layout, NULL);
+        vkDestroyDescriptorSetLayout(vulkanDSL->device, vulkanDSL->desc_layout, NULL);
 
         for (i = 0; i < DEMO_TEXTURE_COUNT; i++) {
-            vkDestroyImageView(demo->device, demo->textures[i].view, NULL);
-            vkDestroyImage(demo->device, demo->textures[i].image, NULL);
-            vkFreeMemory(demo->device, demo->textures[i].mem, NULL);
-            vkDestroySampler(demo->device, demo->textures[i].sampler, NULL);
+            vkDestroyImageView(vulkanDSL->device, vulkanDSL->textures[i].view, NULL);
+            vkDestroyImage(vulkanDSL->device, vulkanDSL->textures[i].image, NULL);
+            vkFreeMemory(vulkanDSL->device, vulkanDSL->textures[i].mem, NULL);
+            vkDestroySampler(vulkanDSL->device, vulkanDSL->textures[i].sampler, NULL);
         }
-        demo->fpDestroySwapchainKHR(demo->device, demo->swapchain, NULL);
+        vulkanDSL->fpDestroySwapchainKHR(vulkanDSL->device, vulkanDSL->swapchain, NULL);
 
-        vkDestroyImageView(demo->device, demo->depth.view, NULL);
-        vkDestroyImage(demo->device, demo->depth.image, NULL);
-        vkFreeMemory(demo->device, demo->depth.mem, NULL);
+        vkDestroyImageView(vulkanDSL->device, vulkanDSL->depth.view, NULL);
+        vkDestroyImage(vulkanDSL->device, vulkanDSL->depth.image, NULL);
+        vkFreeMemory(vulkanDSL->device, vulkanDSL->depth.mem, NULL);
 
-        for (i = 0; i < demo->swapchainImageCount; i++) {
-            vkDestroyImageView(demo->device, demo->swapchain_image_resources[i].view, NULL);
-            vkFreeCommandBuffers(demo->device, demo->cmd_pool, 1, &demo->swapchain_image_resources[i].cmd);
-            vkDestroyBuffer(demo->device, demo->swapchain_image_resources[i].uniform_buffer, NULL);
-            vkUnmapMemory(demo->device, demo->swapchain_image_resources[i].uniform_memory);
-            vkFreeMemory(demo->device, demo->swapchain_image_resources[i].uniform_memory, NULL);
+        for (i = 0; i < vulkanDSL->swapchainImageCount; i++) {
+            vkDestroyImageView(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].view, NULL);
+            vkFreeCommandBuffers(vulkanDSL->device, vulkanDSL->cmd_pool, 1, &vulkanDSL->swapchain_image_resources[i].cmd);
+            vkDestroyBuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_buffer, NULL);
+            vkUnmapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_memory);
+            vkFreeMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_memory, NULL);
         }
-        free(demo->swapchain_image_resources);
-        free(demo->queue_props);
-        vkDestroyCommandPool(demo->device, demo->cmd_pool, NULL);
+        free(vulkanDSL->swapchain_image_resources);
+        free(vulkanDSL->queue_props);
+        vkDestroyCommandPool(vulkanDSL->device, vulkanDSL->cmd_pool, NULL);
 
-        if (demo->separate_present_queue) {
-            vkDestroyCommandPool(demo->device, demo->present_cmd_pool, NULL);
+        if (vulkanDSL->separate_present_queue) {
+            vkDestroyCommandPool(vulkanDSL->device, vulkanDSL->present_cmd_pool, NULL);
         }
     }
-    vkDeviceWaitIdle(demo->device);
-    vkDestroyDevice(demo->device, NULL);
-    if (demo->validate) {
-        demo->DestroyDebugUtilsMessengerEXT(demo->inst, demo->dbg_messenger, NULL);
+    vkDeviceWaitIdle(vulkanDSL->device);
+    vkDestroyDevice(vulkanDSL->device, NULL);
+    if (vulkanDSL->validate) {
+        vulkanDSL->DestroyDebugUtilsMessengerEXT(vulkanDSL->inst, vulkanDSL->dbg_messenger, NULL);
     }
-    vkDestroySurfaceKHR(demo->inst, demo->surface, NULL);
-    vkDestroyInstance(demo->inst, NULL);
+    vkDestroySurfaceKHR(vulkanDSL->inst, vulkanDSL->surface, NULL);
+    vkDestroyInstance(vulkanDSL->inst, NULL);
 }
 
-void demo_resize(struct demo *demo) {
+void demo_resize(struct VulkanDSL *vulkanDSL) {
     uint32_t i;
 
     // Don't react to resize until after first initialization.
-    if (!demo->prepared) {
-        if (demo->is_minimized) {
-            demo_prepare(demo);
+    if (!vulkanDSL->prepared) {
+        if (vulkanDSL->is_minimized) {
+            demo_prepare(vulkanDSL);
         }
         return;
     }
@@ -1997,48 +2036,48 @@ void demo_resize(struct demo *demo) {
     // AND redo the command buffers, etc.
     //
     // First, perform part of the demo_cleanup() function:
-    demo->prepared = false;
-    vkDeviceWaitIdle(demo->device);
+    vulkanDSL->prepared = false;
+    vkDeviceWaitIdle(vulkanDSL->device);
 
-    for (i = 0; i < demo->swapchainImageCount; i++) {
-        vkDestroyFramebuffer(demo->device, demo->swapchain_image_resources[i].framebuffer, NULL);
+    for (i = 0; i < vulkanDSL->swapchainImageCount; i++) {
+        vkDestroyFramebuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].framebuffer, NULL);
     }
-    vkDestroyDescriptorPool(demo->device, demo->desc_pool, NULL);
+    vkDestroyDescriptorPool(vulkanDSL->device, vulkanDSL->desc_pool, NULL);
 
-    vkDestroyPipeline(demo->device, demo->pipeline, NULL);
-    vkDestroyPipelineCache(demo->device, demo->pipelineCache, NULL);
-    vkDestroyRenderPass(demo->device, demo->render_pass, NULL);
-    vkDestroyPipelineLayout(demo->device, demo->pipeline_layout, NULL);
-    vkDestroyDescriptorSetLayout(demo->device, demo->desc_layout, NULL);
+    vkDestroyPipeline(vulkanDSL->device, vulkanDSL->pipeline, NULL);
+    vkDestroyPipelineCache(vulkanDSL->device, vulkanDSL->pipelineCache, NULL);
+    vkDestroyRenderPass(vulkanDSL->device, vulkanDSL->render_pass, NULL);
+    vkDestroyPipelineLayout(vulkanDSL->device, vulkanDSL->pipeline_layout, NULL);
+    vkDestroyDescriptorSetLayout(vulkanDSL->device, vulkanDSL->desc_layout, NULL);
 
     for (i = 0; i < DEMO_TEXTURE_COUNT; i++) {
-        vkDestroyImageView(demo->device, demo->textures[i].view, NULL);
-        vkDestroyImage(demo->device, demo->textures[i].image, NULL);
-        vkFreeMemory(demo->device, demo->textures[i].mem, NULL);
-        vkDestroySampler(demo->device, demo->textures[i].sampler, NULL);
+        vkDestroyImageView(vulkanDSL->device, vulkanDSL->textures[i].view, NULL);
+        vkDestroyImage(vulkanDSL->device, vulkanDSL->textures[i].image, NULL);
+        vkFreeMemory(vulkanDSL->device, vulkanDSL->textures[i].mem, NULL);
+        vkDestroySampler(vulkanDSL->device, vulkanDSL->textures[i].sampler, NULL);
     }
 
-    vkDestroyImageView(demo->device, demo->depth.view, NULL);
-    vkDestroyImage(demo->device, demo->depth.image, NULL);
-    vkFreeMemory(demo->device, demo->depth.mem, NULL);
+    vkDestroyImageView(vulkanDSL->device, vulkanDSL->depth.view, NULL);
+    vkDestroyImage(vulkanDSL->device, vulkanDSL->depth.image, NULL);
+    vkFreeMemory(vulkanDSL->device, vulkanDSL->depth.mem, NULL);
 
-    for (i = 0; i < demo->swapchainImageCount; i++) {
-        vkDestroyImageView(demo->device, demo->swapchain_image_resources[i].view, NULL);
-        vkFreeCommandBuffers(demo->device, demo->cmd_pool, 1, &demo->swapchain_image_resources[i].cmd);
-        vkDestroyBuffer(demo->device, demo->swapchain_image_resources[i].uniform_buffer, NULL);
-        vkUnmapMemory(demo->device, demo->swapchain_image_resources[i].uniform_memory);
-        vkFreeMemory(demo->device, demo->swapchain_image_resources[i].uniform_memory, NULL);
+    for (i = 0; i < vulkanDSL->swapchainImageCount; i++) {
+        vkDestroyImageView(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].view, NULL);
+        vkFreeCommandBuffers(vulkanDSL->device, vulkanDSL->cmd_pool, 1, &vulkanDSL->swapchain_image_resources[i].cmd);
+        vkDestroyBuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_buffer, NULL);
+        vkUnmapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_memory);
+        vkFreeMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_memory, NULL);
     }
-    vkDestroyCommandPool(demo->device, demo->cmd_pool, NULL);
-    demo->cmd_pool = VK_NULL_HANDLE;
-    if (demo->separate_present_queue) {
-        vkDestroyCommandPool(demo->device, demo->present_cmd_pool, NULL);
+    vkDestroyCommandPool(vulkanDSL->device, vulkanDSL->cmd_pool, NULL);
+    vulkanDSL->cmd_pool = VK_NULL_HANDLE;
+    if (vulkanDSL->separate_present_queue) {
+        vkDestroyCommandPool(vulkanDSL->device, vulkanDSL->present_cmd_pool, NULL);
     }
-    free(demo->swapchain_image_resources);
+    free(vulkanDSL->swapchain_image_resources);
 
     // Second, re-perform the demo_prepare() function, which will re-create the
     // swapchain:
-    demo_prepare(demo);
+    demo_prepare(vulkanDSL);
 }
 
 /*
@@ -2085,19 +2124,19 @@ int find_display_gpu(int gpu_number, uint32_t gpu_count, VkPhysicalDevice *physi
         return -1;
 }
 #endif
-static void demo_init_vk(struct demo *demo) {
+static void demo_init_vk(struct VulkanDSL *vulkanDSL) {
     VkResult err;
     uint32_t instance_extension_count = 0;
     uint32_t instance_layer_count = 0;
     char *instance_validation_layers[] = {"VK_LAYER_KHRONOS_validation"};
-    demo->enabled_extension_count = 0;
-    demo->enabled_layer_count = 0;
-    demo->is_minimized = false;
-    demo->cmd_pool = VK_NULL_HANDLE;
+    vulkanDSL->enabled_extension_count = 0;
+    vulkanDSL->enabled_layer_count = 0;
+    vulkanDSL->is_minimized = false;
+    vulkanDSL->cmd_pool = VK_NULL_HANDLE;
 
     // Look for validation layers
     VkBool32 validation_found = 0;
-    if (demo->validate) {
+    if (vulkanDSL->validate) {
         err = vkEnumerateInstanceLayerProperties(&instance_layer_count, NULL);
         assert(!err);
 
@@ -2109,8 +2148,8 @@ static void demo_init_vk(struct demo *demo) {
             validation_found = demo_check_layers(ARRAY_SIZE(instance_validation_layers), instance_validation_layers,
                                                  instance_layer_count, instance_layers);
             if (validation_found) {
-                demo->enabled_layer_count = ARRAY_SIZE(instance_validation_layers);
-                demo->enabled_layers[0] = "VK_LAYER_KHRONOS_validation";
+                vulkanDSL->enabled_layer_count = ARRAY_SIZE(instance_validation_layers);
+                vulkanDSL->enabled_layers[0] = "VK_LAYER_KHRONOS_validation";
             }
             free(instance_layers);
         }
@@ -2126,7 +2165,7 @@ static void demo_init_vk(struct demo *demo) {
     /* Look for instance extensions */
     VkBool32 surfaceExtFound = 0;
     VkBool32 platformSurfaceExtFound = 0;
-    memset(demo->extension_names, 0, sizeof(demo->extension_names));
+    memset(vulkanDSL->extension_names, 0, sizeof(vulkanDSL->extension_names));
 
     err = vkEnumerateInstanceExtensionProperties(NULL, &instance_extension_count, NULL);
     assert(!err);
@@ -2138,58 +2177,58 @@ static void demo_init_vk(struct demo *demo) {
         for (uint32_t i = 0; i < instance_extension_count; i++) {
             if (!strcmp(VK_KHR_SURFACE_EXTENSION_NAME, instance_extensions[i].extensionName)) {
                 surfaceExtFound = 1;
-                demo->extension_names[demo->enabled_extension_count++] = VK_KHR_SURFACE_EXTENSION_NAME;
+                vulkanDSL->extension_names[vulkanDSL->enabled_extension_count++] = VK_KHR_SURFACE_EXTENSION_NAME;
             }
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
             if (!strcmp(VK_KHR_WIN32_SURFACE_EXTENSION_NAME, instance_extensions[i].extensionName)) {
                 platformSurfaceExtFound = 1;
-                demo->extension_names[demo->enabled_extension_count++] = VK_KHR_WIN32_SURFACE_EXTENSION_NAME;
+                vulkanDSL->extension_names[vulkanDSL->enabled_extension_count++] = VK_KHR_WIN32_SURFACE_EXTENSION_NAME;
             }
 #elif defined(VK_USE_PLATFORM_XLIB_KHR)
             if (!strcmp(VK_KHR_XLIB_SURFACE_EXTENSION_NAME, instance_extensions[i].extensionName)) {
                 platformSurfaceExtFound = 1;
-                demo->extension_names[demo->enabled_extension_count++] = VK_KHR_XLIB_SURFACE_EXTENSION_NAME;
+                vulkanDSL->extension_names[vulkanDSL->enabled_extension_count++] = VK_KHR_XLIB_SURFACE_EXTENSION_NAME;
             }
 #elif defined(VK_USE_PLATFORM_XCB_KHR)
             if (!strcmp(VK_KHR_XCB_SURFACE_EXTENSION_NAME, instance_extensions[i].extensionName)) {
                 platformSurfaceExtFound = 1;
-                demo->extension_names[demo->enabled_extension_count++] = VK_KHR_XCB_SURFACE_EXTENSION_NAME;
+                vulkanDSL->extension_names[vulkanDSL->enabled_extension_count++] = VK_KHR_XCB_SURFACE_EXTENSION_NAME;
             }
 #elif defined(VK_USE_PLATFORM_WAYLAND_KHR)
             if (!strcmp(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME, instance_extensions[i].extensionName)) {
                 platformSurfaceExtFound = 1;
-                demo->extension_names[demo->enabled_extension_count++] = VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME;
+                vulkanDSL->extension_names[vulkanDSL->enabled_extension_count++] = VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME;
             }
 #elif defined(VK_USE_PLATFORM_DIRECTFB_EXT)
             if (!strcmp(VK_EXT_DIRECTFB_SURFACE_EXTENSION_NAME, instance_extensions[i].extensionName)) {
                 platformSurfaceExtFound = 1;
-                demo->extension_names[demo->enabled_extension_count++] = VK_EXT_DIRECTFB_SURFACE_EXTENSION_NAME;
+                vulkanDSL->extension_names[vulkanDSL->enabled_extension_count++] = VK_EXT_DIRECTFB_SURFACE_EXTENSION_NAME;
             }
 #elif defined(VK_USE_PLATFORM_DISPLAY_KHR)
             if (!strcmp(VK_KHR_DISPLAY_EXTENSION_NAME, instance_extensions[i].extensionName)) {
                 platformSurfaceExtFound = 1;
-                demo->extension_names[demo->enabled_extension_count++] = VK_KHR_DISPLAY_EXTENSION_NAME;
+                vulkanDSL->extension_names[vulkanDSL->enabled_extension_count++] = VK_KHR_DISPLAY_EXTENSION_NAME;
             }
 #elif defined(VK_USE_PLATFORM_ANDROID_KHR)
             if (!strcmp(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME, instance_extensions[i].extensionName)) {
                 platformSurfaceExtFound = 1;
-                demo->extension_names[demo->enabled_extension_count++] = VK_KHR_ANDROID_SURFACE_EXTENSION_NAME;
+                vulkanDSL->extension_names[vulkanDSL->enabled_extension_count++] = VK_KHR_ANDROID_SURFACE_EXTENSION_NAME;
             }
 #elif defined(VK_USE_PLATFORM_METAL_EXT)
             if (!strcmp(VK_EXT_METAL_SURFACE_EXTENSION_NAME, instance_extensions[i].extensionName)) {
                 platformSurfaceExtFound = 1;
-                demo->extension_names[demo->enabled_extension_count++] = VK_EXT_METAL_SURFACE_EXTENSION_NAME;
+                vulkanDSL->extension_names[vulkanDSL->enabled_extension_count++] = VK_EXT_METAL_SURFACE_EXTENSION_NAME;
             }
 #endif
             if (!strcmp(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, instance_extensions[i].extensionName)) {
-                demo->extension_names[demo->enabled_extension_count++] = VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME;
+                vulkanDSL->extension_names[vulkanDSL->enabled_extension_count++] = VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME;
             }
             if (!strcmp(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, instance_extensions[i].extensionName)) {
-                if (demo->validate) {
-                    demo->extension_names[demo->enabled_extension_count++] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
+                if (vulkanDSL->validate) {
+                    vulkanDSL->extension_names[vulkanDSL->enabled_extension_count++] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
                 }
             }
-            assert(demo->enabled_extension_count < 64);
+            assert(vulkanDSL->enabled_extension_count < 64);
         }
 
         free(instance_extensions);
@@ -2266,10 +2305,10 @@ static void demo_init_vk(struct demo *demo) {
             .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
             .pNext = NULL,
             .pApplicationInfo = &app,
-            .enabledLayerCount = demo->enabled_layer_count,
+            .enabledLayerCount = vulkanDSL->enabled_layer_count,
             .ppEnabledLayerNames = (const char *const *)instance_validation_layers,
-            .enabledExtensionCount = demo->enabled_extension_count,
-            .ppEnabledExtensionNames = (const char *const *)demo->extension_names,
+            .enabledExtensionCount = vulkanDSL->enabled_extension_count,
+            .ppEnabledExtensionNames = (const char *const *)vulkanDSL->extension_names,
     };
 
     /*
@@ -2278,7 +2317,7 @@ static void demo_init_vk(struct demo *demo) {
      * function to register the final callback.
      */
     VkDebugUtilsMessengerCreateInfoEXT dbg_messenger_create_info;
-    if (demo->validate) {
+    if (vulkanDSL->validate) {
         // VK_EXT_debug_utils style
         dbg_messenger_create_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
         dbg_messenger_create_info.pNext = NULL;
@@ -2289,11 +2328,11 @@ static void demo_init_vk(struct demo *demo) {
                                                 VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
                                                 VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
         dbg_messenger_create_info.pfnUserCallback = debug_messenger_callback;
-        dbg_messenger_create_info.pUserData = demo;
+        dbg_messenger_create_info.pUserData = vulkanDSL;
         inst_info.pNext = &dbg_messenger_create_info;
     }
 
-    err = vkCreateInstance(&inst_info, NULL, &demo->inst);
+    err = vkCreateInstance(&inst_info, NULL, &vulkanDSL->inst);
     if (err == VK_ERROR_INCOMPATIBLE_DRIVER) {
         ERR_EXIT(
                 "Cannot find a compatible Vulkan installable client driver (ICD).\n\n"
@@ -2313,12 +2352,12 @@ static void demo_init_vk(struct demo *demo) {
     }
 
 #ifdef __ANDROID__
-    volkLoadInstance(demo->inst);
+    volkLoadInstance(vulkanDSL->inst);
 #endif
 
     /* Make initial call to query gpu_count, then second call for gpu info */
     uint32_t gpu_count = 0;
-    err = vkEnumeratePhysicalDevices(demo->inst, &gpu_count, NULL);
+    err = vkEnumeratePhysicalDevices(vulkanDSL->inst, &gpu_count, NULL);
     assert(!err);
 
     if (gpu_count <= 0) {
@@ -2330,23 +2369,23 @@ static void demo_init_vk(struct demo *demo) {
     }
 
     VkPhysicalDevice *physical_devices = malloc(sizeof(VkPhysicalDevice) * gpu_count);
-    err = vkEnumeratePhysicalDevices(demo->inst, &gpu_count, physical_devices);
+    err = vkEnumeratePhysicalDevices(vulkanDSL->inst, &gpu_count, physical_devices);
     assert(!err);
-    if (demo->gpu_number >= 0 && !((uint32_t)demo->gpu_number < gpu_count)) {
-        fprintf(stderr, "GPU %d specified is not present, GPU count = %u\n", demo->gpu_number, gpu_count);
+    if (vulkanDSL->gpu_number >= 0 && !((uint32_t)vulkanDSL->gpu_number < gpu_count)) {
+        fprintf(stderr, "GPU %d specified is not present, GPU count = %u\n", vulkanDSL->gpu_number, gpu_count);
         ERR_EXIT("Specified GPU number is not present", "User Error");
     }
 
 #if defined(VK_USE_PLATFORM_DISPLAY_KHR)
-    demo->gpu_number = find_display_gpu(demo->gpu_number, gpu_count, physical_devices);
-    if (demo->gpu_number < 0) {
+    vulkanDSL->gpu_number = find_display_gpu(vulkanDSL->gpu_number, gpu_count, physical_devices);
+    if (vulkanDSL->gpu_number < 0) {
         printf("Cannot find any display!\n");
         fflush(stdout);
         exit(1);
     }
 #else
     /* Try to auto select most suitable device */
-    if (demo->gpu_number == -1) {
+    if (vulkanDSL->gpu_number == -1) {
         uint32_t count_device_type[VK_PHYSICAL_DEVICE_TYPE_CPU + 1];
         memset(count_device_type, 0, sizeof(count_device_type));
 
@@ -2373,18 +2412,18 @@ static void demo_init_vk(struct demo *demo) {
         for (uint32_t i = 0; i < gpu_count; i++) {
             vkGetPhysicalDeviceProperties(physical_devices[i], &physicalDeviceProperties);
             if (physicalDeviceProperties.deviceType == search_for_device_type) {
-                demo->gpu_number = i;
+                vulkanDSL->gpu_number = i;
                 break;
             }
         }
     }
 #endif
-    assert(demo->gpu_number >= 0);
-    demo->gpu = physical_devices[demo->gpu_number];
+    assert(vulkanDSL->gpu_number >= 0);
+    vulkanDSL->gpu = physical_devices[vulkanDSL->gpu_number];
     {
         VkPhysicalDeviceProperties physicalDeviceProperties;
-        vkGetPhysicalDeviceProperties(demo->gpu, &physicalDeviceProperties);
-        fprintf(stderr, "Selected GPU %d: %s, type: %u\n", demo->gpu_number, physicalDeviceProperties.deviceName,
+        vkGetPhysicalDeviceProperties(vulkanDSL->gpu, &physicalDeviceProperties);
+        fprintf(stderr, "Selected GPU %d: %s, type: %u\n", vulkanDSL->gpu_number, physicalDeviceProperties.deviceName,
                 physicalDeviceProperties.deviceType);
     }
     free(physical_devices);
@@ -2392,62 +2431,62 @@ static void demo_init_vk(struct demo *demo) {
     /* Look for device extensions */
     uint32_t device_extension_count = 0;
     VkBool32 swapchainExtFound = 0;
-    demo->enabled_extension_count = 0;
-    memset(demo->extension_names, 0, sizeof(demo->extension_names));
+    vulkanDSL->enabled_extension_count = 0;
+    memset(vulkanDSL->extension_names, 0, sizeof(vulkanDSL->extension_names));
 
-    err = vkEnumerateDeviceExtensionProperties(demo->gpu, NULL, &device_extension_count, NULL);
+    err = vkEnumerateDeviceExtensionProperties(vulkanDSL->gpu, NULL, &device_extension_count, NULL);
     assert(!err);
 
     if (device_extension_count > 0) {
         VkExtensionProperties *device_extensions = malloc(sizeof(VkExtensionProperties) * device_extension_count);
-        err = vkEnumerateDeviceExtensionProperties(demo->gpu, NULL, &device_extension_count, device_extensions);
+        err = vkEnumerateDeviceExtensionProperties(vulkanDSL->gpu, NULL, &device_extension_count, device_extensions);
         assert(!err);
 
         for (uint32_t i = 0; i < device_extension_count; i++) {
             if (!strcmp(VK_KHR_SWAPCHAIN_EXTENSION_NAME, device_extensions[i].extensionName)) {
                 swapchainExtFound = 1;
-                demo->extension_names[demo->enabled_extension_count++] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
+                vulkanDSL->extension_names[vulkanDSL->enabled_extension_count++] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
             }
             if (!strcmp("VK_KHR_portability_subset", device_extensions[i].extensionName)) {
-                demo->extension_names[demo->enabled_extension_count++] = "VK_KHR_portability_subset";
+                vulkanDSL->extension_names[vulkanDSL->enabled_extension_count++] = "VK_KHR_portability_subset";
             }
-            assert(demo->enabled_extension_count < 64);
+            assert(vulkanDSL->enabled_extension_count < 64);
         }
 
-        if (demo->VK_KHR_incremental_present_enabled) {
+        if (vulkanDSL->VK_KHR_incremental_present_enabled) {
             // Even though the user "enabled" the extension via the command
             // line, we must make sure that it's enumerated for use with the
             // device.  Therefore, disable it here, and re-enable it again if
             // enumerated.
-            demo->VK_KHR_incremental_present_enabled = false;
+            vulkanDSL->VK_KHR_incremental_present_enabled = false;
             for (uint32_t i = 0; i < device_extension_count; i++) {
                 if (!strcmp(VK_KHR_INCREMENTAL_PRESENT_EXTENSION_NAME, device_extensions[i].extensionName)) {
-                    demo->extension_names[demo->enabled_extension_count++] = VK_KHR_INCREMENTAL_PRESENT_EXTENSION_NAME;
-                    demo->VK_KHR_incremental_present_enabled = true;
+                    vulkanDSL->extension_names[vulkanDSL->enabled_extension_count++] = VK_KHR_INCREMENTAL_PRESENT_EXTENSION_NAME;
+                    vulkanDSL->VK_KHR_incremental_present_enabled = true;
                     DbgMsg("VK_KHR_incremental_present extension enabled\n");
                 }
-                assert(demo->enabled_extension_count < 64);
+                assert(vulkanDSL->enabled_extension_count < 64);
             }
-            if (!demo->VK_KHR_incremental_present_enabled) {
+            if (!vulkanDSL->VK_KHR_incremental_present_enabled) {
                 DbgMsg("VK_KHR_incremental_present extension NOT AVAILABLE\n");
             }
         }
 
-        if (demo->VK_GOOGLE_display_timing_enabled) {
+        if (vulkanDSL->VK_GOOGLE_display_timing_enabled) {
             // Even though the user "enabled" the extension via the command
             // line, we must make sure that it's enumerated for use with the
             // device.  Therefore, disable it here, and re-enable it again if
             // enumerated.
-            demo->VK_GOOGLE_display_timing_enabled = false;
+            vulkanDSL->VK_GOOGLE_display_timing_enabled = false;
             for (uint32_t i = 0; i < device_extension_count; i++) {
                 if (!strcmp(VK_GOOGLE_DISPLAY_TIMING_EXTENSION_NAME, device_extensions[i].extensionName)) {
-                    demo->extension_names[demo->enabled_extension_count++] = VK_GOOGLE_DISPLAY_TIMING_EXTENSION_NAME;
-                    demo->VK_GOOGLE_display_timing_enabled = true;
+                    vulkanDSL->extension_names[vulkanDSL->enabled_extension_count++] = VK_GOOGLE_DISPLAY_TIMING_EXTENSION_NAME;
+                    vulkanDSL->VK_GOOGLE_display_timing_enabled = true;
                     DbgMsg("VK_GOOGLE_display_timing extension enabled\n");
                 }
-                assert(demo->enabled_extension_count < 64);
+                assert(vulkanDSL->enabled_extension_count < 64);
             }
-            if (!demo->VK_GOOGLE_display_timing_enabled) {
+            if (!vulkanDSL->VK_GOOGLE_display_timing_enabled) {
                 DbgMsg("VK_GOOGLE_display_timing extension NOT AVAILABLE\n");
             }
         }
@@ -2462,31 +2501,31 @@ static void demo_init_vk(struct demo *demo) {
                  "vkCreateInstance Failure");
     }
 
-    if (demo->validate) {
+    if (vulkanDSL->validate) {
         // Setup VK_EXT_debug_utils function pointers always (we use them for
         // debug labels and names).
-        demo->CreateDebugUtilsMessengerEXT =
-                (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(demo->inst, "vkCreateDebugUtilsMessengerEXT");
-        demo->DestroyDebugUtilsMessengerEXT =
-                (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(demo->inst, "vkDestroyDebugUtilsMessengerEXT");
-        demo->SubmitDebugUtilsMessageEXT =
-                (PFN_vkSubmitDebugUtilsMessageEXT)vkGetInstanceProcAddr(demo->inst, "vkSubmitDebugUtilsMessageEXT");
-        demo->CmdBeginDebugUtilsLabelEXT =
-                (PFN_vkCmdBeginDebugUtilsLabelEXT)vkGetInstanceProcAddr(demo->inst, "vkCmdBeginDebugUtilsLabelEXT");
-        demo->CmdEndDebugUtilsLabelEXT =
-                (PFN_vkCmdEndDebugUtilsLabelEXT)vkGetInstanceProcAddr(demo->inst, "vkCmdEndDebugUtilsLabelEXT");
-        demo->CmdInsertDebugUtilsLabelEXT =
-                (PFN_vkCmdInsertDebugUtilsLabelEXT)vkGetInstanceProcAddr(demo->inst, "vkCmdInsertDebugUtilsLabelEXT");
-        demo->SetDebugUtilsObjectNameEXT =
-                (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(demo->inst, "vkSetDebugUtilsObjectNameEXT");
-        if (NULL == demo->CreateDebugUtilsMessengerEXT || NULL == demo->DestroyDebugUtilsMessengerEXT ||
-            NULL == demo->SubmitDebugUtilsMessageEXT || NULL == demo->CmdBeginDebugUtilsLabelEXT ||
-            NULL == demo->CmdEndDebugUtilsLabelEXT || NULL == demo->CmdInsertDebugUtilsLabelEXT ||
-            NULL == demo->SetDebugUtilsObjectNameEXT) {
+        vulkanDSL->CreateDebugUtilsMessengerEXT =
+                (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(vulkanDSL->inst, "vkCreateDebugUtilsMessengerEXT");
+        vulkanDSL->DestroyDebugUtilsMessengerEXT =
+                (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(vulkanDSL->inst, "vkDestroyDebugUtilsMessengerEXT");
+        vulkanDSL->SubmitDebugUtilsMessageEXT =
+                (PFN_vkSubmitDebugUtilsMessageEXT)vkGetInstanceProcAddr(vulkanDSL->inst, "vkSubmitDebugUtilsMessageEXT");
+        vulkanDSL->CmdBeginDebugUtilsLabelEXT =
+                (PFN_vkCmdBeginDebugUtilsLabelEXT)vkGetInstanceProcAddr(vulkanDSL->inst, "vkCmdBeginDebugUtilsLabelEXT");
+        vulkanDSL->CmdEndDebugUtilsLabelEXT =
+                (PFN_vkCmdEndDebugUtilsLabelEXT)vkGetInstanceProcAddr(vulkanDSL->inst, "vkCmdEndDebugUtilsLabelEXT");
+        vulkanDSL->CmdInsertDebugUtilsLabelEXT =
+                (PFN_vkCmdInsertDebugUtilsLabelEXT)vkGetInstanceProcAddr(vulkanDSL->inst, "vkCmdInsertDebugUtilsLabelEXT");
+        vulkanDSL->SetDebugUtilsObjectNameEXT =
+                (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(vulkanDSL->inst, "vkSetDebugUtilsObjectNameEXT");
+        if (NULL == vulkanDSL->CreateDebugUtilsMessengerEXT || NULL == vulkanDSL->DestroyDebugUtilsMessengerEXT ||
+            NULL == vulkanDSL->SubmitDebugUtilsMessageEXT || NULL == vulkanDSL->CmdBeginDebugUtilsLabelEXT ||
+            NULL == vulkanDSL->CmdEndDebugUtilsLabelEXT || NULL == vulkanDSL->CmdInsertDebugUtilsLabelEXT ||
+            NULL == vulkanDSL->SetDebugUtilsObjectNameEXT) {
             ERR_EXIT("GetProcAddr: Failed to init VK_EXT_debug_utils\n", "GetProcAddr: Failure");
         }
 
-        err = demo->CreateDebugUtilsMessengerEXT(demo->inst, &dbg_messenger_create_info, NULL, &demo->dbg_messenger);
+        err = vulkanDSL->CreateDebugUtilsMessengerEXT(vulkanDSL->inst, &dbg_messenger_create_info, NULL, &vulkanDSL->dbg_messenger);
         switch (err) {
             case VK_SUCCESS:
                 break;
@@ -2498,35 +2537,35 @@ static void demo_init_vk(struct demo *demo) {
                 break;
         }
     }
-    vkGetPhysicalDeviceProperties(demo->gpu, &demo->gpu_props);
+    vkGetPhysicalDeviceProperties(vulkanDSL->gpu, &vulkanDSL->gpu_props);
 
     /* Call with NULL data to get count */
-    vkGetPhysicalDeviceQueueFamilyProperties(demo->gpu, &demo->queue_family_count, NULL);
-    assert(demo->queue_family_count >= 1);
+    vkGetPhysicalDeviceQueueFamilyProperties(vulkanDSL->gpu, &vulkanDSL->queue_family_count, NULL);
+    assert(vulkanDSL->queue_family_count >= 1);
 
-    demo->queue_props = (VkQueueFamilyProperties *)malloc(demo->queue_family_count * sizeof(VkQueueFamilyProperties));
-    vkGetPhysicalDeviceQueueFamilyProperties(demo->gpu, &demo->queue_family_count, demo->queue_props);
+    vulkanDSL->queue_props = (VkQueueFamilyProperties *)malloc(vulkanDSL->queue_family_count * sizeof(VkQueueFamilyProperties));
+    vkGetPhysicalDeviceQueueFamilyProperties(vulkanDSL->gpu, &vulkanDSL->queue_family_count, vulkanDSL->queue_props);
 
     // Query fine-grained feature support for this device.
     //  If app has specific feature requirements it should check supported
     //  features based on this query
     VkPhysicalDeviceFeatures physDevFeatures;
-    vkGetPhysicalDeviceFeatures(demo->gpu, &physDevFeatures);
+    vkGetPhysicalDeviceFeatures(vulkanDSL->gpu, &physDevFeatures);
 
-    GET_INSTANCE_PROC_ADDR(demo->inst, GetPhysicalDeviceSurfaceSupportKHR);
-    GET_INSTANCE_PROC_ADDR(demo->inst, GetPhysicalDeviceSurfaceCapabilitiesKHR);
-    GET_INSTANCE_PROC_ADDR(demo->inst, GetPhysicalDeviceSurfaceFormatsKHR);
-    GET_INSTANCE_PROC_ADDR(demo->inst, GetPhysicalDeviceSurfacePresentModesKHR);
-    GET_INSTANCE_PROC_ADDR(demo->inst, GetSwapchainImagesKHR);
+    GET_INSTANCE_PROC_ADDR(vulkanDSL->inst, GetPhysicalDeviceSurfaceSupportKHR);
+    GET_INSTANCE_PROC_ADDR(vulkanDSL->inst, GetPhysicalDeviceSurfaceCapabilitiesKHR);
+    GET_INSTANCE_PROC_ADDR(vulkanDSL->inst, GetPhysicalDeviceSurfaceFormatsKHR);
+    GET_INSTANCE_PROC_ADDR(vulkanDSL->inst, GetPhysicalDeviceSurfacePresentModesKHR);
+    GET_INSTANCE_PROC_ADDR(vulkanDSL->inst, GetSwapchainImagesKHR);
 }
 
-static void demo_create_device(struct demo *demo) {
+static void demo_create_device(struct VulkanDSL *vulkanDSL) {
     VkResult U_ASSERT_ONLY err;
     float queue_priorities[1] = {0.0};
     VkDeviceQueueCreateInfo queues[2];
     queues[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     queues[0].pNext = NULL;
-    queues[0].queueFamilyIndex = demo->graphics_queue_family_index;
+    queues[0].queueFamilyIndex = vulkanDSL->graphics_queue_family_index;
     queues[0].queueCount = 1;
     queues[0].pQueuePriorities = queue_priorities;
     queues[0].flags = 0;
@@ -2538,15 +2577,15 @@ static void demo_create_device(struct demo *demo) {
             .pQueueCreateInfos = queues,
             .enabledLayerCount = 0,
             .ppEnabledLayerNames = NULL,
-            .enabledExtensionCount = demo->enabled_extension_count,
-            .ppEnabledExtensionNames = (const char *const *)demo->extension_names,
+            .enabledExtensionCount = vulkanDSL->enabled_extension_count,
+            .ppEnabledExtensionNames = (const char *const *)vulkanDSL->extension_names,
             .pEnabledFeatures = NULL,  // If specific features are required, pass them in here
     };
     /*
-    if (demo->separate_present_queue) {
+    if (vulkanDSL->separate_present_queue) {
           queues[1].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
           queues[1].pNext = NULL;
-          queues[1].queueFamilyIndex = demo->present_queue_family_index;
+          queues[1].queueFamilyIndex = vulkanDSL->present_queue_family_index;
           queues[1].queueCount = 1;
           queues[1].pQueuePriorities = queue_priorities;
           queues[1].flags = 0;
@@ -2556,16 +2595,16 @@ static void demo_create_device(struct demo *demo) {
 
     queues[1].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     queues[1].pNext = NULL;
-    queues[1].queueFamilyIndex = demo->graphics_queue_family_index2;
+    queues[1].queueFamilyIndex = vulkanDSL->graphics_queue_family_index2;
     queues[1].queueCount = 1;
     queues[1].pQueuePriorities = queue_priorities;
     queues[1].flags = 0;
     device.queueCreateInfoCount = 2;
-    err = vkCreateDevice(demo->gpu, &device, NULL, &demo->device);
+    err = vkCreateDevice(vulkanDSL->gpu, &device, NULL, &vulkanDSL->device);
     assert(!err);
 }
 
-static void demo_create_surface(struct demo *demo) {
+static void demo_create_surface(struct VulkanDSL *vulkanDSL) {
     VkResult U_ASSERT_ONLY err;
 
 // Create a WSI surface for the window:
@@ -2574,64 +2613,64 @@ static void demo_create_surface(struct demo *demo) {
     createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
     createInfo.pNext = NULL;
     createInfo.flags = 0;
-    createInfo.hinstance = demo->connection;
-    createInfo.hwnd = demo->window;
+    createInfo.hinstance = vulkanDSL->connection;
+    createInfo.hwnd = vulkanDSL->window;
 
-    err = vkCreateWin32SurfaceKHR(demo->inst, &createInfo, NULL, &demo->surface);
+    err = vkCreateWin32SurfaceKHR(vulkanDSL->inst, &createInfo, NULL, &vulkanDSL->surface);
 #elif defined(VK_USE_PLATFORM_WAYLAND_KHR)
     VkWaylandSurfaceCreateInfoKHR createInfo;
     createInfo.sType = VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR;
     createInfo.pNext = NULL;
     createInfo.flags = 0;
-    createInfo.display = demo->display;
-    createInfo.surface = demo->window;
+    createInfo.display = vulkanDSL->display;
+    createInfo.surface = vulkanDSL->window;
 
-    err = vkCreateWaylandSurfaceKHR(demo->inst, &createInfo, NULL, &demo->surface);
+    err = vkCreateWaylandSurfaceKHR(vulkanDSL->inst, &createInfo, NULL, &vulkanDSL->surface);
 #elif defined(VK_USE_PLATFORM_ANDROID_KHR)
     VkAndroidSurfaceCreateInfoKHR createInfo;
     createInfo.sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR;
     createInfo.pNext = NULL;
     createInfo.flags = 0;
-    createInfo.window = (struct ANativeWindow *)(demo->window);
+    createInfo.window = (struct ANativeWindow *)(vulkanDSL->window);
 
-    err = vkCreateAndroidSurfaceKHR(demo->inst, &createInfo, NULL, &demo->surface);
+    err = vkCreateAndroidSurfaceKHR(vulkanDSL->inst, &createInfo, NULL, &vulkanDSL->surface);
 #elif defined(VK_USE_PLATFORM_XLIB_KHR)
     VkXlibSurfaceCreateInfoKHR createInfo;
     createInfo.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
     createInfo.pNext = NULL;
     createInfo.flags = 0;
-    createInfo.dpy = demo->display;
-    createInfo.window = demo->xlib_window;
+    createInfo.dpy = vulkanDSL->display;
+    createInfo.window = vulkanDSL->xlib_window;
 
-    err = vkCreateXlibSurfaceKHR(demo->inst, &createInfo, NULL, &demo->surface);
+    err = vkCreateXlibSurfaceKHR(vulkanDSL->inst, &createInfo, NULL, &vulkanDSL->surface);
 #elif defined(VK_USE_PLATFORM_XCB_KHR)
     VkXcbSurfaceCreateInfoKHR createInfo;
     createInfo.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
     createInfo.pNext = NULL;
     createInfo.flags = 0;
-    createInfo.connection = demo->connection;
-    createInfo.window = demo->xcb_window;
+    createInfo.connection = vulkanDSL->connection;
+    createInfo.window = vulkanDSL->xcb_window;
 
-    err = vkCreateXcbSurfaceKHR(demo->inst, &createInfo, NULL, &demo->surface);
+    err = vkCreateXcbSurfaceKHR(vulkanDSL->inst, &createInfo, NULL, &vulkanDSL->surface);
 #elif defined(VK_USE_PLATFORM_DIRECTFB_EXT)
     VkDirectFBSurfaceCreateInfoEXT createInfo;
     createInfo.sType = VK_STRUCTURE_TYPE_DIRECTFB_SURFACE_CREATE_INFO_EXT;
     createInfo.pNext = NULL;
     createInfo.flags = 0;
-    createInfo.dfb = demo->dfb;
-    createInfo.surface = demo->window;
+    createInfo.dfb = vulkanDSL->dfb;
+    createInfo.surface = vulkanDSL->window;
 
-    err = vkCreateDirectFBSurfaceEXT(demo->inst, &createInfo, NULL, &demo->surface);
+    err = vkCreateDirectFBSurfaceEXT(vulkanDSL->inst, &createInfo, NULL, &vulkanDSL->surface);
 #elif defined(VK_USE_PLATFORM_DISPLAY_KHR)
-    err = demo_create_display_surface(demo);
+    err = demo_create_display_surface(vulkanDSL);
 #elif defined(VK_USE_PLATFORM_METAL_EXT)
     VkMetalSurfaceCreateInfoEXT surface;
     surface.sType = VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT;
     surface.pNext = NULL;
     surface.flags = 0;
-    surface.pLayer = demo->caMetalLayer;
+    surface.pLayer = vulkanDSL->caMetalLayer;
 
-    err = vkCreateMetalSurfaceEXT(demo->inst, &surface, NULL, &demo->surface);
+    err = vkCreateMetalSurfaceEXT(vulkanDSL->inst, &surface, NULL, &vulkanDSL->surface);
 #endif
     assert(!err);
 }
@@ -2656,15 +2695,15 @@ static VkSurfaceFormatKHR pick_surface_format(const VkSurfaceFormatKHR *surfaceF
 
 // use more queues if the work is independent
 // https://stackoverflow.com/questions/37575012/should-i-try-to-use-as-many-queues-as-possible
-static void demo_init_vk_swapchain(struct demo *demo) {
+static void demo_init_vk_swapchain(struct VulkanDSL *vulkanDSL) {
     VkResult U_ASSERT_ONLY err;
 
-    demo_create_surface(demo);
+    demo_create_surface(vulkanDSL);
 
     // Iterate over each queue to learn whether it supports presenting:
-    VkBool32 *supportsPresent = (VkBool32 *)malloc(demo->queue_family_count * sizeof(VkBool32));
-    for (uint32_t i = 0; i < demo->queue_family_count; i++) {
-        demo->fpGetPhysicalDeviceSurfaceSupportKHR(demo->gpu, i, demo->surface, &supportsPresent[i]);
+    VkBool32 *supportsPresent = (VkBool32 *)malloc(vulkanDSL->queue_family_count * sizeof(VkBool32));
+    for (uint32_t i = 0; i < vulkanDSL->queue_family_count; i++) {
+        vulkanDSL->fpGetPhysicalDeviceSurfaceSupportKHR(vulkanDSL->gpu, i, vulkanDSL->surface, &supportsPresent[i]);
     }
 
     // Search for a graphics and a present queue in the array of queue
@@ -2674,8 +2713,8 @@ static void demo_init_vk_swapchain(struct demo *demo) {
     uint32_t graphicsQueueFamilyIndex2 = UINT32_MAX;
     uint32_t presentQueueFamilyIndex2 = UINT32_MAX;
     bool val1 = false;
-    for (uint32_t i = 0; i < demo->queue_family_count; i++) {
-        if ((demo->queue_props[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0) {
+    for (uint32_t i = 0; i < vulkanDSL->queue_family_count; i++) {
+        if ((vulkanDSL->queue_props[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0) {
             if (graphicsQueueFamilyIndex == UINT32_MAX) {
                 graphicsQueueFamilyIndex = i;
             }
@@ -2696,7 +2735,7 @@ static void demo_init_vk_swapchain(struct demo *demo) {
     if (presentQueueFamilyIndex == UINT32_MAX) {
         // If we didn't find a queue that supports both graphics and present, then
         // find a separate present queue.
-        for (uint32_t i = 0; i < demo->queue_family_count; ++i) {
+        for (uint32_t i = 0; i < vulkanDSL->queue_family_count; ++i) {
             if (supportsPresent[i] == VK_TRUE) {
                 presentQueueFamilyIndex = i;
                 break;
@@ -2709,56 +2748,56 @@ static void demo_init_vk_swapchain(struct demo *demo) {
         ERR_EXIT("Could not find both graphics and present queues\n", "Swapchain Initialization Failure");
     }
 
-    demo->graphics_queue_family_index = graphicsQueueFamilyIndex;
-    demo->present_queue_family_index = presentQueueFamilyIndex;
-    demo->separate_present_queue = (demo->graphics_queue_family_index != demo->present_queue_family_index);
+    vulkanDSL->graphics_queue_family_index = graphicsQueueFamilyIndex;
+    vulkanDSL->present_queue_family_index = presentQueueFamilyIndex;
+    vulkanDSL->separate_present_queue = (vulkanDSL->graphics_queue_family_index != vulkanDSL->present_queue_family_index);
     free(supportsPresent);
 
-    demo_create_device(demo);
+    demo_create_device(vulkanDSL);
 
-    demo->fpCreateSwapchainKHR = vkCreateSwapchainKHR;
-    demo->fpDestroySwapchainKHR = vkDestroySwapchainKHR;
-    demo->fpGetSwapchainImagesKHR = vkGetSwapchainImagesKHR;
-    demo->fpAcquireNextImageKHR = vkAcquireNextImageKHR;
-    demo->fpQueuePresentKHR = vkQueuePresentKHR;
-    demo->fpGetRefreshCycleDurationGOOGLE = vkGetRefreshCycleDurationGOOGLE;
-    demo->fpGetPastPresentationTimingGOOGLE = vkGetPastPresentationTimingGOOGLE;
+    vulkanDSL->fpCreateSwapchainKHR = vkCreateSwapchainKHR;
+    vulkanDSL->fpDestroySwapchainKHR = vkDestroySwapchainKHR;
+    vulkanDSL->fpGetSwapchainImagesKHR = vkGetSwapchainImagesKHR;
+    vulkanDSL->fpAcquireNextImageKHR = vkAcquireNextImageKHR;
+    vulkanDSL->fpQueuePresentKHR = vkQueuePresentKHR;
+    vulkanDSL->fpGetRefreshCycleDurationGOOGLE = vkGetRefreshCycleDurationGOOGLE;
+    vulkanDSL->fpGetPastPresentationTimingGOOGLE = vkGetPastPresentationTimingGOOGLE;
 
     /*
-   GET_DEVICE_PROC_ADDR(demo->device, CreateSwapchainKHR);
-   GET_DEVICE_PROC_ADDR(demo->device, DestroySwapchainKHR);
-   GET_DEVICE_PROC_ADDR(demo->device, GetSwapchainImagesKHR);
-   GET_DEVICE_PROC_ADDR(demo->device, AcquireNextImageKHR);
-   GET_DEVICE_PROC_ADDR(demo->device, QueuePresentKHR);
-   if (demo->VK_GOOGLE_display_timing_enabled) {
-       GET_DEVICE_PROC_ADDR(demo->device, GetRefreshCycleDurationGOOGLE);
-       GET_DEVICE_PROC_ADDR(demo->device, GetPastPresentationTimingGOOGLE);
+   GET_DEVICE_PROC_ADDR(vulkanDSL->device, CreateSwapchainKHR);
+   GET_DEVICE_PROC_ADDR(vulkanDSL->device, DestroySwapchainKHR);
+   GET_DEVICE_PROC_ADDR(vulkanDSL->device, GetSwapchainImagesKHR);
+   GET_DEVICE_PROC_ADDR(vulkanDSL->device, AcquireNextImageKHR);
+   GET_DEVICE_PROC_ADDR(vulkanDSL->device, QueuePresentKHR);
+   if (vulkanDSL->VK_GOOGLE_display_timing_enabled) {
+       GET_DEVICE_PROC_ADDR(vulkanDSL->device, GetRefreshCycleDurationGOOGLE);
+       GET_DEVICE_PROC_ADDR(vulkanDSL->device, GetPastPresentationTimingGOOGLE);
    }
     */
 
-    vkGetDeviceQueue(demo->device, demo->graphics_queue_family_index, 0, &demo->graphics_queue);
-    vkGetDeviceQueue(demo->device, demo->graphics_queue_family_index2, 0, &demo->graphics_queue2);
+    vkGetDeviceQueue(vulkanDSL->device, vulkanDSL->graphics_queue_family_index, 0, &vulkanDSL->graphics_queue);
+    vkGetDeviceQueue(vulkanDSL->device, vulkanDSL->graphics_queue_family_index2, 0, &vulkanDSL->graphics_queue2);
 
-    if (!demo->separate_present_queue) {
-        demo->present_queue = demo->graphics_queue;
+    if (!vulkanDSL->separate_present_queue) {
+        vulkanDSL->present_queue = vulkanDSL->graphics_queue;
     } else {
-        vkGetDeviceQueue(demo->device, demo->present_queue_family_index, 0, &demo->present_queue);
+        vkGetDeviceQueue(vulkanDSL->device, vulkanDSL->present_queue_family_index, 0, &vulkanDSL->present_queue);
     }
 
     // Get the list of VkFormat's that are supported:
     uint32_t formatCount;
-    err = demo->fpGetPhysicalDeviceSurfaceFormatsKHR(demo->gpu, demo->surface, &formatCount, NULL);
+    err = vulkanDSL->fpGetPhysicalDeviceSurfaceFormatsKHR(vulkanDSL->gpu, vulkanDSL->surface, &formatCount, NULL);
     assert(!err);
     VkSurfaceFormatKHR *surfFormats = (VkSurfaceFormatKHR *)malloc(formatCount * sizeof(VkSurfaceFormatKHR));
-    err = demo->fpGetPhysicalDeviceSurfaceFormatsKHR(demo->gpu, demo->surface, &formatCount, surfFormats);
+    err = vulkanDSL->fpGetPhysicalDeviceSurfaceFormatsKHR(vulkanDSL->gpu, vulkanDSL->surface, &formatCount, surfFormats);
     assert(!err);
     VkSurfaceFormatKHR surfaceFormat = pick_surface_format(surfFormats, formatCount);
-    demo->format = surfaceFormat.format;
-    demo->color_space = surfaceFormat.colorSpace;
+    vulkanDSL->format = surfaceFormat.format;
+    vulkanDSL->color_space = surfaceFormat.colorSpace;
     free(surfFormats);
 
-    demo->quit = false;
-    demo->curFrame = 0;
+    vulkanDSL->quit = false;
+    vulkanDSL->curFrame = 0;
 
     // Create semaphores to synchronize acquiring presentable buffers before
     // rendering and waiting for drawing to be complete before presenting
@@ -2773,24 +2812,24 @@ static void demo_init_vk_swapchain(struct demo *demo) {
     VkFenceCreateInfo fence_ci = {
             .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO, .pNext = NULL, .flags = VK_FENCE_CREATE_SIGNALED_BIT};
     for (uint32_t i = 0; i < FRAME_LAG; i++) {
-        err = vkCreateFence(demo->device, &fence_ci, NULL, &demo->fences[i]);
+        err = vkCreateFence(vulkanDSL->device, &fence_ci, NULL, &vulkanDSL->fences[i]);
         assert(!err);
 
-        err = vkCreateSemaphore(demo->device, &semaphoreCreateInfo, NULL, &demo->image_acquired_semaphores[i]);
+        err = vkCreateSemaphore(vulkanDSL->device, &semaphoreCreateInfo, NULL, &vulkanDSL->image_acquired_semaphores[i]);
         assert(!err);
 
-        err = vkCreateSemaphore(demo->device, &semaphoreCreateInfo, NULL, &demo->draw_complete_semaphores[i]);
+        err = vkCreateSemaphore(vulkanDSL->device, &semaphoreCreateInfo, NULL, &vulkanDSL->draw_complete_semaphores[i]);
         assert(!err);
 
-        if (demo->separate_present_queue) {
-            err = vkCreateSemaphore(demo->device, &semaphoreCreateInfo, NULL, &demo->image_ownership_semaphores[i]);
+        if (vulkanDSL->separate_present_queue) {
+            err = vkCreateSemaphore(vulkanDSL->device, &semaphoreCreateInfo, NULL, &vulkanDSL->image_ownership_semaphores[i]);
             assert(!err);
         }
     }
-    demo->frame_index = 0;
+    vulkanDSL->frame_index = 0;
 
     // Get Memory information and properties
-    vkGetPhysicalDeviceMemoryProperties(demo->gpu, &demo->memory_properties);
+    vkGetPhysicalDeviceMemoryProperties(vulkanDSL->gpu, &vulkanDSL->memory_properties);
 }
 
 #if defined(VK_USE_PLATFORM_WAYLAND_KHR)
@@ -2803,9 +2842,9 @@ static void pointer_handle_motion(void *data, struct wl_pointer *pointer, uint32
 
 static void pointer_handle_button(void *data, struct wl_pointer *wl_pointer, uint32_t serial, uint32_t time, uint32_t button,
                                   uint32_t state) {
-    struct demo *demo = data;
+    struct VulkanDSL *vulkanDSL = data;
     if (button == BTN_LEFT && state == WL_POINTER_BUTTON_STATE_PRESSED) {
-        xdg_toplevel_move(demo->xdg_toplevel, demo->seat, serial);
+        xdg_toplevel_move(vulkanDSL->xdg_toplevel, vulkanDSL->seat, serial);
     }
 }
 
@@ -2825,19 +2864,19 @@ static void keyboard_handle_leave(void *data, struct wl_keyboard *keyboard, uint
 static void keyboard_handle_key(void *data, struct wl_keyboard *keyboard, uint32_t serial, uint32_t time, uint32_t key,
                                 uint32_t state) {
     if (state != WL_KEYBOARD_KEY_STATE_RELEASED) return;
-    struct demo *demo = data;
+    struct VulkanDSL *vulkanDSL = data;
     switch (key) {
         case KEY_ESC:  // Escape
-            demo->quit = true;
+            vulkanDSL->quit = true;
             break;
         case KEY_LEFT:  // left arrow key
-            demo->spin_angle -= demo->spin_increment;
+            vulkanDSL->spin_angle -= vulkanDSL->spin_increment;
             break;
         case KEY_RIGHT:  // right arrow key
-            demo->spin_angle += demo->spin_increment;
+            vulkanDSL->spin_angle += vulkanDSL->spin_increment;
             break;
         case KEY_SPACE:  // space bar
-            demo->pause = !demo->pause;
+            vulkanDSL->pause = !vulkanDSL->pause;
             break;
     }
 }
@@ -2851,21 +2890,21 @@ static const struct wl_keyboard_listener keyboard_listener = {
 
 static void seat_handle_capabilities(void *data, struct wl_seat *seat, enum wl_seat_capability caps) {
     // Subscribe to pointer events
-    struct demo *demo = data;
-    if ((caps & WL_SEAT_CAPABILITY_POINTER) && !demo->pointer) {
-        demo->pointer = wl_seat_get_pointer(seat);
-        wl_pointer_add_listener(demo->pointer, &pointer_listener, demo);
-    } else if (!(caps & WL_SEAT_CAPABILITY_POINTER) && demo->pointer) {
-        wl_pointer_destroy(demo->pointer);
-        demo->pointer = NULL;
+    struct VulkanDSL *vulkanDSL = data;
+    if ((caps & WL_SEAT_CAPABILITY_POINTER) && !vulkanDSL->pointer) {
+        vulkanDSL->pointer = wl_seat_get_pointer(seat);
+        wl_pointer_add_listener(vulkanDSL->pointer, &pointer_listener, demo);
+    } else if (!(caps & WL_SEAT_CAPABILITY_POINTER) && vulkanDSL->pointer) {
+        wl_pointer_destroy(vulkanDSL->pointer);
+        vulkanDSL->pointer = NULL;
     }
     // Subscribe to keyboard events
     if (caps & WL_SEAT_CAPABILITY_KEYBOARD) {
-        demo->keyboard = wl_seat_get_keyboard(seat);
-        wl_keyboard_add_listener(demo->keyboard, &keyboard_listener, demo);
+        vulkanDSL->keyboard = wl_seat_get_keyboard(seat);
+        wl_keyboard_add_listener(vulkanDSL->keyboard, &keyboard_listener, demo);
     } else if (!(caps & WL_SEAT_CAPABILITY_KEYBOARD)) {
-        wl_keyboard_destroy(demo->keyboard);
-        demo->keyboard = NULL;
+        wl_keyboard_destroy(vulkanDSL->keyboard);
+        vulkanDSL->keyboard = NULL;
     }
 }
 
@@ -2881,23 +2920,23 @@ static const struct xdg_wm_base_listener wm_base_listener = {wm_base_ping};
 
 static void registry_handle_global(void *data, struct wl_registry *registry, uint32_t id, const char *interface,
                                    uint32_t version UNUSED) {
-    struct demo *demo = data;
+    struct VulkanDSL *vulkanDSL = data;
     // pickup wayland objects when they appear
     if (strcmp(interface, wl_compositor_interface.name) == 0) {
         uint32_t minVersion = version < 4 ? version : 4;
-        demo->compositor = wl_registry_bind(registry, id, &wl_compositor_interface, minVersion);
-        if (demo->VK_KHR_incremental_present_enabled && minVersion < 4) {
+        vulkanDSL->compositor = wl_registry_bind(registry, id, &wl_compositor_interface, minVersion);
+        if (vulkanDSL->VK_KHR_incremental_present_enabled && minVersion < 4) {
             fprintf(stderr, "Wayland compositor doesn't support VK_KHR_incremental_present, disabling.\n");
-            demo->VK_KHR_incremental_present_enabled = false;
+            vulkanDSL->VK_KHR_incremental_present_enabled = false;
         }
     } else if (strcmp(interface, xdg_wm_base_interface.name) == 0) {
-        demo->xdg_wm_base = wl_registry_bind(registry, id, &xdg_wm_base_interface, 1);
-        xdg_wm_base_add_listener(demo->xdg_wm_base, &wm_base_listener, NULL);
+        vulkanDSL->xdg_wm_base = wl_registry_bind(registry, id, &xdg_wm_base_interface, 1);
+        xdg_wm_base_add_listener(vulkanDSL->xdg_wm_base, &wm_base_listener, NULL);
     } else if (strcmp(interface, wl_seat_interface.name) == 0) {
-        demo->seat = wl_registry_bind(registry, id, &wl_seat_interface, 1);
-        wl_seat_add_listener(demo->seat, &seat_listener, demo);
+        vulkanDSL->seat = wl_registry_bind(registry, id, &wl_seat_interface, 1);
+        wl_seat_add_listener(vulkanDSL->seat, &seat_listener, demo);
     } else if (strcmp(interface, zxdg_decoration_manager_v1_interface.name) == 0) {
-        demo->xdg_decoration_mgr = wl_registry_bind(registry, id, &zxdg_decoration_manager_v1_interface, 1);
+        vulkanDSL->xdg_decoration_mgr = wl_registry_bind(registry, id, &zxdg_decoration_manager_v1_interface, 1);
     }
 }
 
@@ -2906,142 +2945,36 @@ static void registry_handle_global_remove(void *data UNUSED, struct wl_registry 
 static const struct wl_registry_listener registry_listener = {registry_handle_global, registry_handle_global_remove};
 #endif
 
-static void demo_init(struct demo *demo, int argc, char **argv) {
+static void demo_init(struct VulkanDSL *vulkanDSL) {
     vec3 eye = {0.0f, 3.0f, 5.0f};
     vec3 origin = {0, 0, 0};
     vec3 up = {0.0f, 1.0f, 0.0};
 
-    //memset(demo, 0, sizeof(*demo));
-    demo->presentMode = VK_PRESENT_MODE_FIFO_KHR;
-    demo->frameCount = INT32_MAX;
+    vulkanDSL->presentMode = VK_PRESENT_MODE_FIFO_KHR;
+    vulkanDSL->frameCount = INT32_MAX;
     /* Autodetect suitable / best GPU by default */
-    demo->gpu_number = -1;
-    demo->width = 500;
-    demo->height = 500;
+    vulkanDSL->gpu_number = -1;
+    vulkanDSL->width = 500;
+    vulkanDSL->height = 500;
 
-    for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "--use_staging") == 0) {
-            demo->use_staging_buffer = true;
-            continue;
-        }
-        if ((strcmp(argv[i], "--present_mode") == 0) && (i < argc - 1)) {
-            demo->presentMode = atoi(argv[i + 1]);
-            i++;
-            continue;
-        }
-        if (strcmp(argv[i], "--break") == 0) {
-            demo->use_break = true;
-            continue;
-        }
-        if (strcmp(argv[i], "--validate") == 0) {
-            demo->validate = true;
-            continue;
-        }
-        if (strcmp(argv[i], "--validate-checks-disabled") == 0) {
-            demo->validate = true;
-            demo->validate_checks_disabled = true;
-            continue;
-        }
-        if (strcmp(argv[i], "--xlib") == 0) {
-            fprintf(stderr, "--xlib is deprecated and no longer does anything");
-            continue;
-        }
-        if (strcmp(argv[i], "--c") == 0 && demo->frameCount == INT32_MAX && i < argc - 1 &&
-            sscanf(argv[i + 1], "%d", &demo->frameCount) == 1 && demo->frameCount >= 0) {
-            i++;
-            continue;
-        }
-        if (strcmp(argv[i], "--width") == 0 && i < argc - 1 && sscanf(argv[i + 1], "%d", &demo->width) == 1 && demo->width > 0) {
-            i++;
-            continue;
-        }
-        if (strcmp(argv[i], "--height") == 0 && i < argc - 1 && sscanf(argv[i + 1], "%d", &demo->height) == 1 && demo->height > 0) {
-            i++;
-            continue;
-        }
-        if (strcmp(argv[i], "--suppress_popups") == 0) {
-            demo->suppress_popups = true;
-            continue;
-        }
-        if (strcmp(argv[i], "--display_timing") == 0) {
-            demo->VK_GOOGLE_display_timing_enabled = true;
-            continue;
-        }
-        if (strcmp(argv[i], "--incremental_present") == 0) {
-            demo->VK_KHR_incremental_present_enabled = true;
-            continue;
-        }
-        if ((strcmp(argv[i], "--gpu_number") == 0) && (i < argc - 1)) {
-            demo->gpu_number = atoi(argv[i + 1]);
-            assert(demo->gpu_number >= 0);
-            i++;
-            continue;
-        }
-
-#if defined(ANDROID)
-        ERR_EXIT("Usage: vkcube [--validate]\n", "Usage");
-#else
-        char *message =
-                "Usage:\n  %s\t[--use_staging] [--validate] [--validate-checks-disabled]\n"
-                "\t[--break] [--c <framecount>] [--suppress_popups]\n"
-                "\t[--incremental_present] [--display_timing]\n"
-                "\t[--gpu_number <index of physical device>]\n"
-                "\t[--present_mode <present mode enum>]\n"
-                "\t[--width <width>] [--height <height>]\n"
-                "\t<present_mode_enum>\n"
-                "\t\tVK_PRESENT_MODE_IMMEDIATE_KHR = %d\n"
-                "\t\tVK_PRESENT_MODE_MAILBOX_KHR = %d\n"
-                "\t\tVK_PRESENT_MODE_FIFO_KHR = %d\n"
-                "\t\tVK_PRESENT_MODE_FIFO_RELAXED_KHR = %d\n";
-        int length = snprintf(NULL, 0, message, APP_SHORT_NAME, VK_PRESENT_MODE_IMMEDIATE_KHR, VK_PRESENT_MODE_MAILBOX_KHR,
-                              VK_PRESENT_MODE_FIFO_KHR, VK_PRESENT_MODE_FIFO_RELAXED_KHR);
-        char *usage = (char *)malloc(length + 1);
-        if (!usage) {
-            exit(1);
-        }
-        snprintf(usage, length + 1, message, APP_SHORT_NAME, VK_PRESENT_MODE_IMMEDIATE_KHR, VK_PRESENT_MODE_MAILBOX_KHR,
-                 VK_PRESENT_MODE_FIFO_KHR, VK_PRESENT_MODE_FIFO_RELAXED_KHR);
-#if defined(_WIN32)
-        if (!demo->suppress_popups) MessageBox(NULL, usage, "Usage Error", MB_OK);
-#else
-        fprintf(stderr, "%s", usage);
-        fflush(stderr);
-#endif
-        free(usage);
-        exit(1);
-#endif
-    }
-
-    demo_init_vk(demo);
+    demo_init_vk(vulkanDSL);
 
     // degrees per second
-    demo->spin_angle = 8.0f;
-    demo->spin_increment = 0.2f;
-    demo->pause = false;
+    vulkanDSL->spin_angle = 8.0f;
+    vulkanDSL->spin_increment = 0.2f;
+    vulkanDSL->pause = false;
 
-    mat4x4_perspective(demo->projection_matrix, (float)degreesToRadians(45.0f), 1.0f, 0.1f, 100.0f);
-    mat4x4_look_at(demo->view_matrix, eye, origin, up);
-    mat4x4_identity(demo->model_matrix);
+    mat4x4_perspective(vulkanDSL->projection_matrix, (float)degreesToRadians(45.0f), 1.0f, 0.1f, 100.0f);
+    mat4x4_look_at(vulkanDSL->view_matrix, eye, origin, up);
+    mat4x4_identity(vulkanDSL->model_matrix);
 
-    demo->projection_matrix[1][1] *= -1;  // Flip projection matrix from GL to Vulkan orientation.
+    vulkanDSL->projection_matrix[1][1] *= -1;  // Flip projection matrix from GL to Vulkan orientation.
 }
 
 // https://developer.android.com/ndk/reference/group/asset#group___asset_1ga90c459935e76acf809b9ec90d1872771
-
-#ifdef __ANDROID__
-void set_textures_android(AAssetManager *pAssetManager) {
-    assetManager = pAssetManager;
+void setTextures(struct AssetsFetcher *assetsFetcher, const char* texturesPath) {
     tex_files = (char**) malloc((sizeof (char*)) * DEMO_TEXTURE_COUNT);
-    for (int i = 0; i < DEMO_TEXTURE_COUNT; i++) {
-        // 5+1=6 for \0
-        size_t allocatedSize = strlen("textures") + strlen(tex_files_short[i]) + 6;
-        tex_files[i] = (char*) malloc((sizeof(char)) * allocatedSize);
-        snprintf(tex_files[i], allocatedSize, "%s/%s.png", "textures", tex_files_short[i]);
-    }
-}
-#else
-void setTextures(const char* texturesPath) {
-    tex_files = (char**) malloc((sizeof (char*)) * DEMO_TEXTURE_COUNT);
+    char **tex_files_short = assetsFetcher->tex_files_short;
     for (int i = 0; i < DEMO_TEXTURE_COUNT; i++) {
         // 5+1=6 for \0
         size_t allocatedSize = strlen(texturesPath) + strlen(tex_files_short[i]) + 6;
@@ -3049,45 +2982,26 @@ void setTextures(const char* texturesPath) {
         snprintf(tex_files[i], allocatedSize, "%s/%s.png", texturesPath, tex_files_short[i]);
     }
 }
-#endif
 
-#if defined(VK_USE_PLATFORM_METAL_EXT)
-void demo_main(struct demo *demo, void *caMetalLayer, int argc, const char *argv[]) {
-    //demo->VK_GOOGLE_display_timing_enabled = true;
-    demo_init(demo, argc, (char **)argv);
-    demo->caMetalLayer = caMetalLayer;
-    demo_init_vk_swapchain(demo);
-    // degrees per second
-    demo->spin_angle = 8;
-}
-#elif defined(VK_USE_PLATFORM_ANDROID_KHR)
-#include <android/log.h>
-#include <android_native_app_glue.h>
-#endif
+void vulkanDSL_main(struct VulkanDSL *vulkanDSL, struct AssetsFetcher *assetsFetcher, const char* assetsPath) {
+    setTextures(assetsFetcher, assetsPath);
 
-#ifdef __ANDROID__
-int demo_main_android(struct demo *demo, struct ANativeWindow* window, int argc, char **argv) {
-    demo->window = window;
+    demo_init(vulkanDSL);
 
-    demo_init(demo, argc, argv);
+    demo_init_vk_swapchain(vulkanDSL);
 
-    demo_init_vk_swapchain(demo);
+    demo_prepare(vulkanDSL);
 
-    demo_prepare(demo);
-
-    demo_draw(demo, 0);
-
-    return validation_error;
-}
-#endif
-
-void setSizeFull(struct demo *demo, int32_t width, int32_t height) {
-    demo->width = width;
-    demo->height = height;
-    demo_resize(demo);
+    demo_draw(vulkanDSL, 0);
 }
 
-void freeResources() {
+void VulkanDSL__setSize(struct VulkanDSL *vulkanDSL, int32_t width, int32_t height) {
+    vulkanDSL->width = width;
+    vulkanDSL->height = height;
+    demo_resize(vulkanDSL);
+}
+
+void VulkanDSL__freeResources() {
     for (int i = 0; i < DEMO_TEXTURE_COUNT; i++) {
         free(tex_files[i]);
     }
