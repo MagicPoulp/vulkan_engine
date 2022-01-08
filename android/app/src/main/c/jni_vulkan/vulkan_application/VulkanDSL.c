@@ -37,6 +37,19 @@ void DbgMsg(const char *fmt, ...) {
     } while (0)
 #endif  // VARARGS_WORKS_ON_ANDROID
 #else
+#define ERR_EXIT(err_msg, err_class) \
+    do {                             \
+        printf("%s\n", err_msg);     \
+        fflush(stdout);              \
+        exit(1);                     \
+    } while (0)
+void DbgMsg(char *fmt, ...) {
+    va_list va;
+    va_start(va, fmt);
+    vprintf(fmt, va);
+    va_end(va);
+    fflush(stdout);
+}
 #endif
 
 extern struct Program *program;
@@ -2969,17 +2982,6 @@ void setTextures(const char* texturesPath) {
         snprintf(tex_files[i], allocatedSize, "%s/%s.png", texturesPath, tex_files_short[i]);
     }
 }
-
-#if defined(VK_USE_PLATFORM_METAL_EXT)
-void demo_main(struct VulkanDSL *vulkanDSL, void *caMetalLayer, int argc, const char *argv[]) {
-    //vulkanDSL->VK_GOOGLE_display_timing_enabled = true;
-    demo_init(vulkanDSL, argc, (char **)argv);
-    vulkanDSL->caMetalLayer = caMetalLayer;
-    demo_init_vk_swapchain(vulkanDSL);
-    // degrees per second
-    vulkanDSL->spin_angle = 8;
-}
-#endif
 
 void vulkanDSL_main(struct VulkanDSL *vulkanDSL, const char* assetsPath) {
     setTextures(assetsPath);

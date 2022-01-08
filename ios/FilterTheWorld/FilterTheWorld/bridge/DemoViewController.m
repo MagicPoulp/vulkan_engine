@@ -20,21 +20,22 @@
 
 #import "DemoViewController.h"
 // To make the build simple, it is enough to include here all the .c files
-#include "../../vulkan_application/DSL_vulkan.c"
+#include "../../vulkan_application/Program.c"
+#include "../../vulkan_application/VulkanDSL.c"
+#include "../../vulkan_application/assets_management/AssetsFetcher.c"
 
 #pragma mark -
 #pragma mark DemoViewController
 
 @implementation DemoViewController {
 	CADisplayLink* displayLink;
-	struct demo demo;
+  struct Program* program;
   BOOL initDone;
 }
 
 -(void) dealloc {
-	demo_cleanup(&demo);
+  Program__destroy(program);
 	[displayLink release];
-  freeResources();
 	[super dealloc];
 }
 
@@ -57,8 +58,6 @@
 
   self.view.contentScaleFactor = UIScreen.mainScreen.nativeScale;
 
-	const char* argv[] = { "cube" };
-	int argc = sizeof(argv)/sizeof(char*);
 	// the debugger step-in cannot be used in demo-main, BUT it works in a function just after
   NSString * texture1 = [[NSBundle mainBundle] pathForResource:  @"home8" ofType: @"png"];
   // https://www.qi-u.com/?qa=924696/c-how-to-fopen-on-the-iphone
@@ -67,10 +66,9 @@
   [split2 removeObjectAtIndex:[split count]-1];
   NSString *joined = [split componentsJoinedByString:@"/"];
   const char *texturesPath = [joined cStringUsingEncoding:1];
-  demo_main(&demo, self.view.layer, argc, argv);
-  setTextures(texturesPath);
-  demo_prepare(&demo);
-	demo_draw(&demo, 0);
+  program = Program__create();
+  program->vulkanDSL->caMetalLayer = self.view.layer;
+  vulkanDSL_main(program->vulkanDSL, texturesPath);
 
 	displayLink = [CADisplayLink displayLinkWithTarget: self selector: @selector(renderLoop)];
   [displayLink addToRunLoop: NSRunLoop.currentRunLoop forMode: NSDefaultRunLoopMode];
@@ -78,13 +76,13 @@
 
 -(void) renderLoop {
   double elapsedTimeS = displayLink.targetTimestamp - displayLink.timestamp;
-	demo_draw(&demo, elapsedTimeS);
+	demo_draw(program->vulkanDSL, elapsedTimeS);
 }
 
 // Allow device rotation to resize the swapchain
 -(void)viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(id)coordinator {
 	[super viewWillTransitionToSize:size withTransitionCoordinator:coordinator];
-	demo_resize(&demo);
+	demo_resize(program->vulkanDSL);
 }
 
 @end
