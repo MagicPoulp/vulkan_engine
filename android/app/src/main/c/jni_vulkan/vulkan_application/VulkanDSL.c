@@ -1119,6 +1119,7 @@ bool loadTexture(const char *filename, uint8_t *rgba_data, VkSubresourceLayout *
     FILE* file = fmemopen(rawData, length1, "rb");
     stbi_uc* pixels = stbi_load_from_file(file, width, height, &texChannels, STBI_rgb_alpha);
     fclose(file);
+    AAsset_close(asset);
 #else
     stbi_uc* pixels = stbi_load(filename, width, height, &texChannels, STBI_rgb_alpha);
 #endif
