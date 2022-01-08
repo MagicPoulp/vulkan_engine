@@ -15,6 +15,11 @@ void AssetsFetcher__init(struct AssetsFetcher* self) {
     self->meshes_files_short = meshes_files_short;
 }
 
+/*
+ important : this is a sort of conceptual inversion
+ num_face = num faces * 3
+ num_face_num_verts = num faces
+ */
 void AssetsFetcher__loadObj(struct AssetsFetcher* self, const char* filename, tinyobj_attrib_t *outAttrib) {
     float bmin[3];
     float bmax[3];
