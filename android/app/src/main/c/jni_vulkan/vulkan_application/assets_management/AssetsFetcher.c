@@ -71,9 +71,8 @@ int AssetsFetcher__LoadObjAndConvert(float bmin[3], float bmax[3], const char* f
 
     bmin[0] = bmin[1] = bmin[2] = FLT_MAX;
     bmax[0] = bmax[1] = bmax[2] = -FLT_MAX;
-/*
+
     {
-        DrawObject o;
         float* vb;
         size_t face_offset = 0;
         size_t i;
@@ -186,10 +185,41 @@ int AssetsFetcher__LoadObjAndConvert(float bmin[3], float bmax[3], const char* f
     printf("bmax = %f, %f, %f\n", (double)bmax[0], (double)bmax[1],
            (double)bmax[2]);
 
+    int a1 = bmin[0];
+    int a2 = bmin[1];
+    int a3 = bmin[2];
+    int b1 = bmax[0];
+    int b2 = bmax[1];
+    int b3 = bmax[2];
     tinyobj_attrib_free(&attrib);
     tinyobj_shapes_free(shapes, num_shapes);
     tinyobj_materials_free(materials, num_materials);
 
     return 1;
-    */
+}
+
+void CalcNormal(float N[3], float v0[3], float v1[3], float v2[3]) {
+    float v10[3];
+    float v20[3];
+    float len2;
+
+    v10[0] = v1[0] - v0[0];
+    v10[1] = v1[1] - v0[1];
+    v10[2] = v1[2] - v0[2];
+
+    v20[0] = v2[0] - v0[0];
+    v20[1] = v2[1] - v0[1];
+    v20[2] = v2[2] - v0[2];
+
+    N[0] = v20[1] * v10[2] - v20[2] * v10[1];
+    N[1] = v20[2] * v10[0] - v20[0] * v10[2];
+    N[2] = v20[0] * v10[1] - v20[1] * v10[0];
+
+    len2 = N[0] * N[0] + N[1] * N[1] + N[2] * N[2];
+    if (len2 > 0.0f) {
+        float len = (float)sqrt((double)len2);
+
+        N[0] /= len;
+        N[1] /= len;
+    }
 }

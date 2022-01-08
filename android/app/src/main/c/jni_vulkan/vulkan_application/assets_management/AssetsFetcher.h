@@ -29,4 +29,5 @@ int AssetsFetcher__LoadObjAndConvert(float bmin[3], float bmax[3], const char* f
 void get_file_data(
         void* ctx, const char* filename, const int is_mtl,
         const char* obj_filename, char** data, size_t* len);
+void CalcNormal(float N[3], float v0[3], float v1[3], float v2[3]);
 #endif //VULKAN_ENGINE_ASSETSFETCHER_H
