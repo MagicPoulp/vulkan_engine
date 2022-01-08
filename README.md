@@ -1,3 +1,7 @@
+# glslc to compile shaders
+downloaded here foir macOS
+https://github.com/google/shaderc#downloads
+
 # obj loader
 https://github.com/syoyo/tinyobjloader-c
 Geometry can be mad in the software called Blender, then exported as a .obj
