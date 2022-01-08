@@ -9,7 +9,7 @@
 #ifndef DSL_VULKAN_h
 #define DSL_VULKAN_h
 
-#include "config.h"
+#define DEMO_TEXTURE_COUNT 1
 
 #define _GNU_SOURCE
 #include <stdio.h>

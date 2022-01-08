@@ -25,7 +25,7 @@ add_library(
         vulkan_application/VulkanDSL.c
         vulkan_application/Program.c
         vulkan_application/assets_management/AssetsFetcher.c
-        vulkan_application/config.c)
+)
 
 SET(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -fpermissive -std=c99")
 

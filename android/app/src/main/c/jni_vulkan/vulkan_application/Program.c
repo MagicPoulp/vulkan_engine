@@ -7,6 +7,7 @@
 void Program__init(struct Program* self) {
     struct VulkanDSL* vulkanDSL = (struct VulkanDSL*) malloc(sizeof(struct VulkanDSL));
     self->vulkanDSL = vulkanDSL;
+    AssetsFetcher__init(&self->assetsFetcher);
 }
 
 struct Program* Program__create() {
