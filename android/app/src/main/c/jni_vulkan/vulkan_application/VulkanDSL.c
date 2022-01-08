@@ -2937,7 +2937,6 @@ static void demo_init(struct VulkanDSL *vulkanDSL) {
     vec3 origin = {0, 0, 0};
     vec3 up = {0.0f, 1.0f, 0.0};
 
-    memset(vulkanDSL, 0, sizeof(*vulkanDSL));
     vulkanDSL->presentMode = VK_PRESENT_MODE_FIFO_KHR;
     vulkanDSL->frameCount = INT32_MAX;
     /* Autodetect suitable / best GPU by default */

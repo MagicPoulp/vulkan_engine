@@ -16,10 +16,10 @@ void createSurface(ANativeWindow* window, AAssetManager* assetManager) {
     {
         exit(1);
     }
-    demo_main_android(window, assetManager);
+    main_android(window, assetManager);
 }
 
-void demo_main_android(struct ANativeWindow* window, AAssetManager* assetManager) {
+void main_android(struct ANativeWindow* window, AAssetManager* assetManager) {
     program = Program__create();
     program->vulkanDSL->window = window;
     program->assetsFetcher.assetManager = assetManager;
