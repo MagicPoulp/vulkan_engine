@@ -6,6 +6,7 @@ cmake_minimum_required(VERSION 3.10.2)
 
 include_directories(utils)
 include_directories(vulkan_application)
+include_directories(assets_management)
 
 include_directories(${ANDROID_NDK}/sources/android/native_app_glue)
 
@@ -21,7 +22,8 @@ include_directories(volk)
 add_library(
         jni_vulkan
         SHARED
-        VulkanAppBridge.c AndroidGraphicsApplication.c vulkan_application/DSL_vulkan.c vulkan_application/assets_management/assets_fetcher.c)
+        VulkanAppBridge.c AndroidGraphicsApplication.c vulkan_application/DSL_vulkan.c
+        vulkan_application/assets_management/assets_fetcher.c)
 
 SET(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -fpermissive -std=c99")
 

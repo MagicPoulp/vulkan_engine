@@ -3063,9 +3063,7 @@ void demo_main(struct demo *demo, void *caMetalLayer, int argc, const char *argv
 #elif defined(VK_USE_PLATFORM_ANDROID_KHR)
 #include <android/log.h>
 #include <android_native_app_glue.h>
-#endif
 
-#ifdef __ANDROID__
 int demo_main_android(struct demo *demo, struct ANativeWindow* window, int argc, char **argv) {
     demo->window = window;
 

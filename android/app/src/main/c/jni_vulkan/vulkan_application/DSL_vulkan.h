@@ -9,8 +9,9 @@
 #ifndef DSL_VULKAN_h
 #define DSL_VULKAN_h
 
-#include "utils/gettime.h"
-#include "utils/stb_image.h"
+#include <utils/gettime.h>
+#include <utils/stb_image.h>
+#include "config.h"
 
 #define _GNU_SOURCE
 #include <stdio.h>
@@ -50,7 +51,6 @@
 #define MILLION 1000000L
 #define BILLION 1000000000L
 
-#define DEMO_TEXTURE_COUNT 1
 #define APP_SHORT_NAME "vkcube"
 #define APP_LONG_NAME "Vulkan Cube"
 
@@ -145,8 +145,6 @@ struct texture_object {
     int32_t tex_width, tex_height;
 };
 
-// DEMO_TEXTURE_COUNT must be updated to match this
-static char *tex_files_short[] = { "home8" };
 static char **tex_files;
 static int validation_error = 0;
 
@@ -392,14 +390,15 @@ struct demo {
 
 #ifdef __ANDROID__
 int demo_main_android(struct demo *demo, struct ANativeWindow* window, int argc, char **argv);
-#endif
-void demo_draw(struct demo *demo, double elapsedTimeS);
-void demo_main(struct demo *demo,  void *caMetalLayer, int argc, const char *argv[]);
-void demo_prepare(struct demo *demo);
-void setTextures(const char* texturesPath);
-#ifdef __ANDROID__
 void set_textures_android(AAssetManager *assetManager);
+#else
+void demo_main(struct demo *demo,  void *caMetalLayer, int argc, const char *argv[]);
+void setTextures(const char* texturesPath);
 #endif
+
+void demo_draw(struct demo *demo, double elapsedTimeS);
+void demo_prepare(struct demo *demo);
+
 void demo_cleanup(struct demo *demo);
 void demo_resize(struct demo *demo);
 void freeResources(void);
