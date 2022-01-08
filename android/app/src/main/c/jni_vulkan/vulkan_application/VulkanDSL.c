@@ -2972,9 +2972,9 @@ static void demo_init(struct VulkanDSL *vulkanDSL) {
 }
 
 // https://developer.android.com/ndk/reference/group/asset#group___asset_1ga90c459935e76acf809b9ec90d1872771
-void setTextures(const char* texturesPath) {
+void setTextures(struct AssetsFetcher *assetsFetcher, const char* texturesPath) {
     tex_files = (char**) malloc((sizeof (char*)) * DEMO_TEXTURE_COUNT);
-    char **tex_files_short = program->assetsFetcher.tex_files_short;
+    char **tex_files_short = assetsFetcher->tex_files_short;
     for (int i = 0; i < DEMO_TEXTURE_COUNT; i++) {
         // 5+1=6 for \0
         size_t allocatedSize = strlen(texturesPath) + strlen(tex_files_short[i]) + 6;
@@ -2983,8 +2983,8 @@ void setTextures(const char* texturesPath) {
     }
 }
 
-void vulkanDSL_main(struct VulkanDSL *vulkanDSL, const char* assetsPath) {
-    setTextures(assetsPath);
+void vulkanDSL_main(struct VulkanDSL *vulkanDSL, struct AssetsFetcher *assetsFetcher, const char* assetsPath) {
+    setTextures(assetsFetcher, assetsPath);
 
     demo_init(vulkanDSL);
 

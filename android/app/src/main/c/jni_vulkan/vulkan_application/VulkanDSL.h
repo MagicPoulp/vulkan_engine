@@ -11,6 +11,7 @@
 
 #define DEMO_TEXTURE_COUNT 1
 
+#include "assets_management/AssetsFetcher.h"
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <stdarg.h>
@@ -347,8 +348,8 @@ struct VulkanDSL {
     uint32_t queue_family_count;
 };
 
-void vulkanDSL_main(struct VulkanDSL *vulkanDSL, const char* assetsPath);
-void setTextures(const char* texturesPath);
+void vulkanDSL_main(struct VulkanDSL *vulkanDSL, struct AssetsFetcher *assetsFetcher, const char* assetsPath);
+void setTextures(struct AssetsFetcher *assetsFetcher, const char* assetsPath);
 void demo_draw(struct VulkanDSL *vulkanDSL, double elapsedTimeS);
 void demo_prepare(struct VulkanDSL *vulkanDSL);
 void demo_cleanup(struct VulkanDSL *vulkanDSL);

@@ -20,6 +20,7 @@
 
 #import "DemoViewController.h"
 // To make the build simple, it is enough to include here all the .c files
+#include "../../vulkan_application/Program.h"
 #include "../../vulkan_application/Program.c"
 #include "../../vulkan_application/VulkanDSL.c"
 #include "../../vulkan_application/assets_management/AssetsFetcher.c"
@@ -48,7 +49,7 @@
     return self;
 }
 
-/** Since this is a single-view app, init Vulkan when the view is loaded. */
+// Since this is a single-view app, init Vulkan when the view is loaded.
 -(void) viewWillLayoutSubviews {
 	[super viewWillLayoutSubviews];
   if (initDone) {
@@ -68,7 +69,7 @@
   const char *texturesPath = [joined cStringUsingEncoding:1];
   program = Program__create();
   program->vulkanDSL->caMetalLayer = self.view.layer;
-  vulkanDSL_main(program->vulkanDSL, texturesPath);
+  vulkanDSL_main(program->vulkanDSL, &program->assetsFetcher, texturesPath);
 
 	displayLink = [CADisplayLink displayLinkWithTarget: self selector: @selector(renderLoop)];
   [displayLink addToRunLoop: NSRunLoop.currentRunLoop forMode: NSDefaultRunLoopMode];

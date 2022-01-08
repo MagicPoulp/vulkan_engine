@@ -23,7 +23,7 @@ void main_android(struct ANativeWindow* window, AAssetManager* assetManager) {
     program = Program__create();
     program->vulkanDSL->window = window;
     program->assetsFetcher.assetManager = assetManager;
-    vulkanDSL_main(program->vulkanDSL, "textures");
+    vulkanDSL_main(program->vulkanDSL, &program->assetsFetcher, "textures");
 }
 
 void demoDestroy() {
