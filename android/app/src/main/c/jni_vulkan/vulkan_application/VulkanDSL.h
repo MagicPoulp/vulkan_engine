@@ -35,13 +35,6 @@
 #include "xdg-decoration-client-header.h"
 #endif
 
-#ifdef _WIN32
-#ifdef _MSC_VER
-#pragma comment(linker, "/subsystem:windows")
-#endif  // MSVC
-#define APP_NAME_STR_LEN 80
-#endif  // _WIN32
-
 #ifdef ANDROID
 //#include "vulkan_wrapper.h"
 #include "volk_setup.h"
@@ -363,5 +356,6 @@ void demo_cleanup(struct VulkanDSL *vulkanDSL);
 void demo_resize(struct VulkanDSL *vulkanDSL);
 void VulkanDSL__setSize(struct VulkanDSL *vulkanDSL, int32_t width, int32_t height);
 void VulkanDSL__freeResources(void);
+void read_shader(const char* filename, uint32_t* vs_code, size_t *length1);
 
 #endif

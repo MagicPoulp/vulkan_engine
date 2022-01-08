@@ -1609,19 +1609,40 @@ static VkShaderModule demo_prepare_shader_module(struct VulkanDSL *vulkanDSL, co
     return module;
 }
 
+void read_shader(const char* filename, uint32_t* vs_code, size_t *length1) {
+    AAsset* asset = AAssetManager_open(
+            program->assetsFetcher.assetManager,
+            filename,
+            AASSET_MODE_BUFFER
+    );
+    *length1 = AAsset_getLength(asset);
+    if (vs_code == NULL) {
+        return;
+    }
+    void* rawData = (void*)AAsset_getBuffer(asset);
+    FILE* file = fmemopen(rawData, length1, "rb");
+    fread(vs_code, 1, *length1, file);
+    fclose(file);
+}
+
 static void demo_prepare_vs(struct VulkanDSL *vulkanDSL) {
-    const uint32_t vs_code[] = {
-#include "shaders/cube.vert.inc"
-    };
-    vulkanDSL->vert_shader_module = demo_prepare_shader_module(vulkanDSL, vs_code, sizeof(vs_code));
+    size_t length1;
+    const char* filename = "shaders/cube.vert.spv";
+    read_shader(filename, NULL, &length1);
+    uint32_t vs_code[length1];
+    read_shader(filename, vs_code, &length1);
+    vulkanDSL->vert_shader_module = demo_prepare_shader_module(vulkanDSL, vs_code, length1);
 }
 
 static void demo_prepare_fs(struct VulkanDSL *vulkanDSL) {
-    const uint32_t fs_code[] = {
-#include "shaders/cube.frag.inc"
-    };
-    vulkanDSL->frag_shader_module = demo_prepare_shader_module(vulkanDSL, fs_code, sizeof(fs_code));
+    size_t length1;
+    const char* filename = "shaders/cube.frag.spv";
+    read_shader(filename, NULL, &length1);
+    uint32_t vs_code[length1];
+    read_shader(filename, vs_code, &length1);
+    vulkanDSL->frag_shader_module = demo_prepare_shader_module(vulkanDSL, vs_code, length1);
 }
+
 
 static void demo_prepare_pipeline(struct VulkanDSL *vulkanDSL) {
 #define NUM_DYNAMIC_STATES 2 /*Viewport + Scissor*/
