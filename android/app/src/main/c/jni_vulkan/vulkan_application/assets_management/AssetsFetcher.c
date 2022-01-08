@@ -15,7 +15,7 @@ void AssetsFetcher__init(struct AssetsFetcher* self) {
     self->meshes_files_short = meshes_files_short;
 }
 
-void AssetsFetcher__loadObj(struct AssetsFetcher* self, const char* filename) {
+void AssetsFetcher__loadObj(struct AssetsFetcher* self, const char* filename, tinyobj_attrib_t *outAttrib) {
     float bmin[3];
     float bmax[3];
     AAsset* asset = AAssetManager_open(
@@ -28,7 +28,7 @@ void AssetsFetcher__loadObj(struct AssetsFetcher* self, const char* filename) {
     struct ObjAsset obj;
     obj.length = length1;
     obj.rawData = rawData;
-    AssetsFetcher__LoadObjAndConvert(bmin, bmax, filename, &obj);
+    AssetsFetcher__LoadObjAndConvert(bmin, bmax, filename, &obj, outAttrib);
     AAsset_close(asset);
 }
 
@@ -42,7 +42,7 @@ void get_file_data(
 }
 
 // bmax, bmin give the dimensions in order to scale the object in the world
-int AssetsFetcher__LoadObjAndConvert(float bmin[3], float bmax[3], const char* filename, struct ObjAsset* obj) {
+int AssetsFetcher__LoadObjAndConvert(float bmin[3], float bmax[3], const char* filename, struct ObjAsset* obj, tinyobj_attrib_t *outAttrib) {
     tinyobj_attrib_t attrib;
     tinyobj_shape_t* shapes = NULL;
     size_t num_shapes;
@@ -81,7 +81,7 @@ int AssetsFetcher__LoadObjAndConvert(float bmin[3], float bmax[3], const char* f
         size_t num_triangles = attrib.num_face_num_verts;
         size_t stride = 9;
 
-        vb = (float*)malloc(sizeof(float) * stride * num_triangles * 3);
+        //vb = (float*)malloc(sizeof(float) * stride * num_triangles * 3);
 
         for (i = 0; i < attrib.num_face_num_verts; i++) {
             size_t f;
@@ -116,7 +116,7 @@ int AssetsFetcher__LoadObjAndConvert(float bmin[3], float bmax[3], const char* f
                     bmax[k] = (v[1][k] > bmax[k]) ? v[1][k] : bmax[k];
                     bmax[k] = (v[2][k] > bmax[k]) ? v[2][k] : bmax[k];
                 }
-
+/*
                 if (attrib.num_normals > 0) {
                     int f0 = idx0.vn_idx;
                     int f1 = idx1.vn_idx;
@@ -173,12 +173,12 @@ int AssetsFetcher__LoadObjAndConvert(float bmin[3], float bmax[3], const char* f
                     vb[(3 * i + k) * stride + 7] = (c[1] * 0.5f + 0.5f);
                     vb[(3 * i + k) * stride + 8] = (c[2] * 0.5f + 0.5f);
                 }
+                        */
             }
 
             face_offset += (size_t)attrib.face_num_verts[i];
         }
-
-        free(vb);
+        //free(vb);
     }
 
     printf("bmin = %f, %f, %f\n", (double)bmin[0], (double)bmin[1],
@@ -186,13 +186,8 @@ int AssetsFetcher__LoadObjAndConvert(float bmin[3], float bmax[3], const char* f
     printf("bmax = %f, %f, %f\n", (double)bmax[0], (double)bmax[1],
            (double)bmax[2]);
 
-    int a1 = bmin[0];
-    int a2 = bmin[1];
-    int a3 = bmin[2];
-    int b1 = bmax[0];
-    int b2 = bmax[1];
-    int b3 = bmax[2];
-    tinyobj_attrib_free(&attrib);
+    //tinyobj_attrib_free(&attrib);
+    *outAttrib = attrib;
     tinyobj_shapes_free(shapes, num_shapes);
     tinyobj_materials_free(materials, num_materials);
 

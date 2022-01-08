@@ -6,6 +6,7 @@
 #define VULKAN_ENGINE_ASSETSFETCHER_H
 
 #include <stddef.h>
+#include <utils/tinyobj_loader_c.h>
 
 #define DEMO_TEXTURE_COUNT 1
 
@@ -24,8 +25,9 @@ struct AssetsFetcher {
 };
 
 void AssetsFetcher__init(struct AssetsFetcher* self);
-void AssetsFetcher__loadObj(struct AssetsFetcher* self, const char* filename);
-int AssetsFetcher__LoadObjAndConvert(float bmin[3], float bmax[3], const char* filename, struct ObjAsset* obj);
+void AssetsFetcher__loadObj(struct AssetsFetcher* self, const char* filename, tinyobj_attrib_t *outAttrib);
+int AssetsFetcher__LoadObjAndConvert(
+        float bmin[3], float bmax[3], const char* filename, struct ObjAsset* obj, tinyobj_attrib_t *outAttrib);
 void get_file_data(
         void* ctx, const char* filename, const int is_mtl,
         const char* obj_filename, char** data, size_t* len);
