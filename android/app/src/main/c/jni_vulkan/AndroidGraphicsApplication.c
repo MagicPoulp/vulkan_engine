@@ -1,34 +1,39 @@
 
-#include <stdlib.h>
+#include <android/asset_manager.h>
+#include <android/native_window.h>
+#include <android/log.h>
+#include <android_native_app_glue.h>
 #include "AndroidGraphicsApplication.h"
-#include "string.h"
+#include "Program.h"
+#include "VulkanDSL.h"
+#define VOLK_IMPLEMENTATION
+#include "volk_setup.h"
 
-extern struct demo demo;
-extern int demo_main_android(struct demo *demo, struct ANativeWindow* window, int argc, char **argv);
-extern void demo_draw(struct demo *demo, double elapsedTimeS);
-extern void demo_cleanup(struct demo *demo);
-extern void setSizeFull(struct demo *demo, int32_t width, int32_t height);
-extern void set_textures_android(AAssetManager *assetManager);
+struct Program *program;
 
 void createSurface(ANativeWindow* window, AAssetManager* assetManager) {
     if (volkInitialize())
     {
         exit(1);
     }
-    const char* argv[] = { "cube" };
-    int argc = sizeof(argv)/sizeof(char*);
-    set_textures_android(assetManager);
-    demo_main_android(&demo, window, argc, (char **)argv);
+    demo_main_android(window, assetManager);
+}
+
+void demo_main_android(struct ANativeWindow* window, AAssetManager* assetManager) {
+    program = Program__create();
+    program->vulkanDSL->window = window;
+    program->assetsFetcher.assetManager = assetManager;
+    vulkanDSL_main(program->vulkanDSL, "textures");
 }
 
 void demoDestroy() {
-    demo_cleanup(&demo);
+    Program__destroy(program);
 }
 
 void drawFrame(double elapsedTimeS) {
-    demo_draw(&demo, elapsedTimeS);
+    demo_draw(program->vulkanDSL, elapsedTimeS);
 }
 
 void setSize(int32_t width, int32_t height) {
-    setSizeFull(&demo, width, height);
+    VulkanDSL__setSize(program->vulkanDSL, width, height);
 }
