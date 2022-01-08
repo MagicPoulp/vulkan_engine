@@ -9,6 +9,13 @@
 #ifndef DSL_VULKAN_h
 #define DSL_VULKAN_h
 
+// linking a speparate .c in XCode does not set the metal flag from MoltenVK
+#ifndef __ANDROID__
+#ifndef VK_USE_PLATFORM_METAL_EXT
+#define VK_USE_PLATFORM_METAL_EXT
+#endif
+#endif
+
 #define DEMO_TEXTURE_COUNT 1
 
 #include "assets_management/AssetsFetcher.h"

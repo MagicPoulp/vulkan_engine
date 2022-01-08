@@ -19,11 +19,11 @@
 #include <MoltenVK/mvk_vulkan.h>
 
 #import "DemoViewController.h"
-// To make the build simple, it is enough to include here all the .c files
+
 #include "../../vulkan_application/Program.h"
-#include "../../vulkan_application/Program.c"
-#include "../../vulkan_application/VulkanDSL.c"
-#include "../../vulkan_application/assets_management/AssetsFetcher.c"
+
+// Other C files are built automatically
+// We just need an include file for the Program struct that we use
 
 #pragma mark -
 #pragma mark DemoViewController
@@ -65,7 +65,7 @@
   NSArray *split = [texture1 componentsSeparatedByString:@"/"];
   NSMutableArray *split2 = [split mutableCopy];
   [split2 removeObjectAtIndex:[split count]-1];
-  NSString *joined = [split componentsJoinedByString:@"/"];
+  NSString *joined = [split2 componentsJoinedByString:@"/"];
   const char *texturesPath = [joined cStringUsingEncoding:1];
   program = Program__create();
   program->vulkanDSL->caMetalLayer = self.view.layer;

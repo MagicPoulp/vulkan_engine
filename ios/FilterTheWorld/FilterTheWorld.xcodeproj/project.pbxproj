@@ -17,14 +17,16 @@
 		221DA84327779D11007612BD /* VulkanViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 221DA84227779D11007612BD /* VulkanViewController.swift */; };
 		224FED492787A8270081190D /* MoltenVK.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 224FEBD02787A35E0081190D /* MoltenVK.xcframework */; };
 		22528006277C504D00E3109E /* DemoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 22528005277C504D00E3109E /* DemoViewController.m */; };
-		226AE70F2789D40A009BC5D8 /* Program.c in Sources */ = {isa = PBXBuildFile; fileRef = 226AE6FA2789D40A009BC5D8 /* Program.c */; };
-		226AE7102789D40A009BC5D8 /* AssetsFetcher.c in Sources */ = {isa = PBXBuildFile; fileRef = 226AE6FC2789D40A009BC5D8 /* AssetsFetcher.c */; };
-		226AE7112789D40A009BC5D8 /* cube.frag in Resources */ = {isa = PBXBuildFile; fileRef = 226AE7062789D40A009BC5D8 /* cube.frag */; };
-		226AE7122789D40A009BC5D8 /* cube.frag.inc in Sources */ = {isa = PBXBuildFile; fileRef = 226AE7072789D40A009BC5D8 /* cube.frag.inc */; };
-		226AE7132789D40A009BC5D8 /* cube.vert in Resources */ = {isa = PBXBuildFile; fileRef = 226AE7082789D40A009BC5D8 /* cube.vert */; };
-		226AE7142789D40A009BC5D8 /* cube.vert.inc in Sources */ = {isa = PBXBuildFile; fileRef = 226AE7092789D40A009BC5D8 /* cube.vert.inc */; };
-		226AE7152789D40A009BC5D8 /* VulkanDSL.c in Sources */ = {isa = PBXBuildFile; fileRef = 226AE70C2789D40A009BC5D8 /* VulkanDSL.c */; };
-		226AE7162789D40A009BC5D8 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 226AE70E2789D40A009BC5D8 /* assets */; };
+		226AE72E2789DFCC009BC5D8 /* Program.c in Sources */ = {isa = PBXBuildFile; fileRef = 226AE7192789DFCC009BC5D8 /* Program.c */; };
+		226AE72F2789DFCC009BC5D8 /* AssetsFetcher.c in Sources */ = {isa = PBXBuildFile; fileRef = 226AE71B2789DFCC009BC5D8 /* AssetsFetcher.c */; };
+		226AE7302789DFCC009BC5D8 /* cube.frag in Resources */ = {isa = PBXBuildFile; fileRef = 226AE7252789DFCC009BC5D8 /* cube.frag */; };
+		226AE7312789DFCC009BC5D8 /* cube.frag.inc in Sources */ = {isa = PBXBuildFile; fileRef = 226AE7262789DFCC009BC5D8 /* cube.frag.inc */; };
+		226AE7322789DFCC009BC5D8 /* cube.vert in Resources */ = {isa = PBXBuildFile; fileRef = 226AE7272789DFCC009BC5D8 /* cube.vert */; };
+		226AE7332789DFCC009BC5D8 /* cube.vert.inc in Sources */ = {isa = PBXBuildFile; fileRef = 226AE7282789DFCC009BC5D8 /* cube.vert.inc */; };
+		226AE7342789DFCC009BC5D8 /* VulkanDSL.c in Sources */ = {isa = PBXBuildFile; fileRef = 226AE72B2789DFCC009BC5D8 /* VulkanDSL.c */; };
+		226AE73C2789E153009BC5D8 /* home8.png in Resources */ = {isa = PBXBuildFile; fileRef = 226AE7382789E153009BC5D8 /* home8.png */; };
+		226AE73D2789E153009BC5D8 /* statue-hera.png in Resources */ = {isa = PBXBuildFile; fileRef = 226AE7392789E153009BC5D8 /* statue-hera.png */; };
+		226AE73E2789E153009BC5D8 /* textPanel.obj in Resources */ = {isa = PBXBuildFile; fileRef = 226AE73B2789E153009BC5D8 /* textPanel.obj */; };
 		9F69EE4C26942A8A00746CD7 /* CameraError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F69EE4B26942A8A00746CD7 /* CameraError.swift */; };
 		9F69EE4E26942CD500746CD7 /* CameraManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F69EE4D26942CD500746CD7 /* CameraManager.swift */; };
 		9F69EE5226957E1300746CD7 /* FrameManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F69EE5126957E1300746CD7 /* FrameManager.swift */; };
@@ -50,25 +52,27 @@
 		22528003277C504D00E3109E /* DemoViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DemoViewController.h; sourceTree = "<group>"; };
 		22528004277C504D00E3109E /* FilterTheWorld-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "FilterTheWorld-Bridging-Header.h"; sourceTree = "<group>"; };
 		22528005277C504D00E3109E /* DemoViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DemoViewController.m; sourceTree = "<group>"; };
-		226AE6F92789D40A009BC5D8 /* cube_data.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cube_data.h; sourceTree = "<group>"; };
-		226AE6FA2789D40A009BC5D8 /* Program.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Program.c; sourceTree = "<group>"; };
-		226AE6FC2789D40A009BC5D8 /* AssetsFetcher.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = AssetsFetcher.c; sourceTree = "<group>"; };
-		226AE6FD2789D40A009BC5D8 /* AssetsFetcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AssetsFetcher.h; sourceTree = "<group>"; };
-		226AE6FE2789D40A009BC5D8 /* VulkanDSL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VulkanDSL.h; sourceTree = "<group>"; };
-		226AE7002789D40A009BC5D8 /* object_type_string_helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = object_type_string_helper.h; sourceTree = "<group>"; };
-		226AE7012789D40A009BC5D8 /* linmath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = linmath.h; sourceTree = "<group>"; };
-		226AE7022789D40A009BC5D8 /* tinyobj_loader_c.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tinyobj_loader_c.h; sourceTree = "<group>"; };
-		226AE7032789D40A009BC5D8 /* stb_image.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stb_image.h; sourceTree = "<group>"; };
-		226AE7042789D40A009BC5D8 /* gettime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gettime.h; sourceTree = "<group>"; };
-		226AE7062789D40A009BC5D8 /* cube.frag */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = cube.frag; sourceTree = "<group>"; };
-		226AE7072789D40A009BC5D8 /* cube.frag.inc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.pascal; path = cube.frag.inc; sourceTree = "<group>"; };
-		226AE7082789D40A009BC5D8 /* cube.vert */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = cube.vert; sourceTree = "<group>"; };
-		226AE7092789D40A009BC5D8 /* cube.vert.inc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.pascal; path = cube.vert.inc; sourceTree = "<group>"; };
-		226AE70A2789D40A009BC5D8 /* 15-draw_cube.frag.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "15-draw_cube.frag.h"; sourceTree = "<group>"; };
-		226AE70B2789D40A009BC5D8 /* 15-draw_cube.vert.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "15-draw_cube.vert.h"; sourceTree = "<group>"; };
-		226AE70C2789D40A009BC5D8 /* VulkanDSL.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = VulkanDSL.c; sourceTree = "<group>"; };
-		226AE70D2789D40A009BC5D8 /* Program.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Program.h; sourceTree = "<group>"; };
-		226AE70E2789D40A009BC5D8 /* assets */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = assets; sourceTree = "<group>"; };
+		226AE7182789DFCC009BC5D8 /* cube_data.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cube_data.h; sourceTree = "<group>"; };
+		226AE7192789DFCC009BC5D8 /* Program.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Program.c; sourceTree = "<group>"; };
+		226AE71B2789DFCC009BC5D8 /* AssetsFetcher.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = AssetsFetcher.c; sourceTree = "<group>"; };
+		226AE71C2789DFCC009BC5D8 /* AssetsFetcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AssetsFetcher.h; sourceTree = "<group>"; };
+		226AE71D2789DFCC009BC5D8 /* VulkanDSL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VulkanDSL.h; sourceTree = "<group>"; };
+		226AE71F2789DFCC009BC5D8 /* object_type_string_helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = object_type_string_helper.h; sourceTree = "<group>"; };
+		226AE7202789DFCC009BC5D8 /* linmath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = linmath.h; sourceTree = "<group>"; };
+		226AE7212789DFCC009BC5D8 /* tinyobj_loader_c.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tinyobj_loader_c.h; sourceTree = "<group>"; };
+		226AE7222789DFCC009BC5D8 /* stb_image.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stb_image.h; sourceTree = "<group>"; };
+		226AE7232789DFCC009BC5D8 /* gettime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gettime.h; sourceTree = "<group>"; };
+		226AE7252789DFCC009BC5D8 /* cube.frag */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = cube.frag; sourceTree = "<group>"; };
+		226AE7262789DFCC009BC5D8 /* cube.frag.inc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.pascal; path = cube.frag.inc; sourceTree = "<group>"; };
+		226AE7272789DFCC009BC5D8 /* cube.vert */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = cube.vert; sourceTree = "<group>"; };
+		226AE7282789DFCC009BC5D8 /* cube.vert.inc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.pascal; path = cube.vert.inc; sourceTree = "<group>"; };
+		226AE7292789DFCC009BC5D8 /* 15-draw_cube.frag.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "15-draw_cube.frag.h"; sourceTree = "<group>"; };
+		226AE72A2789DFCC009BC5D8 /* 15-draw_cube.vert.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "15-draw_cube.vert.h"; sourceTree = "<group>"; };
+		226AE72B2789DFCC009BC5D8 /* VulkanDSL.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = VulkanDSL.c; sourceTree = "<group>"; };
+		226AE72C2789DFCC009BC5D8 /* Program.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Program.h; sourceTree = "<group>"; };
+		226AE7382789E153009BC5D8 /* home8.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = home8.png; sourceTree = "<group>"; };
+		226AE7392789E153009BC5D8 /* statue-hera.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "statue-hera.png"; sourceTree = "<group>"; };
+		226AE73B2789E153009BC5D8 /* textPanel.obj */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = textPanel.obj; sourceTree = "<group>"; };
 		9F69EE4B26942A8A00746CD7 /* CameraError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraError.swift; sourceTree = "<group>"; };
 		9F69EE4D26942CD500746CD7 /* CameraManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraManager.swift; sourceTree = "<group>"; };
 		9F69EE5126957E1300746CD7 /* FrameManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameManager.swift; sourceTree = "<group>"; };
@@ -94,7 +98,7 @@
 		18D775B422AD944300AE281E = {
 			isa = PBXGroup;
 			children = (
-				226AE6F82789D40A009BC5D8 /* vulkan_application */,
+				226AE7172789DFCC009BC5D8 /* vulkan_application */,
 				18D775BF22AD944300AE281E /* FilterTheWorld */,
 				221DA81427778DB9007612BD /* Resources */,
 				18D775BE22AD944300AE281E /* Products */,
@@ -173,55 +177,81 @@
 			path = bridge;
 			sourceTree = "<group>";
 		};
-		226AE6F82789D40A009BC5D8 /* vulkan_application */ = {
+		226AE7172789DFCC009BC5D8 /* vulkan_application */ = {
 			isa = PBXGroup;
 			children = (
-				226AE7052789D40A009BC5D8 /* shaders */,
-				226AE6FF2789D40A009BC5D8 /* utils */,
-				226AE6FB2789D40A009BC5D8 /* assets_management */,
-				226AE6F92789D40A009BC5D8 /* cube_data.h */,
-				226AE6FA2789D40A009BC5D8 /* Program.c */,
-				226AE6FE2789D40A009BC5D8 /* VulkanDSL.h */,
-				226AE70C2789D40A009BC5D8 /* VulkanDSL.c */,
-				226AE70D2789D40A009BC5D8 /* Program.h */,
-				226AE70E2789D40A009BC5D8 /* assets */,
+				226AE7362789E153009BC5D8 /* assets */,
+				226AE7182789DFCC009BC5D8 /* cube_data.h */,
+				226AE7192789DFCC009BC5D8 /* Program.c */,
+				226AE71A2789DFCC009BC5D8 /* assets_management */,
+				226AE71D2789DFCC009BC5D8 /* VulkanDSL.h */,
+				226AE71E2789DFCC009BC5D8 /* utils */,
+				226AE7242789DFCC009BC5D8 /* shaders */,
+				226AE72B2789DFCC009BC5D8 /* VulkanDSL.c */,
+				226AE72C2789DFCC009BC5D8 /* Program.h */,
 			);
 			name = vulkan_application;
-			path = ../../vulkan_application;
+			path = ../../android/app/src/main/c/jni_vulkan/vulkan_application;
 			sourceTree = "<group>";
 		};
-		226AE6FB2789D40A009BC5D8 /* assets_management */ = {
+		226AE71A2789DFCC009BC5D8 /* assets_management */ = {
 			isa = PBXGroup;
 			children = (
-				226AE6FC2789D40A009BC5D8 /* AssetsFetcher.c */,
-				226AE6FD2789D40A009BC5D8 /* AssetsFetcher.h */,
+				226AE71B2789DFCC009BC5D8 /* AssetsFetcher.c */,
+				226AE71C2789DFCC009BC5D8 /* AssetsFetcher.h */,
 			);
 			path = assets_management;
 			sourceTree = "<group>";
 		};
-		226AE6FF2789D40A009BC5D8 /* utils */ = {
+		226AE71E2789DFCC009BC5D8 /* utils */ = {
 			isa = PBXGroup;
 			children = (
-				226AE7002789D40A009BC5D8 /* object_type_string_helper.h */,
-				226AE7012789D40A009BC5D8 /* linmath.h */,
-				226AE7022789D40A009BC5D8 /* tinyobj_loader_c.h */,
-				226AE7032789D40A009BC5D8 /* stb_image.h */,
-				226AE7042789D40A009BC5D8 /* gettime.h */,
+				226AE71F2789DFCC009BC5D8 /* object_type_string_helper.h */,
+				226AE7202789DFCC009BC5D8 /* linmath.h */,
+				226AE7212789DFCC009BC5D8 /* tinyobj_loader_c.h */,
+				226AE7222789DFCC009BC5D8 /* stb_image.h */,
+				226AE7232789DFCC009BC5D8 /* gettime.h */,
 			);
 			path = utils;
 			sourceTree = "<group>";
 		};
-		226AE7052789D40A009BC5D8 /* shaders */ = {
+		226AE7242789DFCC009BC5D8 /* shaders */ = {
 			isa = PBXGroup;
 			children = (
-				226AE7062789D40A009BC5D8 /* cube.frag */,
-				226AE7072789D40A009BC5D8 /* cube.frag.inc */,
-				226AE7082789D40A009BC5D8 /* cube.vert */,
-				226AE7092789D40A009BC5D8 /* cube.vert.inc */,
-				226AE70A2789D40A009BC5D8 /* 15-draw_cube.frag.h */,
-				226AE70B2789D40A009BC5D8 /* 15-draw_cube.vert.h */,
+				226AE7252789DFCC009BC5D8 /* cube.frag */,
+				226AE7262789DFCC009BC5D8 /* cube.frag.inc */,
+				226AE7272789DFCC009BC5D8 /* cube.vert */,
+				226AE7282789DFCC009BC5D8 /* cube.vert.inc */,
+				226AE7292789DFCC009BC5D8 /* 15-draw_cube.frag.h */,
+				226AE72A2789DFCC009BC5D8 /* 15-draw_cube.vert.h */,
 			);
 			path = shaders;
+			sourceTree = "<group>";
+		};
+		226AE7362789E153009BC5D8 /* assets */ = {
+			isa = PBXGroup;
+			children = (
+				226AE7372789E153009BC5D8 /* textures */,
+				226AE73A2789E153009BC5D8 /* meshes */,
+			);
+			path = assets;
+			sourceTree = "<group>";
+		};
+		226AE7372789E153009BC5D8 /* textures */ = {
+			isa = PBXGroup;
+			children = (
+				226AE7382789E153009BC5D8 /* home8.png */,
+				226AE7392789E153009BC5D8 /* statue-hera.png */,
+			);
+			path = textures;
+			sourceTree = "<group>";
+		};
+		226AE73A2789E153009BC5D8 /* meshes */ = {
+			isa = PBXGroup;
+			children = (
+				226AE73B2789E153009BC5D8 /* textPanel.obj */,
+			);
+			path = meshes;
 			sourceTree = "<group>";
 		};
 		9F69EE4926942A2900746CD7 /* Camera */ = {
@@ -313,10 +343,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				18D775D822AD963800AE281E /* LaunchScreen.storyboard in Resources */,
+				226AE73C2789E153009BC5D8 /* home8.png in Resources */,
 				18D775CA22AD944400AE281E /* Preview Assets.xcassets in Resources */,
-				226AE7132789D40A009BC5D8 /* cube.vert in Resources */,
-				226AE7162789D40A009BC5D8 /* assets in Resources */,
-				226AE7112789D40A009BC5D8 /* cube.frag in Resources */,
+				226AE73E2789E153009BC5D8 /* textPanel.obj in Resources */,
+				226AE7322789DFCC009BC5D8 /* cube.vert in Resources */,
+				226AE7302789DFCC009BC5D8 /* cube.frag in Resources */,
+				226AE73D2789E153009BC5D8 /* statue-hera.png in Resources */,
 				18D775C722AD944400AE281E /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -350,12 +382,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				9F69EE542695837100746CD7 /* FrameView.swift in Sources */,
-				226AE7122789D40A009BC5D8 /* cube.frag.inc in Sources */,
-				226AE70F2789D40A009BC5D8 /* Program.c in Sources */,
-				226AE7142789D40A009BC5D8 /* cube.vert.inc in Sources */,
+				226AE7312789DFCC009BC5D8 /* cube.frag.inc in Sources */,
+				226AE72E2789DFCC009BC5D8 /* Program.c in Sources */,
+				226AE7332789DFCC009BC5D8 /* cube.vert.inc in Sources */,
 				9F69EE5226957E1300746CD7 /* FrameManager.swift in Sources */,
 				9F69EE602698210900746CD7 /* VulkanView.swift in Sources */,
-				226AE7102789D40A009BC5D8 /* AssetsFetcher.c in Sources */,
+				226AE72F2789DFCC009BC5D8 /* AssetsFetcher.c in Sources */,
 				22528006277C504D00E3109E /* DemoViewController.m in Sources */,
 				18D775C522AD944300AE281E /* ContentView.swift in Sources */,
 				1839F4B025190F2A00BB00F1 /* AppMain.swift in Sources */,
@@ -365,7 +397,7 @@
 				9F69EE4E26942CD500746CD7 /* CameraManager.swift in Sources */,
 				9F69EE4C26942A8A00746CD7 /* CameraError.swift in Sources */,
 				9F69EE562696F0A200746CD7 /* ErrorView.swift in Sources */,
-				226AE7152789D40A009BC5D8 /* VulkanDSL.c in Sources */,
+				226AE7342789DFCC009BC5D8 /* VulkanDSL.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -509,9 +541,10 @@
 				DEVELOPMENT_TEAM = 5PQJ73JT76;
 				ENABLE_PREVIEWS = YES;
 				HEADER_SEARCH_PATHS = (
-					"$(SRCROOT)/../../android/app/src/main/c/jni_vulkan/vulkan_application",
+					"$(SRCROOT)../android/app/src/main/c/jni_vulkan/vulkan_application",
 					"$(SRCROOT)",
 					"$(MOLTENVK_PATH)/MoltenVK/include",
+					/Users/thierryvilmart/repos/vulkan_engine/android/app/src/main/c/jni_vulkan/vulkan_application,
 				);
 				INFOPLIST_FILE = FilterTheWorld/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
@@ -538,9 +571,10 @@
 				DEVELOPMENT_TEAM = 5PQJ73JT76;
 				ENABLE_PREVIEWS = YES;
 				HEADER_SEARCH_PATHS = (
-					"$(SRCROOT)/../../android/app/src/main/c/jni_vulkan/vulkan_application",
+					"$(SRCROOT)../android/app/src/main/c/jni_vulkan/vulkan_application",
 					"$(SRCROOT)",
 					"$(MOLTENVK_PATH)/MoltenVK/include",
+					/Users/thierryvilmart/repos/vulkan_engine/android/app/src/main/c/jni_vulkan/vulkan_application,
 				);
 				INFOPLIST_FILE = FilterTheWorld/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
