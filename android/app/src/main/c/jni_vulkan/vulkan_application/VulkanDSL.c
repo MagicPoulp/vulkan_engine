@@ -1627,7 +1627,7 @@ void read_shader(const char* filename, uint32_t* vs_code, size_t *length1) {
 
 static void demo_prepare_vs(struct VulkanDSL *vulkanDSL) {
     size_t length1;
-    const char* filename = "shaders/cube.vert.spv";
+    const char* filename = "shaders/textPanel.vert.spv";
     read_shader(filename, NULL, &length1);
     uint32_t vs_code[length1];
     read_shader(filename, vs_code, &length1);
@@ -1636,7 +1636,8 @@ static void demo_prepare_vs(struct VulkanDSL *vulkanDSL) {
 
 static void demo_prepare_fs(struct VulkanDSL *vulkanDSL) {
     size_t length1;
-    const char* filename = "shaders/cube.frag.spv";
+    const char* filename = "shaders/textPanel.frag.spv";
+    //const char* filename = "shaders/cube.frag.spv";
     read_shader(filename, NULL, &length1);
     uint32_t vs_code[length1];
     read_shader(filename, vs_code, &length1);
