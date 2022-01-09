@@ -431,10 +431,9 @@ void VulkanDSL__draw_build_cmd(struct VulkanDSL *vulkanDSL, VkCommandBuffer cmd_
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(cmd_buf, 0, 1, vertexBuffers, offsets);
 
-    int sizeVertices = vulkanDSL->assetsFetcher.arraySize * sizeof(vulkanDSL->assetsFetcher.triangles[0]);
-
     //vkCmdDraw(cmd_buf, vulkanDSL->assetsFetcher.arraySize, 1, 0, 0);
-    vkCmdDraw(cmd_buf, 1, 0, 0, 0);
+    //vkCmdDraw(cmd_buf, vulkanDSL->assetsFetcher.arraySize, 1, 0, 0);
+    vkCmdDraw(cmd_buf, 1, 1, 0, 0);
     //vkCmdDraw(cmd_buf, 12 * 3, 1, 0, 0);
 
     if (vulkanDSL->validate) {
