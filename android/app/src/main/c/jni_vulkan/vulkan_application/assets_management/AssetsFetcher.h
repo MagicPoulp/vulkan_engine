@@ -30,7 +30,7 @@ struct AssetsFetcher {
 void AssetsFetcher__init(struct AssetsFetcher* self);
 void AssetsFetcher__reset(struct AssetsFetcher* self);
         void AssetsFetcher__loadObj(struct AssetsFetcher* self, const char* filename, tinyobj_attrib_t *outAttrib);
-int AssetsFetcher__LoadObjAndConvert(
+int AssetsFetcher__LoadObjAndConvert(struct AssetsFetcher* self,
         float bmin[3], float bmax[3], const char* filename, struct ObjAsset* obj, tinyobj_attrib_t *outAttrib);
 void get_file_data(
         void* ctx, const char* filename, const int is_mtl,

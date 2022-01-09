@@ -41,7 +41,7 @@ void AssetsFetcher__loadObj(struct AssetsFetcher* self, const char* filename, ti
     struct ObjAsset obj;
     obj.length = length1;
     obj.rawData = rawData;
-    AssetsFetcher__LoadObjAndConvert(bmin, bmax, filename, &obj, outAttrib);
+    AssetsFetcher__LoadObjAndConvert(self, bmin, bmax, filename, &obj, outAttrib);
     AAsset_close(asset);
 }
 
@@ -55,7 +55,7 @@ void get_file_data(
 }
 
 // bmax, bmin give the dimensions in order to scale the object in the world
-int AssetsFetcher__LoadObjAndConvert(float bmin[3], float bmax[3], const char* filename, struct ObjAsset* obj, tinyobj_attrib_t *outAttrib) {
+int AssetsFetcher__LoadObjAndConvert(struct AssetsFetcher* self, float bmin[3], float bmax[3], const char* filename, struct ObjAsset* obj, tinyobj_attrib_t *outAttrib) {
     tinyobj_attrib_t attrib;
     tinyobj_shape_t* shapes = NULL;
     size_t num_shapes;
@@ -69,6 +69,9 @@ int AssetsFetcher__LoadObjAndConvert(float bmin[3], float bmax[3], const char* f
         if (ret != TINYOBJ_SUCCESS) {
             return 0;
         }
+
+        self->outAttrib = outAttrib;
+        self->outAttribAllocated = true;
 
         printf("# of shapes    = %d\n", (int)num_shapes);
         printf("# of materials = %d\n", (int)num_materials);

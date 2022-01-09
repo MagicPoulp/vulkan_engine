@@ -224,6 +224,7 @@ typedef struct {
 } SwapchainImageResources;
 
 struct VulkanDSL {
+    struct AssetsFetcher assetsFetcher;
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
     struct ANativeWindow *window;
 #elif defined(VK_USE_PLATFORM_METAL_EXT)
@@ -353,13 +354,14 @@ struct VulkanDSL {
 
 void vulkanDSL_main(struct VulkanDSL *vulkanDSL, struct AssetsFetcher *assetsFetcher, const char* assetsPath);
 void setTextures(struct AssetsFetcher *assetsFetcher, const char* assetsPath);
+bool loadTexture(struct VulkanDSL *vulkanDSL, const char *filename, uint8_t *rgba_data, VkSubresourceLayout *layout, int32_t *width, int32_t *height);
 void demo_draw(struct VulkanDSL *vulkanDSL, double elapsedTimeS);
 void demo_prepare(struct VulkanDSL *vulkanDSL);
 void demo_cleanup(struct VulkanDSL *vulkanDSL);
 void demo_resize(struct VulkanDSL *vulkanDSL);
 void VulkanDSL__setSize(struct VulkanDSL *vulkanDSL, int32_t width, int32_t height);
-void VulkanDSL__freeResources(void);
-void read_shader(const char* filename, uint32_t* vs_code, size_t *length1);
+void VulkanDSL__freeResources(struct VulkanDSL *vulkanDSL);
+void VulkanDSL__read_shader(struct VulkanDSL *vulkanDSL, const char* filename, uint32_t* vs_code, size_t *length1);
 void VulkanDSL__prepare_vertex_buffer(struct VulkanDSL *vulkanDSL, tinyobj_attrib_t *outAttrib);
 
 #endif

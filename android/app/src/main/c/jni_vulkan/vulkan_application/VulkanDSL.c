@@ -324,7 +324,7 @@ static void demo_set_image_layout(struct VulkanDSL *vulkanDSL, VkImage image, Vk
     vkCmdPipelineBarrier(vulkanDSL->cmd, src_stages, dest_stages, 0, 0, NULL, 0, NULL, 1, pmemory_barrier);
 }
 
-static void demo_draw_build_cmd(struct VulkanDSL *vulkanDSL, VkCommandBuffer cmd_buf) {
+void VulkanDSL__draw_build_cmd(struct VulkanDSL *vulkanDSL, VkCommandBuffer cmd_buf) {
     VkDebugUtilsLabelEXT label;
     memset(&label, 0, sizeof(label));
     const VkCommandBufferBeginInfo cmd_buf_info = {
@@ -426,7 +426,14 @@ static void demo_draw_build_cmd(struct VulkanDSL *vulkanDSL, VkCommandBuffer cmd
         vulkanDSL->CmdBeginDebugUtilsLabelEXT(cmd_buf, &label);
     }
 
-    vkCmdDraw(cmd_buf, 12 * 3, 1, 0, 0);
+    VkBuffer vertexBuffers[] = { vulkanDSL->swapchain_image_resources[0].vertex_buffer };
+    VkDeviceSize offsets[] = {0};
+    vkCmdBindVertexBuffers(cmd_buf, 0, 1, vertexBuffers, offsets);
+
+    int sizeVertices = vulkanDSL->assetsFetcher.outAttrib->num_vertices * sizeof(vulkanDSL->assetsFetcher.outAttrib->vertices[0]);
+    vkCmdDraw(cmd_buf, sizeVertices, 1, 0, 0);
+    //vkCmdDraw(cmd_buf, 12 * 3, 1, 0, 0);
+
     if (vulkanDSL->validate) {
         vulkanDSL->CmdEndDebugUtilsLabelEXT(cmd_buf);
     }
@@ -1107,11 +1114,11 @@ static void demo_prepare_depth(struct VulkanDSL *vulkanDSL) {
     assert(!err);
 }
 
-bool loadTexture(const char *filename, uint8_t *rgba_data, VkSubresourceLayout *layout, int32_t *width, int32_t *height) {
+bool loadTexture(struct VulkanDSL *vulkanDSL, const char *filename, uint8_t *rgba_data, VkSubresourceLayout *layout, int32_t *width, int32_t *height) {
     int texChannels;
 #ifdef __ANDROID__
     AAsset* asset = AAssetManager_open(
-      program->assetsFetcher.assetManager,
+      vulkanDSL->assetsFetcher.assetManager,
       filename,
       AASSET_MODE_BUFFER
     );
@@ -1196,7 +1203,7 @@ static void demo_prepare_texture_buffer(struct VulkanDSL *vulkanDSL, const char 
     err = vkMapMemory(vulkanDSL->device, tex_obj->mem, 0, tex_obj->mem_alloc.allocationSize, 0, &data);
     assert(!err);
 
-    if (!loadTexture(filename, data, &layout, &tex_width, &tex_height)) {
+    if (!loadTexture(vulkanDSL, filename, data, &layout, &tex_width, &tex_height)) {
         fprintf(stderr, "Error loading texture: %s\n", filename);
     }
 
@@ -1212,7 +1219,7 @@ static void demo_prepare_texture_image(struct VulkanDSL *vulkanDSL, const char *
     bool U_ASSERT_ONLY pass;
     int texChannels;
 #ifdef __ANDROID__
-    if (!loadTexture(filename, NULL, NULL, &tex_width, &tex_height)) {
+    if (!loadTexture(vulkanDSL, filename, NULL, NULL, &tex_width, &tex_height)) {
         fprintf(stderr, "Error loading texture: %s\n", filename);
     }
 #else
@@ -1275,7 +1282,7 @@ static void demo_prepare_texture_image(struct VulkanDSL *vulkanDSL, const char *
         err = vkMapMemory(vulkanDSL->device, tex_obj->mem, 0, tex_obj->mem_alloc.allocationSize, 0, &data);
         assert(!err);
 
-        if (!loadTexture(filename, data, &layout, &tex_width, &tex_height)) {
+        if (!loadTexture(vulkanDSL, filename, data, &layout, &tex_width, &tex_height)) {
             fprintf(stderr, "Error loading texture: %s\n", filename);
         }
 
@@ -1658,9 +1665,9 @@ static VkShaderModule demo_prepare_shader_module(struct VulkanDSL *vulkanDSL, co
     return module;
 }
 
-void read_shader(const char* filename, uint32_t* vs_code, size_t *length1) {
+void VulkanDSL__read_shader(struct VulkanDSL *vulkanDSL, const char* filename, uint32_t* vs_code, size_t *length1) {
     AAsset* asset = AAssetManager_open(
-            program->assetsFetcher.assetManager,
+            vulkanDSL->assetsFetcher.assetManager,
             filename,
             AASSET_MODE_BUFFER
     );
@@ -1677,9 +1684,9 @@ void read_shader(const char* filename, uint32_t* vs_code, size_t *length1) {
 static void demo_prepare_vs(struct VulkanDSL *vulkanDSL) {
     size_t length1;
     const char* filename = "shaders/textPanel.vert.spv";
-    read_shader(filename, NULL, &length1);
+    VulkanDSL__read_shader(vulkanDSL, filename, NULL, &length1);
     uint32_t vs_code[length1];
-    read_shader(filename, vs_code, &length1);
+    VulkanDSL__read_shader(vulkanDSL, filename, vs_code, &length1);
     vulkanDSL->vert_shader_module = demo_prepare_shader_module(vulkanDSL, vs_code, length1);
 }
 
@@ -1687,9 +1694,9 @@ static void demo_prepare_fs(struct VulkanDSL *vulkanDSL) {
     size_t length1;
     const char* filename = "shaders/textPanel.frag.spv";
     //const char* filename = "shaders/cube.frag.spv";
-    read_shader(filename, NULL, &length1);
+    VulkanDSL__read_shader(vulkanDSL, filename, NULL, &length1);
     uint32_t vs_code[length1];
-    read_shader(filename, vs_code, &length1);
+    VulkanDSL__read_shader(vulkanDSL, filename, vs_code, &length1);
     vulkanDSL->frag_shader_module = demo_prepare_shader_module(vulkanDSL, vs_code, length1);
 }
 
@@ -2011,7 +2018,7 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
 
     for (uint32_t i = 0; i < vulkanDSL->swapchainImageCount; i++) {
         vulkanDSL->current_buffer = i;
-        demo_draw_build_cmd(vulkanDSL, vulkanDSL->swapchain_image_resources[i].cmd);
+        VulkanDSL__draw_build_cmd(vulkanDSL, vulkanDSL->swapchain_image_resources[i].cmd);
     }
 
     /*
@@ -2028,6 +2035,8 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
 }
 
 void demo_cleanup(struct VulkanDSL *vulkanDSL) {
+    VulkanDSL__freeResources(vulkanDSL);
+
     uint32_t i;
 
     vulkanDSL->prepared = false;
@@ -3061,7 +3070,7 @@ void vulkanDSL_main(struct VulkanDSL *vulkanDSL, struct AssetsFetcher *assetsFet
     setTextures(assetsFetcher, assetsPath);
 
     tinyobj_attrib_t outAttrib;
-    AssetsFetcher__loadObj(&program->assetsFetcher, "meshes/textPanel.obj", &outAttrib);
+    AssetsFetcher__loadObj(&vulkanDSL->assetsFetcher, "meshes/textPanel.obj", &outAttrib);
     VulkanDSL__prepare_vertex_buffer(vulkanDSL, &outAttrib);
 
     demo_init(vulkanDSL);
@@ -3079,7 +3088,8 @@ void VulkanDSL__setSize(struct VulkanDSL *vulkanDSL, int32_t width, int32_t heig
     demo_resize(vulkanDSL);
 }
 
-void VulkanDSL__freeResources() {
+void VulkanDSL__freeResources(struct VulkanDSL *vulkanDSL) {
+    AssetsFetcher__reset(&vulkanDSL->assetsFetcher);
     for (int i = 0; i < DEMO_TEXTURE_COUNT; i++) {
         free(tex_files[i]);
     }
