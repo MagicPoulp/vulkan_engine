@@ -27,13 +27,14 @@ layout(std140, binding = 0) uniform buf {
     vec4 attr[12*3];
 } ubuf;
 
-layout (location = 0) in vec3 vertices;
+layout (location = 0) in vec4 vertex;
 layout (location = 0) out vec4 texcoord;
 layout (location = 1) out vec3 frag_pos;
 
 void main()
 {
-    texcoord = ubuf.attr[gl_VertexIndex];
+    //texcoord = ubuf.attr[gl_VertexIndex];
+    gl_Position = ubuf.MVP * vertex;
     //gl_Position = ubuf.MVP * vec4(vec3(vertices[gl_VertexIndex]), 1);
     gl_Position = ubuf.MVP * ubuf.position[gl_VertexIndex];
     frag_pos = gl_Position.xyz;
