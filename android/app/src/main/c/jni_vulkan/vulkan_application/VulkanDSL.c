@@ -502,11 +502,6 @@ void demo_update_data_buffer(struct VulkanDSL *vulkanDSL, double elapsedTimeS) {
 
     // Rotate around the Y axis
     mat4x4_dup(Model, vulkanDSL->model_matrix);
-
-    mat4x4_rotate_X(vulkanDSL->model_matrix, Model, (float)degreesToRadians(5));
-    //mat4x4_orthonormalize(vulkanDSL->model_matrix, vulkanDSL->model_matrix);
-    mat4x4_dup(Model, vulkanDSL->model_matrix);
-
     // degrees per second
     double movedAngle = vulkanDSL->spin_angle * elapsedTimeS;
     //__android_log_print(ANDROID_LOG_INFO, "LOG", "%lf - &lf - %lf", vulkanDSL->spin_angle, elapsedTimeS, movedAngle);
