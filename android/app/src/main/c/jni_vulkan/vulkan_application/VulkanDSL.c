@@ -3074,7 +3074,7 @@ void vulkanDSL_main(struct VulkanDSL *vulkanDSL, struct AssetsFetcher *assetsFet
 
     tinyobj_attrib_t outAttrib;
     AssetsFetcher__loadObj(&vulkanDSL->assetsFetcher, "meshes/textPanel.obj", &outAttrib);
-    //VulkanDSL__prepare_vertex_buffer(vulkanDSL, &outAttrib);
+    VulkanDSL__prepare_vertex_buffer(vulkanDSL, &outAttrib);
 
     demo_init(vulkanDSL);
 
