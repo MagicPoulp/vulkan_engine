@@ -11,7 +11,6 @@
 struct Program
 {
     struct VulkanDSL* vulkanDSL;
-    struct AssetsFetcher assetsFetcher;
 };
 
 void Program__init(struct Program* self);

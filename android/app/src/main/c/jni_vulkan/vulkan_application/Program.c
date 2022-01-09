@@ -7,7 +7,7 @@
 void Program__init(struct Program* self) {
     struct VulkanDSL* vulkanDSL = (struct VulkanDSL*) calloc(1, sizeof(struct VulkanDSL));
     self->vulkanDSL = vulkanDSL;
-    AssetsFetcher__init(&self->assetsFetcher);
+    AssetsFetcher__init(&self->vulkanDSL->assetsFetcher);
 }
 
 struct Program* Program__create() {
@@ -18,7 +18,6 @@ struct Program* Program__create() {
 
 void Program__reset(struct Program* self) {
     demo_cleanup(self->vulkanDSL);
-    VulkanDSL__freeResources();
 }
 
 void Program__destroy(struct Program* self) {

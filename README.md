@@ -1,14 +1,3 @@
-# glslc to compile shaders
-downloaded here foir macOS
-https://github.com/google/shaderc#downloads
-
-# obj loader
-https://github.com/syoyo/tinyobjloader-c
-Geometry can be mad in the software called Blender, then exported as a .obj
-
-OOP in C
-https://www.codementor.io/@michaelsafyan/object-oriented-programming-in-c-du1081gw2
-
 # Notes
 
 The image is grey because gamma and cHRM are used, shown on 32 bits via the command xxd on the png.
@@ -19,6 +8,11 @@ clone MoltenVK
 ./fetchDependency --ios
 make ios
 change the MOLTENVK_PATH in the project settings
+
+## glslc to compile shaders
+you must copy it to MoltenVK/bin/glslc
+downloaded here for macOS
+https://github.com/google/shaderc#downloads
 
 # Summary
 
@@ -73,4 +67,13 @@ This was changed in cube.c compared to the demo
 // we do not want opaque
 compositeAlpha = VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR;
 VkSwapchainCreateInfoKHR swapchain_ci
+
+# Nice tools
+
+## obj loader
+https://github.com/syoyo/tinyobjloader-c
+Geometry can be mad in the software called Blender, then exported as a .obj
+
+##OOP in C
+https://www.codementor.io/@michaelsafyan/object-oriented-programming-in-c-du1081gw2
 

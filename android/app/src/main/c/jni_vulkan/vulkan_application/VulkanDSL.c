@@ -324,7 +324,7 @@ static void demo_set_image_layout(struct VulkanDSL *vulkanDSL, VkImage image, Vk
     vkCmdPipelineBarrier(vulkanDSL->cmd, src_stages, dest_stages, 0, 0, NULL, 0, NULL, 1, pmemory_barrier);
 }
 
-static void demo_draw_build_cmd(struct VulkanDSL *vulkanDSL, VkCommandBuffer cmd_buf) {
+void VulkanDSL__draw_build_cmd(struct VulkanDSL *vulkanDSL, VkCommandBuffer cmd_buf) {
     VkDebugUtilsLabelEXT label;
     memset(&label, 0, sizeof(label));
     const VkCommandBufferBeginInfo cmd_buf_info = {
@@ -393,16 +393,8 @@ static void demo_draw_build_cmd(struct VulkanDSL *vulkanDSL, VkCommandBuffer cmd
                             &vulkanDSL->swapchain_image_resources[vulkanDSL->current_buffer].descriptor_set, 0, NULL);
     VkViewport viewport;
     memset(&viewport, 0, sizeof(viewport));
-    float viewport_dimension;
-    if (vulkanDSL->width < vulkanDSL->height) {
-        viewport_dimension = (float)vulkanDSL->width;
-        viewport.y = (vulkanDSL->height - vulkanDSL->width) / 2.0f;
-    } else {
-        viewport_dimension = (float)vulkanDSL->height;
-        viewport.x = (vulkanDSL->width - vulkanDSL->height) / 2.0f;
-    }
-    viewport.height = viewport_dimension;
-    viewport.width = viewport_dimension;
+    viewport.height = vulkanDSL->height;
+    viewport.width = vulkanDSL->width;
     viewport.minDepth = (float)0.0f;
     viewport.maxDepth = (float)1.0f;
     vkCmdSetViewport(cmd_buf, 0, 1, &viewport);
@@ -426,7 +418,15 @@ static void demo_draw_build_cmd(struct VulkanDSL *vulkanDSL, VkCommandBuffer cmd
         vulkanDSL->CmdBeginDebugUtilsLabelEXT(cmd_buf, &label);
     }
 
-    vkCmdDraw(cmd_buf, 12 * 3, 1, 0, 0);
+    VkBuffer vertexBuffers[] = { vulkanDSL->swapchain_image_resources[0].vertex_buffer };
+    VkBuffer b = vertexBuffers[0];
+    VkDeviceSize offsets[] = {0};
+    vkCmdBindVertexBuffers(cmd_buf, 0, 1, vertexBuffers, offsets);
+
+    vkCmdDraw(cmd_buf, vulkanDSL->assetsFetcher.arraySize, 1, 0, 0);
+    //vkCmdDraw(cmd_buf, 1, 1, 0, 0);
+    //vkCmdDraw(cmd_buf, 12 * 3, 1, 0, 0);
+
     if (vulkanDSL->validate) {
         vulkanDSL->CmdEndDebugUtilsLabelEXT(cmd_buf);
     }
@@ -639,8 +639,9 @@ void demo_draw(struct VulkanDSL *vulkanDSL, double elapsedTimeS) {
     do {
         // Get the index of the next available swapchain image:
         err =
-                vulkanDSL->fpAcquireNextImageKHR(vulkanDSL->device, vulkanDSL->swapchain, UINT64_MAX,
-                                            vulkanDSL->image_acquired_semaphores[vulkanDSL->frame_index], VK_NULL_HANDLE, &vulkanDSL->current_buffer);
+                vulkanDSL->fpAcquireNextImageKHR(
+                        vulkanDSL->device, vulkanDSL->swapchain, UINT64_MAX,
+                        vulkanDSL->image_acquired_semaphores[vulkanDSL->frame_index], VK_NULL_HANDLE, &vulkanDSL->current_buffer);
 
         if (err == VK_ERROR_OUT_OF_DATE_KHR) {
             // vulkanDSL->swapchain is out of date (e.g. the window was resized) and
@@ -1106,11 +1107,11 @@ static void demo_prepare_depth(struct VulkanDSL *vulkanDSL) {
     assert(!err);
 }
 
-bool loadTexture(const char *filename, uint8_t *rgba_data, VkSubresourceLayout *layout, int32_t *width, int32_t *height) {
+bool loadTexture(struct VulkanDSL *vulkanDSL, const char *filename, uint8_t *rgba_data, VkSubresourceLayout *layout, int32_t *width, int32_t *height) {
     int texChannels;
 #ifdef __ANDROID__
     AAsset* asset = AAssetManager_open(
-      program->assetsFetcher.assetManager,
+      vulkanDSL->assetsFetcher.assetManager,
       filename,
       AASSET_MODE_BUFFER
     );
@@ -1195,7 +1196,7 @@ static void demo_prepare_texture_buffer(struct VulkanDSL *vulkanDSL, const char 
     err = vkMapMemory(vulkanDSL->device, tex_obj->mem, 0, tex_obj->mem_alloc.allocationSize, 0, &data);
     assert(!err);
 
-    if (!loadTexture(filename, data, &layout, &tex_width, &tex_height)) {
+    if (!loadTexture(vulkanDSL, filename, data, &layout, &tex_width, &tex_height)) {
         fprintf(stderr, "Error loading texture: %s\n", filename);
     }
 
@@ -1211,7 +1212,7 @@ static void demo_prepare_texture_image(struct VulkanDSL *vulkanDSL, const char *
     bool U_ASSERT_ONLY pass;
     int texChannels;
 #ifdef __ANDROID__
-    if (!loadTexture(filename, NULL, NULL, &tex_width, &tex_height)) {
+    if (!loadTexture(vulkanDSL, filename, NULL, NULL, &tex_width, &tex_height)) {
         fprintf(stderr, "Error loading texture: %s\n", filename);
     }
 #else
@@ -1274,7 +1275,7 @@ static void demo_prepare_texture_image(struct VulkanDSL *vulkanDSL, const char *
         err = vkMapMemory(vulkanDSL->device, tex_obj->mem, 0, tex_obj->mem_alloc.allocationSize, 0, &data);
         assert(!err);
 
-        if (!loadTexture(filename, data, &layout, &tex_width, &tex_height)) {
+        if (!loadTexture(vulkanDSL, filename, data, &layout, &tex_width, &tex_height)) {
             fprintf(stderr, "Error loading texture: %s\n", filename);
         }
 
@@ -1441,6 +1442,7 @@ void demo_prepare_cube_data_buffers(struct VulkanDSL *vulkanDSL) {
         err = vkAllocateMemory(vulkanDSL->device, &mem_alloc, NULL, &vulkanDSL->swapchain_image_resources[i].uniform_memory);
         assert(!err);
 
+        // map to the application address space
         err = vkMapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_memory, 0, VK_WHOLE_SIZE, 0,
                           &vulkanDSL->swapchain_image_resources[i].uniform_memory_ptr);
         assert(!err);
@@ -1453,6 +1455,65 @@ void demo_prepare_cube_data_buffers(struct VulkanDSL *vulkanDSL) {
     }
 }
 
+void VulkanDSL__prepare_vertex_buffer(struct VulkanDSL *vulkanDSL, tinyobj_attrib_t *attrib) {
+    VkBufferCreateInfo buf_info;
+    VkMemoryRequirements mem_reqs;
+    VkMemoryAllocateInfo mem_alloc;
+    VkResult U_ASSERT_ONLY err;
+    bool U_ASSERT_ONLY pass;
+
+    memset(&buf_info, 0, sizeof(buf_info));
+    buf_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    buf_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    buf_info.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    int sizeVertices = vulkanDSL->assetsFetcher.arraySize * sizeof(vulkanDSL->assetsFetcher.triangles[0]);
+    buf_info.size = sizeVertices;
+
+    vulkanDSL->vi_binding.binding = 0;
+    vulkanDSL->vi_binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+    vulkanDSL->vi_binding.stride = sizeof(float) * 3;
+
+    // a color format is used for vec3, see this link here
+    // https://vulkan-tutorial.com/Vertex_buffers/Vertex_input_description#page_Attribute-descriptions
+    vulkanDSL->vi_attribs[0].binding = 0;
+    vulkanDSL->vi_attribs[0].location = 0;
+    vulkanDSL->vi_attribs[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+    vulkanDSL->vi_attribs[0].offset = 0;
+
+    for (unsigned int i = 0; i < vulkanDSL->swapchainImageCount; i++) {
+        err = vkCreateBuffer(vulkanDSL->device, &buf_info, NULL, &vulkanDSL->swapchain_image_resources[i].vertex_buffer);
+        assert(!err);
+
+        vkGetBufferMemoryRequirements(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_buffer, &mem_reqs);
+
+        mem_alloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        mem_alloc.pNext = NULL;
+        mem_alloc.allocationSize = mem_reqs.size;
+        mem_alloc.memoryTypeIndex = 0;
+
+        pass = memory_type_from_properties(vulkanDSL, mem_reqs.memoryTypeBits,
+                                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                           &mem_alloc.memoryTypeIndex);
+        assert(pass);
+
+        err = vkAllocateMemory(vulkanDSL->device, &mem_alloc, NULL, &vulkanDSL->swapchain_image_resources[i].vertex_memory);
+        assert(!err);
+
+        // map to the application address space
+        err = vkMapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_memory, 0, VK_WHOLE_SIZE, 0,
+                          &vulkanDSL->swapchain_image_resources[i].vertex_memory_ptr);
+        assert(!err);
+
+        memcpy(vulkanDSL->swapchain_image_resources[i].vertex_memory_ptr, vulkanDSL->assetsFetcher.triangles, sizeVertices);
+
+        err = vkBindBufferMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_buffer,
+                                 vulkanDSL->swapchain_image_resources[i].vertex_memory, 0);
+        assert(!err);
+    }
+}
+
+// here we define the in variables in the shader that have the tag "binding"
+// layout (binding = 1)
 static void demo_prepare_descriptor_layout(struct VulkanDSL *vulkanDSL) {
     const VkDescriptorSetLayoutBinding layout_bindings[2] = {
             [0] =
@@ -1609,9 +1670,9 @@ static VkShaderModule demo_prepare_shader_module(struct VulkanDSL *vulkanDSL, co
     return module;
 }
 
-void read_shader(const char* filename, uint32_t* vs_code, size_t *length1) {
+void VulkanDSL__read_shader(struct VulkanDSL *vulkanDSL, const char* filename, uint32_t* vs_code, size_t *length1) {
     AAsset* asset = AAssetManager_open(
-            program->assetsFetcher.assetManager,
+            vulkanDSL->assetsFetcher.assetManager,
             filename,
             AASSET_MODE_BUFFER
     );
@@ -1627,19 +1688,20 @@ void read_shader(const char* filename, uint32_t* vs_code, size_t *length1) {
 
 static void demo_prepare_vs(struct VulkanDSL *vulkanDSL) {
     size_t length1;
-    const char* filename = "shaders/cube.vert.spv";
-    read_shader(filename, NULL, &length1);
+    const char* filename = "shaders/textPanel.vert.spv";
+    VulkanDSL__read_shader(vulkanDSL, filename, NULL, &length1);
     uint32_t vs_code[length1];
-    read_shader(filename, vs_code, &length1);
+    VulkanDSL__read_shader(vulkanDSL, filename, vs_code, &length1);
     vulkanDSL->vert_shader_module = demo_prepare_shader_module(vulkanDSL, vs_code, length1);
 }
 
 static void demo_prepare_fs(struct VulkanDSL *vulkanDSL) {
     size_t length1;
-    const char* filename = "shaders/cube.frag.spv";
-    read_shader(filename, NULL, &length1);
+    const char* filename = "shaders/textPanel.frag.spv";
+    //const char* filename = "shaders/cube.frag.spv";
+    VulkanDSL__read_shader(vulkanDSL, filename, NULL, &length1);
     uint32_t vs_code[length1];
-    read_shader(filename, vs_code, &length1);
+    VulkanDSL__read_shader(vulkanDSL, filename, vs_code, &length1);
     vulkanDSL->frag_shader_module = demo_prepare_shader_module(vulkanDSL, vs_code, length1);
 }
 
@@ -1671,6 +1733,15 @@ static void demo_prepare_pipeline(struct VulkanDSL *vulkanDSL) {
 
     memset(&vi, 0, sizeof(vi));
     vi.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    bool include_vi = true; // use vertex as input
+    if (include_vi) {
+        vi.pNext = NULL;
+        vi.flags = 0;
+        vi.vertexBindingDescriptionCount = 1;
+        vi.pVertexBindingDescriptions = &vulkanDSL->vi_binding;
+        vi.vertexAttributeDescriptionCount = 1;
+        vi.pVertexAttributeDescriptions = &vulkanDSL->vi_attribs;
+    }
 
     memset(&ia, 0, sizeof(ia));
     ia.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -1920,6 +1991,9 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
     demo_prepare_depth(vulkanDSL);
     demo_prepare_textures(vulkanDSL);
     demo_prepare_cube_data_buffers(vulkanDSL);
+    tinyobj_attrib_t* outAttrib;
+    AssetsFetcher__loadObj(&vulkanDSL->assetsFetcher, "meshes/textPanel.obj", &outAttrib);
+    VulkanDSL__prepare_vertex_buffer(vulkanDSL, outAttrib);
 
     demo_prepare_descriptor_layout(vulkanDSL);
     demo_prepare_render_pass(vulkanDSL);
@@ -1961,7 +2035,7 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
 
     for (uint32_t i = 0; i < vulkanDSL->swapchainImageCount; i++) {
         vulkanDSL->current_buffer = i;
-        demo_draw_build_cmd(vulkanDSL, vulkanDSL->swapchain_image_resources[i].cmd);
+        VulkanDSL__draw_build_cmd(vulkanDSL, vulkanDSL->swapchain_image_resources[i].cmd);
     }
 
     /*
@@ -1978,6 +2052,8 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
 }
 
 void demo_cleanup(struct VulkanDSL *vulkanDSL) {
+    VulkanDSL__freeResources(vulkanDSL);
+
     uint32_t i;
 
     vulkanDSL->prepared = false;
@@ -2025,6 +2101,9 @@ void demo_cleanup(struct VulkanDSL *vulkanDSL) {
             vkDestroyBuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_buffer, NULL);
             vkUnmapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_memory);
             vkFreeMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_memory, NULL);
+            vkDestroyBuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_buffer, NULL);
+            vkUnmapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_memory);
+            vkFreeMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_memory, NULL);
         }
         free(vulkanDSL->swapchain_image_resources);
         free(vulkanDSL->queue_props);
@@ -2088,6 +2167,9 @@ void demo_resize(struct VulkanDSL *vulkanDSL) {
         vkDestroyBuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_buffer, NULL);
         vkUnmapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_memory);
         vkFreeMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_memory, NULL);
+        //vkDestroyBuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_buffer, NULL);
+        //vkUnmapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_memory);
+        //vkFreeMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_memory, NULL);
     }
     vkDestroyCommandPool(vulkanDSL->device, vulkanDSL->cmd_pool, NULL);
     vulkanDSL->cmd_pool = VK_NULL_HANDLE;
@@ -2967,7 +3049,7 @@ static const struct wl_registry_listener registry_listener = {registry_handle_gl
 #endif
 
 static void demo_init(struct VulkanDSL *vulkanDSL) {
-    vec3 eye = {0.0f, 3.0f, 5.0f};
+    vec3 eye = {0.0f, 4.5f, 6.5f};
     vec3 origin = {0, 0, 0};
     vec3 up = {0.0f, 1.0f, 0.0};
 
@@ -2975,8 +3057,8 @@ static void demo_init(struct VulkanDSL *vulkanDSL) {
     vulkanDSL->frameCount = INT32_MAX;
     /* Autodetect suitable / best GPU by default */
     vulkanDSL->gpu_number = -1;
-    vulkanDSL->width = 500;
-    vulkanDSL->height = 500;
+    vulkanDSL->width = 10;
+    vulkanDSL->height = 10;
 
     demo_init_vk(vulkanDSL);
 
@@ -3022,7 +3104,8 @@ void VulkanDSL__setSize(struct VulkanDSL *vulkanDSL, int32_t width, int32_t heig
     demo_resize(vulkanDSL);
 }
 
-void VulkanDSL__freeResources() {
+void VulkanDSL__freeResources(struct VulkanDSL *vulkanDSL) {
+    AssetsFetcher__reset(&vulkanDSL->assetsFetcher);
     for (int i = 0; i < DEMO_TEXTURE_COUNT; i++) {
         free(tex_files[i]);
     }

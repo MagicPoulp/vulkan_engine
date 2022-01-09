@@ -22,11 +22,8 @@ void createSurface(ANativeWindow* window, AAssetManager* assetManager) {
 void main_android(struct ANativeWindow* window, AAssetManager* assetManager) {
     program = Program__create();
     program->vulkanDSL->window = window;
-    program->assetsFetcher.assetManager = assetManager;
-    tinyobj_attrib_t outAttrib;
-    AssetsFetcher__loadObj(&program->assetsFetcher, "meshes/textPanel.obj", &outAttrib);
-    vulkanDSL_main(program->vulkanDSL, &program->assetsFetcher, "textures");
-    tinyobj_attrib_free(&outAttrib);
+    program->vulkanDSL->assetsFetcher.assetManager = assetManager;
+    vulkanDSL_main(program->vulkanDSL, &program->vulkanDSL->assetsFetcher, "textures");
 }
 
 void demoDestroy() {
