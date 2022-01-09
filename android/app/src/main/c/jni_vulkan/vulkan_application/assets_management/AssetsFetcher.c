@@ -13,12 +13,13 @@ char *meshes_files_short[] = { "textPanel.obj" };
 void AssetsFetcher__init(struct AssetsFetcher* self) {
     self->tex_files_short = tex_files_short;
     self->meshes_files_short = meshes_files_short;
-    self->outAttribAllocated = false;
+    self->attribAllocated = false;
 }
 
 void AssetsFetcher__reset(struct AssetsFetcher* self) {
-    if (self->outAttribAllocated) {
-        tinyobj_attrib_free(self->outAttrib);
+    if (self->attribAllocated) {
+        tinyobj_attrib_free(&self->attrib);
+        self->attribAllocated = false;
     }
 }
 
@@ -27,7 +28,7 @@ void AssetsFetcher__reset(struct AssetsFetcher* self) {
  num_face = num faces * 3
  num_face_num_verts = num faces
  */
-void AssetsFetcher__loadObj(struct AssetsFetcher* self, const char* filename, tinyobj_attrib_t *outAttrib) {
+void AssetsFetcher__loadObj(struct AssetsFetcher* self, const char* filename, tinyobj_attrib_t **outAttrib) {
     AssetsFetcher__reset(self);
     float bmin[3];
     float bmax[3];
@@ -55,7 +56,7 @@ void get_file_data(
 }
 
 // bmax, bmin give the dimensions in order to scale the object in the world
-int AssetsFetcher__LoadObjAndConvert(struct AssetsFetcher* self, float bmin[3], float bmax[3], const char* filename, struct ObjAsset* obj, tinyobj_attrib_t *outAttrib) {
+int AssetsFetcher__LoadObjAndConvert(struct AssetsFetcher* self, float bmin[3], float bmax[3], const char* filename, struct ObjAsset* obj, tinyobj_attrib_t **outAttrib) {
     tinyobj_attrib_t attrib;
     tinyobj_shape_t* shapes = NULL;
     size_t num_shapes;
@@ -70,8 +71,8 @@ int AssetsFetcher__LoadObjAndConvert(struct AssetsFetcher* self, float bmin[3], 
             return 0;
         }
 
-        self->outAttrib = outAttrib;
-        self->outAttribAllocated = true;
+        self->attrib = attrib;
+        self->attribAllocated = true;
 
         printf("# of shapes    = %d\n", (int)num_shapes);
         printf("# of materials = %d\n", (int)num_materials);
@@ -203,7 +204,7 @@ int AssetsFetcher__LoadObjAndConvert(struct AssetsFetcher* self, float bmin[3], 
            (double)bmax[2]);
 
     //tinyobj_attrib_free(&attrib);
-    *outAttrib = attrib;
+    *outAttrib = &self->attrib;
     tinyobj_shapes_free(shapes, num_shapes);
     tinyobj_materials_free(materials, num_materials);
 

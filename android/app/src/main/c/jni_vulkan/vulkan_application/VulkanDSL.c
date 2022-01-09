@@ -427,10 +427,11 @@ void VulkanDSL__draw_build_cmd(struct VulkanDSL *vulkanDSL, VkCommandBuffer cmd_
     }
 
     VkBuffer vertexBuffers[] = { vulkanDSL->swapchain_image_resources[0].vertex_buffer };
+    VkBuffer b = vertexBuffers[0];
     VkDeviceSize offsets[] = {0};
-    //vkCmdBindVertexBuffers(cmd_buf, 0, 1, vertexBuffers, offsets);
+    vkCmdBindVertexBuffers(cmd_buf, 0, 1, vertexBuffers, offsets);
 
-    int sizeVertices = vulkanDSL->assetsFetcher.outAttrib->num_vertices * sizeof(vulkanDSL->assetsFetcher.outAttrib->vertices[0]);
+    int sizeVertices = vulkanDSL->assetsFetcher.attrib.num_vertices * sizeof(vulkanDSL->assetsFetcher.attrib.vertices[0]);
     //vkCmdDraw(cmd_buf, sizeVertices, 1, 0, 0);
     vkCmdDraw(cmd_buf, 12 * 3, 1, 0, 0);
 
@@ -1977,6 +1978,9 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
     demo_prepare_depth(vulkanDSL);
     demo_prepare_textures(vulkanDSL);
     demo_prepare_cube_data_buffers(vulkanDSL);
+    tinyobj_attrib_t* outAttrib;
+    AssetsFetcher__loadObj(&vulkanDSL->assetsFetcher, "meshes/textPanel.obj", &outAttrib);
+    VulkanDSL__prepare_vertex_buffer(vulkanDSL, outAttrib);
 
     demo_prepare_descriptor_layout(vulkanDSL);
     demo_prepare_render_pass(vulkanDSL);
@@ -3071,10 +3075,6 @@ void setTextures(struct AssetsFetcher *assetsFetcher, const char* texturesPath) 
 
 void vulkanDSL_main(struct VulkanDSL *vulkanDSL, struct AssetsFetcher *assetsFetcher, const char* assetsPath) {
     setTextures(assetsFetcher, assetsPath);
-
-    tinyobj_attrib_t outAttrib;
-    AssetsFetcher__loadObj(&vulkanDSL->assetsFetcher, "meshes/textPanel.obj", &outAttrib);
-    VulkanDSL__prepare_vertex_buffer(vulkanDSL, &outAttrib);
 
     demo_init(vulkanDSL);
 
