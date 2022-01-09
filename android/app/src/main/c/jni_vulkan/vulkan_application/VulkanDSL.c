@@ -393,16 +393,8 @@ void VulkanDSL__draw_build_cmd(struct VulkanDSL *vulkanDSL, VkCommandBuffer cmd_
                             &vulkanDSL->swapchain_image_resources[vulkanDSL->current_buffer].descriptor_set, 0, NULL);
     VkViewport viewport;
     memset(&viewport, 0, sizeof(viewport));
-    float viewport_dimension;
-    if (vulkanDSL->width < vulkanDSL->height) {
-        viewport_dimension = (float)vulkanDSL->width;
-        viewport.y = (vulkanDSL->height - vulkanDSL->width) / 2.0f;
-    } else {
-        viewport_dimension = (float)vulkanDSL->height;
-        viewport.x = (vulkanDSL->width - vulkanDSL->height) / 2.0f;
-    }
-    viewport.height = viewport_dimension;
-    viewport.width = viewport_dimension;
+    viewport.height = vulkanDSL->height;
+    viewport.width = vulkanDSL->width;
     viewport.minDepth = (float)0.0f;
     viewport.maxDepth = (float)1.0f;
     vkCmdSetViewport(cmd_buf, 0, 1, &viewport);
@@ -3065,8 +3057,8 @@ static void demo_init(struct VulkanDSL *vulkanDSL) {
     vulkanDSL->frameCount = INT32_MAX;
     /* Autodetect suitable / best GPU by default */
     vulkanDSL->gpu_number = -1;
-    vulkanDSL->width = 500;
-    vulkanDSL->height = 500;
+    vulkanDSL->width = 10;
+    vulkanDSL->height = 10;
 
     demo_init_vk(vulkanDSL);
 

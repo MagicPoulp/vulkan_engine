@@ -23,12 +23,12 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         // solution to superpose the camera and the Vulkan surface
-        val sfvTrack = findViewById<SurfaceView>(R.id.myVulkanSurfaceView)
+        //val sfvTrack = findViewById<SurfaceView>(R.id.myVulkanSurfaceView)
         //sfvTrack.setZOrderOnTop(true) // not needed
-        sfvTrack.setZOrderMediaOverlay(true)
+        //sfvTrack.setZOrderMediaOverlay(true)
 
-        val sfhTrackHolder = sfvTrack.holder
-        sfhTrackHolder.setFormat(PixelFormat.TRANSPARENT)
+       // val sfhTrackHolder = sfvTrack.holder
+        //sfhTrackHolder.setFormat(PixelFormat.TRANSPARENT)
 
         // https://www.titanwolf.org/Network/q/069ee91e-3ffe-4dd6-ad79-e0e63922c0ac/y
         ActivityCompat.requestPermissions(this,
@@ -50,10 +50,10 @@ class MainActivity : AppCompatActivity() {
             .requireLensFacing(CameraSelector.LENS_FACING_BACK)
             .build()
 
-        val previewView = findViewById<PreviewView>(R.id.previewView)
-        preview.setSurfaceProvider(previewView.surfaceProvider)
+        //val previewView = findViewById<PreviewView>(R.id.previewView)
+        //preview.setSurfaceProvider(previewView.surfaceProvider)
 
-        cameraProvider.bindToLifecycle(this as LifecycleOwner, cameraSelector, preview)
+        //cameraProvider.bindToLifecycle(this as LifecycleOwner, cameraSelector, preview)
     }
 
 }
