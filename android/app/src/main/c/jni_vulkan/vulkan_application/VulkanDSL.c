@@ -1477,6 +1477,10 @@ void VulkanDSL__prepare_vertex_buffer(struct VulkanDSL *vulkanDSL, tinyobj_attri
     int sizeVertices = vulkanDSL->assetsFetcher.arraySize * sizeof(vulkanDSL->assetsFetcher.triangles[0]);
     buf_info.size = sizeVertices;
 
+    vulkanDSL->vi_binding.binding = 0;
+    vulkanDSL->vi_binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+    vulkanDSL->vi_binding.stride = sizeof(float) * 3;
+
     for (unsigned int i = 0; i < vulkanDSL->swapchainImageCount; i++) {
         err = vkCreateBuffer(vulkanDSL->device, &buf_info, NULL, &vulkanDSL->swapchain_image_resources[i].vertex_buffer);
         assert(!err);
@@ -1730,6 +1734,15 @@ static void demo_prepare_pipeline(struct VulkanDSL *vulkanDSL) {
 
     memset(&vi, 0, sizeof(vi));
     vi.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    bool include_vi = true; // use vertex as input
+    if (include_vi) {
+        vi.pNext = NULL;
+        vi.flags = 0;
+        vi.vertexBindingDescriptionCount = 1;
+        vi.pVertexBindingDescriptions = &vulkanDSL->vi_binding;
+        vi.vertexAttributeDescriptionCount = 0;
+        vi.pVertexAttributeDescriptions = &vulkanDSL->vi_attribs;
+    }
 
     memset(&ia, 0, sizeof(ia));
     ia.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;

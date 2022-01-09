@@ -224,6 +224,9 @@ typedef struct {
 } SwapchainImageResources;
 
 struct VulkanDSL {
+    VkVertexInputBindingDescription vi_binding;
+    VkVertexInputAttributeDescription vi_attribs[2];
+
     struct AssetsFetcher assetsFetcher;
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
     struct ANativeWindow *window;
@@ -300,7 +303,6 @@ struct VulkanDSL {
 
     struct {
         VkFormat format;
-
         VkImage image;
         VkMemoryAllocateInfo mem_alloc;
         VkDeviceMemory mem;

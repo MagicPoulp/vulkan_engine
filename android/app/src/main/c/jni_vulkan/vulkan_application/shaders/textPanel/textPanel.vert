@@ -34,10 +34,7 @@ layout (location = 1) out vec3 frag_pos;
 void main()
 {
     //texcoord = ubuf.attr[gl_VertexIndex];
-    //gl_Position = ubuf.MVP * vertex;
-    //gl_Position = ubuf.MVP * vec4(vertex, 1);
-    //gl_Position = ubuf.MVP * vec4(vec3(vertices[gl_VertexIndex]), 1);
-    gl_Position = ubuf.MVP * ubuf.position[gl_VertexIndex];
+    gl_Position = ubuf.MVP * vec4(vertex, 1);
     // works
     //gl_Position = ubuf.MVP * ubuf.position[gl_VertexIndex];
     frag_pos = gl_Position.xyz;
