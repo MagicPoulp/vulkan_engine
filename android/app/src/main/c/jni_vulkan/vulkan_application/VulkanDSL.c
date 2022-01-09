@@ -1441,6 +1441,7 @@ void demo_prepare_cube_data_buffers(struct VulkanDSL *vulkanDSL) {
         err = vkAllocateMemory(vulkanDSL->device, &mem_alloc, NULL, &vulkanDSL->swapchain_image_resources[i].uniform_memory);
         assert(!err);
 
+        // map to the application address space
         err = vkMapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_memory, 0, VK_WHOLE_SIZE, 0,
                           &vulkanDSL->swapchain_image_resources[i].uniform_memory_ptr);
         assert(!err);
@@ -1453,6 +1454,8 @@ void demo_prepare_cube_data_buffers(struct VulkanDSL *vulkanDSL) {
     }
 }
 
+// here we define the in variables in the shader that have the tag "binding"
+// layout (binding = 1)
 static void demo_prepare_descriptor_layout(struct VulkanDSL *vulkanDSL) {
     const VkDescriptorSetLayoutBinding layout_bindings[2] = {
             [0] =
