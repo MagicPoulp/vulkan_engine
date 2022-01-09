@@ -3049,7 +3049,7 @@ static const struct wl_registry_listener registry_listener = {registry_handle_gl
 #endif
 
 static void demo_init(struct VulkanDSL *vulkanDSL) {
-    vec3 eye = {0.0f, 3.0f, 5.0f};
+    vec3 eye = {0.0f, 4.5f, 6.5f};
     vec3 origin = {0, 0, 0};
     vec3 up = {0.0f, 1.0f, 0.0};
 
