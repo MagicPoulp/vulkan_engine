@@ -80,3 +80,14 @@ https://www.codementor.io/@michaelsafyan/object-oriented-programming-in-c-du1081
 ## draw text
 with textures or with path drawing
 https://community.khronos.org/t/drawing-graphical-text-in-vulkan/105462
+
+# Blender to make a .obj
+on the cube, add a bevel transform to make stairs borders
+use remesh modifier to make round corners
+use multiple ones
+
+use the knife to draw a rectangle on a surface with more vertices
+
+n to show the transform panel
+how to make exact .obj export
+uncheck all except triangulate

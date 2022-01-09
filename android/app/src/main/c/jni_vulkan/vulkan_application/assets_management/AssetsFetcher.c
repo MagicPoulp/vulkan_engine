@@ -7,6 +7,21 @@
 #include <android_native_app_glue.h>
 #endif
 
+/*
+For the hello world texture
+These coordinates should have UV equal to as follows
+ (in a rectangle on the surface built using the knife)
+ The coordinates are shown in the transform windows (press N), in global coordinates
+v 2.596588 0.224669 0.568969
+0 1
+v 2.585544 0.224669 -0.567743
+0 0
+ v -2.533237 0.224669 -0.552677
+1 0
+v -2.529603 0.224669 0.576378
+1 1
+ */
+
 char *tex_files_short[] = { "helloWorld" };
 char *meshes_files_short[] = { "textPanel.obj" };
 
