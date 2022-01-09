@@ -502,6 +502,11 @@ void demo_update_data_buffer(struct VulkanDSL *vulkanDSL, double elapsedTimeS) {
 
     // Rotate around the Y axis
     mat4x4_dup(Model, vulkanDSL->model_matrix);
+
+    mat4x4_rotate_X(vulkanDSL->model_matrix, Model, (float)degreesToRadians(5));
+    //mat4x4_orthonormalize(vulkanDSL->model_matrix, vulkanDSL->model_matrix);
+    mat4x4_dup(Model, vulkanDSL->model_matrix);
+
     // degrees per second
     double movedAngle = vulkanDSL->spin_angle * elapsedTimeS;
     //__android_log_print(ANDROID_LOG_INFO, "LOG", "%lf - &lf - %lf", vulkanDSL->spin_angle, elapsedTimeS, movedAngle);
@@ -3051,7 +3056,7 @@ static const struct wl_registry_listener registry_listener = {registry_handle_gl
 static void demo_init(struct VulkanDSL *vulkanDSL) {
     vec3 eye = {0.0f, 4.5f, 6.5f};
     vec3 origin = {0, 0, 0};
-    vec3 up = {0.0f, 1.0f, 0.0};
+    vec3 up = {0.0f, 1.0f, 1.0};
 
     vulkanDSL->presentMode = VK_PRESENT_MODE_FIFO_KHR;
     vulkanDSL->frameCount = INT32_MAX;

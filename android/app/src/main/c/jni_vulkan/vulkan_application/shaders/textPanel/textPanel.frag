@@ -5,6 +5,7 @@ layout (binding = 1) uniform sampler2D tex;
 
 layout (location = 0) in vec4 texcoord;
 layout (location = 1) in vec3 frag_pos;
+layout (location = 2) in vec3 frag_pos_model;
 layout (location = 0) out vec4 uFragColor;
 
 const vec3 lightDir= vec3(0.424, 0.566, 0.707);
@@ -33,7 +34,8 @@ void main() {
    // 0, 32, 246, the colour was picked using Digital Coulour Meter
    vec4 blue = vec4(0, 1.0 * 32 / 255, 1.0 * 246 / 255, 1);
    //uFragColor = vec4((light * blue).xyz, 1);
-   float t = insideBox3D(frag_pos, bottomLeft, topRight);
+   float t = insideBox3D(frag_pos_model, bottomLeft, topRight);
+   //float t = 0;
    //vec4 colorWithTexture = light * texture(tex, texcoord.xy);
    vec4 colorWithTexture =  vec4(0, 1.0, 0, 1);
    uFragColor = t * colorWithTexture + (1 - t) * blue;

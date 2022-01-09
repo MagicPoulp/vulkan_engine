@@ -30,6 +30,7 @@ layout(std140, binding = 0) uniform buf {
 layout (location = 0) in vec3 pos;
 layout (location = 0) out vec4 texcoord;
 layout (location = 1) out vec3 frag_pos;
+layout (location = 2) out vec3 frag_pos_model;
 
 void main()
 {
@@ -42,4 +43,5 @@ void main()
     frag_pos = gl_Position.xyz;
     //texcoord = ubuf.attr[gl_VertexIndex];
     texcoord = vec4(.5,.5,0,0);
+    frag_pos_model = pos;
 }
