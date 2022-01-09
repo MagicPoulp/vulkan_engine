@@ -1482,6 +1482,13 @@ void VulkanDSL__prepare_vertex_buffer(struct VulkanDSL *vulkanDSL, tinyobj_attri
     vulkanDSL->vi_binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
     vulkanDSL->vi_binding.stride = sizeof(float) * 3;
 
+    // a color format is used for vec3, see this link here
+    // https://vulkan-tutorial.com/Vertex_buffers/Vertex_input_description#page_Attribute-descriptions
+    vulkanDSL->vi_attribs[0].binding = 0;
+    vulkanDSL->vi_attribs[0].location = 0;
+    vulkanDSL->vi_attribs[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+    vulkanDSL->vi_attribs[0].offset = 0;
+
     for (unsigned int i = 0; i < vulkanDSL->swapchainImageCount; i++) {
         err = vkCreateBuffer(vulkanDSL->device, &buf_info, NULL, &vulkanDSL->swapchain_image_resources[i].vertex_buffer);
         assert(!err);
@@ -1741,7 +1748,7 @@ static void demo_prepare_pipeline(struct VulkanDSL *vulkanDSL) {
         vi.flags = 0;
         vi.vertexBindingDescriptionCount = 1;
         vi.pVertexBindingDescriptions = &vulkanDSL->vi_binding;
-        vi.vertexAttributeDescriptionCount = 0;
+        vi.vertexAttributeDescriptionCount = 1;
         vi.pVertexAttributeDescriptions = &vulkanDSL->vi_attribs;
     }
 
