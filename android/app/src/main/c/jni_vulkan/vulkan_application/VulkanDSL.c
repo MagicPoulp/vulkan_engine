@@ -433,7 +433,7 @@ void VulkanDSL__draw_build_cmd(struct VulkanDSL *vulkanDSL, VkCommandBuffer cmd_
 
     int sizeVertices = vulkanDSL->assetsFetcher.arraySize * sizeof(vulkanDSL->assetsFetcher.triangles[0]);
 
-    vkCmdDraw(cmd_buf, sizeVertices, 1, 0, 0);
+    vkCmdDraw(cmd_buf, vulkanDSL->assetsFetcher.arraySize, 1, 0, 0);
     //vkCmdDraw(cmd_buf, 12 * 3, 1, 0, 0);
 
     if (vulkanDSL->validate) {
