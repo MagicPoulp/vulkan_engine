@@ -100,7 +100,6 @@ int AssetsFetcher__LoadObjAndConvert(struct AssetsFetcher* self, float bmin[3], 
         size_t stride = 9;
 
         size_t arraySize = num_triangles * 3 * 3;
-        arraySize = 1 * 3 * 3; // DEBUG
         self->arraySize = arraySize;
         self->triangles = (float*)malloc(sizeof(float) * arraySize);
 
@@ -146,9 +145,6 @@ int AssetsFetcher__LoadObjAndConvert(struct AssetsFetcher* self, float bmin[3], 
                     self->triangles[9*i + 3*p + 1] = v[p][1];
                     self->triangles[9*i + 3*p + 2] = v[p][2];
                 }
-                tinyobj_shapes_free(shapes, num_shapes);
-                tinyobj_materials_free(materials, num_materials);
-                return 1; // DEBUG
 /*
                 if (attrib.num_normals > 0) {
                     int f0 = idx0.vn_idx;
