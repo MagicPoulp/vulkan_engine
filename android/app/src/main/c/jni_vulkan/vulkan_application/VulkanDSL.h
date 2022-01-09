@@ -214,7 +214,10 @@ typedef struct {
     VkCommandBuffer graphics_to_present_cmd;
     VkImageView view;
     VkBuffer uniform_buffer;
+    VkBuffer vertex_buffer;
     VkDeviceMemory uniform_memory;
+    VkDeviceMemory vertex_memory;
+    void *vertex_memory_ptr;
     void *uniform_memory_ptr;
     VkFramebuffer framebuffer;
     VkDescriptorSet descriptor_set;
@@ -357,5 +360,6 @@ void demo_resize(struct VulkanDSL *vulkanDSL);
 void VulkanDSL__setSize(struct VulkanDSL *vulkanDSL, int32_t width, int32_t height);
 void VulkanDSL__freeResources(void);
 void read_shader(const char* filename, uint32_t* vs_code, size_t *length1);
+void VulkanDSL__prepare_vertex_buffer(struct VulkanDSL *vulkanDSL, tinyobj_attrib_t *outAttrib);
 
 #endif
