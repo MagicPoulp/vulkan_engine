@@ -77,3 +77,6 @@ Geometry can be mad in the software called Blender, then exported as a .obj
 ##OOP in C
 https://www.codementor.io/@michaelsafyan/object-oriented-programming-in-c-du1081gw2
 
+## draw text
+with textures or with path drawing
+https://community.khronos.org/t/drawing-graphical-text-in-vulkan/105462
