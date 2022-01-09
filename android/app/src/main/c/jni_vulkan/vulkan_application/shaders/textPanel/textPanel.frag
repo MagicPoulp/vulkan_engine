@@ -16,5 +16,6 @@ void main() {
    float light = max(0.0, dot(lightDir, normal));
    // 0, 32, 246, the colour was picked using Digital Coulour Meter
    vec4 blue = vec4(0, 1.0 * 32 / 255, 1.0 * 246 / 255, 1);
-   uFragColor = vec4((light * blue).xyz, 1);
+   //uFragColor = vec4((light * blue).xyz, 1);
+   uFragColor = light * texture(tex, texcoord.xy);
 }

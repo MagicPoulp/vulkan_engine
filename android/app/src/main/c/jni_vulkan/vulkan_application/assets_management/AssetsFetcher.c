@@ -7,7 +7,7 @@
 #include <android_native_app_glue.h>
 #endif
 
-char *tex_files_short[] = { "home8" };
+char *tex_files_short[] = { "helloWorld" };
 char *meshes_files_short[] = { "textPanel.obj" };
 
 void AssetsFetcher__init(struct AssetsFetcher* self) {
