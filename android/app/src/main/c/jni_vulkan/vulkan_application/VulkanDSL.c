@@ -428,11 +428,11 @@ void VulkanDSL__draw_build_cmd(struct VulkanDSL *vulkanDSL, VkCommandBuffer cmd_
 
     VkBuffer vertexBuffers[] = { vulkanDSL->swapchain_image_resources[0].vertex_buffer };
     VkDeviceSize offsets[] = {0};
-    vkCmdBindVertexBuffers(cmd_buf, 0, 1, vertexBuffers, offsets);
+    //vkCmdBindVertexBuffers(cmd_buf, 0, 1, vertexBuffers, offsets);
 
     int sizeVertices = vulkanDSL->assetsFetcher.outAttrib->num_vertices * sizeof(vulkanDSL->assetsFetcher.outAttrib->vertices[0]);
-    vkCmdDraw(cmd_buf, sizeVertices, 1, 0, 0);
-    //vkCmdDraw(cmd_buf, 12 * 3, 1, 0, 0);
+    //vkCmdDraw(cmd_buf, sizeVertices, 1, 0, 0);
+    vkCmdDraw(cmd_buf, 12 * 3, 1, 0, 0);
 
     if (vulkanDSL->validate) {
         vulkanDSL->CmdEndDebugUtilsLabelEXT(cmd_buf);
@@ -2150,6 +2150,9 @@ void demo_resize(struct VulkanDSL *vulkanDSL) {
         vkDestroyBuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_buffer, NULL);
         vkUnmapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_memory);
         vkFreeMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_memory, NULL);
+        //vkDestroyBuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_buffer, NULL);
+        //vkUnmapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_memory);
+        //vkFreeMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_memory, NULL);
     }
     vkDestroyCommandPool(vulkanDSL->device, vulkanDSL->cmd_pool, NULL);
     vulkanDSL->cmd_pool = VK_NULL_HANDLE;
@@ -3071,7 +3074,7 @@ void vulkanDSL_main(struct VulkanDSL *vulkanDSL, struct AssetsFetcher *assetsFet
 
     tinyobj_attrib_t outAttrib;
     AssetsFetcher__loadObj(&vulkanDSL->assetsFetcher, "meshes/textPanel.obj", &outAttrib);
-    VulkanDSL__prepare_vertex_buffer(vulkanDSL, &outAttrib);
+    //VulkanDSL__prepare_vertex_buffer(vulkanDSL, &outAttrib);
 
     demo_init(vulkanDSL);
 
