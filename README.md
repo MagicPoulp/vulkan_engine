@@ -1,6 +1,3 @@
-# Notes
-
-The image is grey because gamma and cHRM are used, shown on 32 bits via the command xxd on the png.
 
 # Setup
 
@@ -77,6 +74,9 @@ Geometry can be mad in the software called Blender, then exported as a .obj
 ##OOP in C
 https://www.codementor.io/@michaelsafyan/object-oriented-programming-in-c-du1081gw2
 
+# PNG on iOS
+The image is grey because gamma and cHRM are used, shown on 32 bits via the command xxd on the png.
+
 ## draw text
 with textures or with path drawing
 https://community.khronos.org/t/drawing-graphical-text-in-vulkan/105462
@@ -91,3 +91,5 @@ use the knife to draw a rectangle on a surface with more vertices
 n to show the transform panel
 how to make exact .obj export
 uncheck all except triangulate
+
+add the apply transform to get the smooth back and with less decimals Y is still fine

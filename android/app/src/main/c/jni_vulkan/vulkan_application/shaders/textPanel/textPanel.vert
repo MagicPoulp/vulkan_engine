@@ -40,5 +40,6 @@ void main()
     // works
     //gl_Position = ubuf.MVP * ubuf.position[gl_VertexIndex];
     frag_pos = gl_Position.xyz;
-    texcoord = ubuf.attr[gl_VertexIndex];
+    //texcoord = ubuf.attr[gl_VertexIndex];
+    texcoord = vec4(.5,.5,0,0);
 }
