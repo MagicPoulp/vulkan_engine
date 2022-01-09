@@ -12,5 +12,6 @@ layout (location = 0) out vec3 frag_pos;
 void main()
 {
    gl_Position = ubuf.MVP * ubuf.position[gl_VertexIndex];
+   // gl_Position = ubuf.position[gl_VertexIndex];
    frag_pos = gl_Position.xyz;
 }

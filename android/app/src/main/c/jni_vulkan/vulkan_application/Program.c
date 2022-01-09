@@ -23,6 +23,7 @@ void Program__reset(struct Program* self) {
 
 void Program__destroy(struct Program* self) {
     if (self) {
+        AssetsFetcher__reset(&self->assetsFetcher);
         Program__reset(self);
         free(self->vulkanDSL);
         free(self);

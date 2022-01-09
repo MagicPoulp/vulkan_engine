@@ -13,6 +13,13 @@ char *meshes_files_short[] = { "textPanel.obj" };
 void AssetsFetcher__init(struct AssetsFetcher* self) {
     self->tex_files_short = tex_files_short;
     self->meshes_files_short = meshes_files_short;
+    self->outAttribAllocated = false;
+}
+
+void AssetsFetcher__reset(struct AssetsFetcher* self) {
+    if (self->outAttribAllocated) {
+        tinyobj_attrib_free(self->outAttrib);
+    }
 }
 
 /*
@@ -21,6 +28,7 @@ void AssetsFetcher__init(struct AssetsFetcher* self) {
  num_face_num_verts = num faces
  */
 void AssetsFetcher__loadObj(struct AssetsFetcher* self, const char* filename, tinyobj_attrib_t *outAttrib) {
+    AssetsFetcher__reset(self);
     float bmin[3];
     float bmax[3];
     AAsset* asset = AAssetManager_open(

@@ -7,6 +7,7 @@
 
 #include <stddef.h>
 #include <utils/tinyobj_loader_c.h>
+#include <stdbool.h>
 
 #define DEMO_TEXTURE_COUNT 1
 
@@ -22,10 +23,13 @@ struct AssetsFetcher {
     // only for png files, and on iOS the background in the header of the PNG is not interpreted
     char** tex_files_short;
     char** meshes_files_short;
+    tinyobj_attrib_t *outAttrib;
+    bool outAttribAllocated;
 };
 
 void AssetsFetcher__init(struct AssetsFetcher* self);
-void AssetsFetcher__loadObj(struct AssetsFetcher* self, const char* filename, tinyobj_attrib_t *outAttrib);
+void AssetsFetcher__reset(struct AssetsFetcher* self);
+        void AssetsFetcher__loadObj(struct AssetsFetcher* self, const char* filename, tinyobj_attrib_t *outAttrib);
 int AssetsFetcher__LoadObjAndConvert(
         float bmin[3], float bmax[3], const char* filename, struct ObjAsset* obj, tinyobj_attrib_t *outAttrib);
 void get_file_data(

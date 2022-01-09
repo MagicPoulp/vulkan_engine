@@ -3010,6 +3010,8 @@ void setTextures(struct AssetsFetcher *assetsFetcher, const char* texturesPath) 
 
 void vulkanDSL_main(struct VulkanDSL *vulkanDSL, struct AssetsFetcher *assetsFetcher, const char* assetsPath) {
     setTextures(assetsFetcher, assetsPath);
+    tinyobj_attrib_t outAttrib;
+    AssetsFetcher__loadObj(&program->assetsFetcher, "meshes/textPanel.obj", &outAttrib);
 
     demo_init(vulkanDSL);
 
