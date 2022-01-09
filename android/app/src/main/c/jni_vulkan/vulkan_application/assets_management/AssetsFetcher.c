@@ -19,6 +19,7 @@ void AssetsFetcher__init(struct AssetsFetcher* self) {
 void AssetsFetcher__reset(struct AssetsFetcher* self) {
     if (self->attribAllocated) {
         tinyobj_attrib_free(&self->attrib);
+        free(self->triangles);
         self->attribAllocated = false;
     }
 }
@@ -98,6 +99,9 @@ int AssetsFetcher__LoadObjAndConvert(struct AssetsFetcher* self, float bmin[3], 
         size_t num_triangles = attrib.num_face_num_verts;
         size_t stride = 9;
 
+        self->arraySize = num_triangles * 3 * 3;
+        self->triangles = (float*)malloc(sizeof(float) * self->arraySize);
+
         //vb = (float*)malloc(sizeof(float) * stride * num_triangles * 3);
 
         for (i = 0; i < attrib.num_face_num_verts; i++) {
@@ -132,6 +136,13 @@ int AssetsFetcher__LoadObjAndConvert(struct AssetsFetcher* self, float bmin[3], 
                     bmax[k] = (v[0][k] > bmax[k]) ? v[0][k] : bmax[k];
                     bmax[k] = (v[1][k] > bmax[k]) ? v[1][k] : bmax[k];
                     bmax[k] = (v[2][k] > bmax[k]) ? v[2][k] : bmax[k];
+                }
+
+                // one triangle is made of v[0], v[1], v[2], and each is made of x, y, z
+                for (int p =0; p < 3; p++) {
+                    self->triangles[i + 3*p] = v[p][0];
+                    self->triangles[i + 3*p + 1] = v[p][1];
+                    self->triangles[i + 3*p + 2] = v[p][2];
                 }
 /*
                 if (attrib.num_normals > 0) {

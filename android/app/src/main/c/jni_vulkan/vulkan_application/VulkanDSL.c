@@ -431,9 +431,10 @@ void VulkanDSL__draw_build_cmd(struct VulkanDSL *vulkanDSL, VkCommandBuffer cmd_
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(cmd_buf, 0, 1, vertexBuffers, offsets);
 
-    int sizeVertices = vulkanDSL->assetsFetcher.attrib.num_vertices * sizeof(vulkanDSL->assetsFetcher.attrib.vertices[0]);
-    //vkCmdDraw(cmd_buf, sizeVertices, 1, 0, 0);
-    vkCmdDraw(cmd_buf, 12 * 3, 1, 0, 0);
+    int sizeVertices = vulkanDSL->assetsFetcher.arraySize * sizeof(vulkanDSL->assetsFetcher.triangles[0]);
+
+    vkCmdDraw(cmd_buf, sizeVertices, 1, 0, 0);
+    //vkCmdDraw(cmd_buf, 12 * 3, 1, 0, 0);
 
     if (vulkanDSL->validate) {
         vulkanDSL->CmdEndDebugUtilsLabelEXT(cmd_buf);
@@ -1473,7 +1474,7 @@ void VulkanDSL__prepare_vertex_buffer(struct VulkanDSL *vulkanDSL, tinyobj_attri
     memset(&buf_info, 0, sizeof(buf_info));
     buf_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     buf_info.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-    int sizeVertices = attrib->num_vertices * sizeof(attrib->vertices[0]);
+    int sizeVertices = vulkanDSL->assetsFetcher.arraySize * sizeof(vulkanDSL->assetsFetcher.triangles[0]);
     buf_info.size = sizeVertices;
 
     for (unsigned int i = 0; i < vulkanDSL->swapchainImageCount; i++) {
@@ -1500,7 +1501,7 @@ void VulkanDSL__prepare_vertex_buffer(struct VulkanDSL *vulkanDSL, tinyobj_attri
                           &vulkanDSL->swapchain_image_resources[i].vertex_memory_ptr);
         assert(!err);
 
-        memcpy(vulkanDSL->swapchain_image_resources[i].vertex_memory_ptr, &attrib->vertices, sizeVertices);
+        memcpy(vulkanDSL->swapchain_image_resources[i].vertex_memory_ptr, vulkanDSL->assetsFetcher.triangles, sizeVertices);
 
         err = vkBindBufferMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_buffer,
                                  vulkanDSL->swapchain_image_resources[i].vertex_memory, 0);

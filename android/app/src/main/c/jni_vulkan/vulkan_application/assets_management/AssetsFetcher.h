@@ -24,7 +24,9 @@ struct AssetsFetcher {
     char** tex_files_short;
     char** meshes_files_short;
     tinyobj_attrib_t attrib;
+    float *triangles; // 3 points * 3 elements (x, y, z) * num_triangles
     bool attribAllocated;
+    size_t arraySize;
 };
 
 void AssetsFetcher__init(struct AssetsFetcher* self);
