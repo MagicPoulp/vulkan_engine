@@ -140,9 +140,9 @@ int AssetsFetcher__LoadObjAndConvert(struct AssetsFetcher* self, float bmin[3], 
 
                 // one triangle is made of v[0], v[1], v[2], and each is made of x, y, z
                 for (int p =0; p < 3; p++) {
-                    self->triangles[i + 3*p] = v[p][0];
-                    self->triangles[i + 3*p + 1] = v[p][1];
-                    self->triangles[i + 3*p + 2] = v[p][2];
+                    self->triangles[9*i + 3*p] = v[p][0];
+                    self->triangles[9*i + 3*p + 1] = v[p][1];
+                    self->triangles[9*i + 3*p + 2] = v[p][2];
                 }
 /*
                 if (attrib.num_normals > 0) {
