@@ -8,7 +8,14 @@ layout (location = 1) in vec3 frag_pos;
 layout (location = 2) in vec3 frag_pos_model;
 layout (location = 0) out vec4 uFragColor;
 
-const vec3 lightDir= vec3(0.424, 0.566, 0.707);
+const vec3 lightDir = vec3(0.424, 0.566, 0.707);
+
+
+//vec3 bottomLeft = vec3(2.585544- 0.1, 0.224669 - 0.1, -0.567743- 0.1);
+//vec3 topRight = vec3(-2.529603+ 0.1, 0.224669 + 0.1, 0.576378+ 0.1);
+float shift = 3;
+vec3 bottomLeft = vec3(2.585544- shift, 0.224669 - shift, -0.567743 - shift);
+vec3 topRight = vec3(-2.529603+ shift, 0.224669 + shift, 0.576378 + shift);
 
 // we must avoid if conditions in shaders by using this trick
 // https://stackoverflow.com/questions/12751080/glsl-point-inside-box-test
@@ -22,10 +29,6 @@ float insideBox3D(vec3 v, vec3 bottomLeft, vec3 topRight) {
    vec3 s = step(bottomLeft, v) - step(topRight, v);
    return s.x * s.y * s.z;
 }
-
-vec3 bottomLeft = vec3(2.585544- 0.01, 0.224669 - 0.01, -0.567743- 0.01);
-vec3 topRight = vec3(-2.529603+ 0.01, 0.224669 + 0.01, 0.576378+ 0.01);
-
 void main() {
    vec3 dX = dFdx(frag_pos);
    vec3 dY = dFdy(frag_pos);
