@@ -23,8 +23,8 @@ float insideBox3D(vec3 v, vec3 bottomLeft, vec3 topRight) {
    return s.x * s.y * s.z;
 }
 
-vec3 bottomLeft = vec3(2.585544, 0.224669 - 0.001, -0.567743);
-vec3 topRight = vec3(-2.529603, 0.224669 + 0.001, 0.576378);
+vec3 bottomLeft = vec3(2.585544- 0.01, 0.224669 - 0.01, -0.567743- 0.01);
+vec3 topRight = vec3(-2.529603+ 0.01, 0.224669 + 0.01, 0.576378+ 0.01);
 
 void main() {
    vec3 dX = dFdx(frag_pos);

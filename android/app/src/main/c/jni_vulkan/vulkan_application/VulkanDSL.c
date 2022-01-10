@@ -506,7 +506,7 @@ void demo_update_data_buffer(struct VulkanDSL *vulkanDSL, double elapsedTimeS) {
     double movedAngle = vulkanDSL->spin_angle * elapsedTimeS;
     //__android_log_print(ANDROID_LOG_INFO, "LOG", "%lf - &lf - %lf", vulkanDSL->spin_angle, elapsedTimeS, movedAngle);
     //NSLog(@"%lf", movedAngle);
-    mat4x4_rotate_Y(vulkanDSL->model_matrix, Model, (float)degreesToRadians(movedAngle));
+    mat4x4_rotate_Z(vulkanDSL->model_matrix, Model, (float)degreesToRadians(movedAngle));
     mat4x4_orthonormalize(vulkanDSL->model_matrix, vulkanDSL->model_matrix);
     mat4x4_mul(MVP, VP, vulkanDSL->model_matrix);
 
@@ -3063,7 +3063,7 @@ static void demo_init(struct VulkanDSL *vulkanDSL) {
     demo_init_vk(vulkanDSL);
 
     // degrees per second
-    vulkanDSL->spin_angle = 8.0f;
+    vulkanDSL->spin_angle = 32.0f;
     vulkanDSL->spin_increment = 0.2f;
     vulkanDSL->pause = false;
 
