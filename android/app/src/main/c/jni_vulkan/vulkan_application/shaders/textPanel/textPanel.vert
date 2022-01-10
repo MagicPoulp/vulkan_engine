@@ -42,6 +42,20 @@ void main()
     //gl_Position = ubuf.MVP * ubuf.position[gl_VertexIndex];
     frag_pos = gl_Position.xyz;
     //texcoord = ubuf.attr[gl_VertexIndex];
-    texcoord = vec4(.5,.5,0,0);
+    //texcoord = vec4(.5,.5,0,0);
+
+    texcoord = vec4(0,0,0,0);
+    if (pos == vec3(2.585544, 0.224669, -0.567743)) {
+        texcoord = vec4(0,0,0,0);
+    }
+    if (pos == vec3(-2.529603, 0.224669, -0.567743)) {
+        texcoord = vec4(1,0,0,0);
+    }
+    if (pos == vec3(-2.529603, 0.224669, 0.576378)) {
+        texcoord = vec4(1,1,0,0);
+    }
+    if (pos == vec3(-2.529603, 0.224669, -0.567743)) {
+        texcoord = vec4(1,0,0,0);
+    }
     frag_pos_model = pos;
 }

@@ -45,6 +45,7 @@ void main() {
    float t = insideBox3D(frag_pos_model, bottomLeftBox, topRightBox);
    //float t = 0;
    //vec4 colorWithTexture = light * texture(tex, texcoord.xy);
-   vec4 colorWithTexture =  vec4(0, 1.0, 0, 1);
+   vec4 colorWithTexture = texture(tex, texcoord.xy);
+   //vec4 colorWithTexture =  vec4(0, 1.0, 0, 1);
    uFragColor = t * colorWithTexture + (1 - t) * blue;
 }
