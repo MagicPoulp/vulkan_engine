@@ -46,5 +46,6 @@ void main() {
    vec4 colorWithTexture = texture(tex, texcoord.xy);
 
    // Solution. we only drow inside a box, the rest has blue
-   uFragColor = light * t * colorWithTexture + (1 - t) * blue;
+   uFragColor = light * (t * colorWithTexture + (1 - t) * blue);
+   uFragColor = vec4(uFragColor.xyz, 1); // alpha = 1
 }
