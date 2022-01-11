@@ -71,6 +71,10 @@ void get_file_data(
     *len = obj->length;
 }
 
+bool equal_up_to_decimal(float val1, float val2, int decimal) {
+    return abs(val1 - val2) < 1.0f / pow(10, decimal);
+}
+
 // bmax, bmin give the dimensions in order to scale the object in the world
 int AssetsFetcher__LoadObjAndConvert(struct AssetsFetcher* self, float bmin[3], float bmax[3], const char* filename, struct ObjAsset* obj, tinyobj_attrib_t **outAttrib) {
     tinyobj_attrib_t attrib;
@@ -120,7 +124,7 @@ int AssetsFetcher__LoadObjAndConvert(struct AssetsFetcher* self, float bmin[3], 
 
         //vb = (float*)malloc(sizeof(float) * stride * num_triangles * 3);
 
-        for (i = 0; i < attrib.num_face_num_verts; i++) {
+        for (i = 0; i < attrib.num_face_num_verts; i++) { // for each triangle
             size_t f;
             assert(attrib.face_num_verts[i] % 3 ==
                    0);
@@ -163,33 +167,57 @@ int AssetsFetcher__LoadObjAndConvert(struct AssetsFetcher* self, float bmin[3], 
                     self->triangles[5*3*i + 5*p + 3] = 0;
                     self->triangles[5*3*i + 5*p + 4] = 0;
                     //}
-                    if ( v[p][0] == -2.533237 && v[p][1] == 0.224669 &&  v[p][2] == -0.552677) {
+                    if (idx0.v_idx == 0 || idx1.v_idx == 0 || idx2.v_idx == 0) {
+                        float a1 = v[p][0];
+                    }
+                    if (idx0.v_idx == 5768 || idx1.v_idx == 5768 || idx2.v_idx == 5768) {
+                        float a1 = v[p][0];
+                        float a2 = v[p][1];
+                        float a3 = v[p][2];
+                        float a4 = v[p][0];
+                    }
+                    if (equal_up_to_decimal(v[p][0], -2.533237, 6)
+                        && equal_up_to_decimal(v[p][1], 0.224669, 6)
+                        && equal_up_to_decimal(v[p][2], -0.552677, 6)) {
                         self->triangles[5*3*i + 5*p + 3] = 1;
                         self->triangles[5*3*i + 5*p + 4] = 0;
                     }
-                    if ( v[p][0] == -2.529603 && v[p][1] == 0.224669 &&  v[p][2] == 0.576378) {
+                    if (equal_up_to_decimal(v[p][0], -2.529603, 6)
+                        && equal_up_to_decimal(v[p][1], 0.224669, 6)
+                        && equal_up_to_decimal(v[p][2], 0.576378, 6)) {
                         self->triangles[5*3*i + 5*p + 3] = 1;
                         self->triangles[5*3*i + 5*p + 4] = 1;
                     }
-                    if ( v[p][0] == 2.596588 && v[p][1] == 0.224669 &&  v[p][2] == 0.568969) {
+                    if (equal_up_to_decimal(v[p][0], 2.596588, 6)
+                        && equal_up_to_decimal(v[p][1], 0.224669, 6)
+                        && equal_up_to_decimal(v[p][2], 0.568969, 6)) {
                         self->triangles[5*3*i + 5*p + 3] = 0;
                         self->triangles[5*3*i + 5*p + 4] = 1;
                     }
-            }
+                }
 
 /*
-            if (attrib.num_normals > 0) {
-                int f0 = idx0.vn_idx;
-                int f1 = idx1.vn_idx;
-                int f2 = idx2.vn_idx;
-                if (f0 >= 0 && f1 >= 0 && f2 >= 0) {
-                    assert(f0 < (int)attrib.num_normals);
-                    assert(f1 < (int)attrib.num_normals);
-                    assert(f2 < (int)attrib.num_normals);
-                    for (k = 0; k < 3; k++) {
-                        n[0][k] = attrib.normals[3 * (size_t)f0 + k];
-                        n[1][k] = attrib.normals[3 * (size_t)f1 + k];
-                        n[2][k] = attrib.normals[3 * (size_t)f2 + k];
+                if (attrib.num_normals > 0) {
+                    int f0 = idx0.vn_idx;
+                    int f1 = idx1.vn_idx;
+                    int f2 = idx2.vn_idx;
+                    if (f0 >= 0 && f1 >= 0 && f2 >= 0) {
+                        assert(f0 < (int)attrib.num_normals);
+                        assert(f1 < (int)attrib.num_normals);
+                        assert(f2 < (int)attrib.num_normals);
+                        for (k = 0; k < 3; k++) {
+                            n[0][k] = attrib.normals[3 * (size_t)f0 + k];
+                            n[1][k] = attrib.normals[3 * (size_t)f1 + k];
+                            n[2][k] = attrib.normals[3 * (size_t)f2 + k];
+                        }
+                    } else {
+                        CalcNormal(n[0], v[0], v[1], v[2]);
+                        n[1][0] = n[0][0];
+                        n[1][1] = n[0][1];
+                        n[1][2] = n[0][2];
+                        n[2][0] = n[0][0];
+                        n[2][1] = n[0][1];
+                        n[2][2] = n[0][2];
                     }
                 } else {
                     CalcNormal(n[0], v[0], v[1], v[2]);
@@ -200,40 +228,31 @@ int AssetsFetcher__LoadObjAndConvert(struct AssetsFetcher* self, float bmin[3], 
                     n[2][1] = n[0][1];
                     n[2][2] = n[0][2];
                 }
-            } else {
-                CalcNormal(n[0], v[0], v[1], v[2]);
-                n[1][0] = n[0][0];
-                n[1][1] = n[0][1];
-                n[1][2] = n[0][2];
-                n[2][0] = n[0][0];
-                n[2][1] = n[0][1];
-                n[2][2] = n[0][2];
-            }
 
-            for (k = 0; k < 3; k++) {
-                vb[(3 * i + k) * stride + 0] = v[k][0];
-                vb[(3 * i + k) * stride + 1] = v[k][1];
-                vb[(3 * i + k) * stride + 2] = v[k][2];
-                vb[(3 * i + k) * stride + 3] = n[k][0];
-                vb[(3 * i + k) * stride + 4] = n[k][1];
-                vb[(3 * i + k) * stride + 5] = n[k][2];
+                for (k = 0; k < 3; k++) {
+                    vb[(3 * i + k) * stride + 0] = v[k][0];
+                    vb[(3 * i + k) * stride + 1] = v[k][1];
+                    vb[(3 * i + k) * stride + 2] = v[k][2];
+                    vb[(3 * i + k) * stride + 3] = n[k][0];
+                    vb[(3 * i + k) * stride + 4] = n[k][1];
+                    vb[(3 * i + k) * stride + 5] = n[k][2];
 
-                c[0] = n[k][0];
-                c[1] = n[k][1];
-                c[2] = n[k][2];
-                len2 = c[0] * c[0] + c[1] * c[1] + c[2] * c[2];
-                if (len2 > 0.0f) {
-                    float len = (float)sqrt((double)len2);
+                    c[0] = n[k][0];
+                    c[1] = n[k][1];
+                    c[2] = n[k][2];
+                    len2 = c[0] * c[0] + c[1] * c[1] + c[2] * c[2];
+                    if (len2 > 0.0f) {
+                        float len = (float)sqrt((double)len2);
 
-                    c[0] /= len;
-                    c[1] /= len;
-                    c[2] /= len;
+                        c[0] /= len;
+                        c[1] /= len;
+                        c[2] /= len;
+                    }
+
+                    vb[(3 * i + k) * stride + 6] = (c[0] * 0.5f + 0.5f);
+                    vb[(3 * i + k) * stride + 7] = (c[1] * 0.5f + 0.5f);
+                    vb[(3 * i + k) * stride + 8] = (c[2] * 0.5f + 0.5f);
                 }
-
-                vb[(3 * i + k) * stride + 6] = (c[0] * 0.5f + 0.5f);
-                vb[(3 * i + k) * stride + 7] = (c[1] * 0.5f + 0.5f);
-                vb[(3 * i + k) * stride + 8] = (c[2] * 0.5f + 0.5f);
-            }
                     */
             }
 
