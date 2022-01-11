@@ -50,10 +50,10 @@ class MainActivity : AppCompatActivity() {
             .requireLensFacing(CameraSelector.LENS_FACING_BACK)
             .build()
 
-        //val previewView = findViewById<PreviewView>(R.id.previewView)
-        //preview.setSurfaceProvider(previewView.surfaceProvider)
+        val previewView = findViewById<PreviewView>(R.id.previewView)
+        preview.setSurfaceProvider(previewView.surfaceProvider)
 
-        //cameraProvider.bindToLifecycle(this as LifecycleOwner, cameraSelector, preview)
+        cameraProvider.bindToLifecycle(this as LifecycleOwner, cameraSelector, preview)
     }
 
 }
