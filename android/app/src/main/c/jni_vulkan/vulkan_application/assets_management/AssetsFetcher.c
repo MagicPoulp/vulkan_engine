@@ -7,7 +7,22 @@
 #include <android_native_app_glue.h>
 #endif
 
-char *tex_files_short[] = { "home8" };
+/*
+For the hello world texture
+These coordinates should have UV equal to as follows
+ (in a rectangle on the surface built using the knife)
+ The coordinates are shown in the transform windows (press N), in global coordinates
+v 2.596588 0.224669 0.568969
+0 1
+v 2.585544 0.224669 -0.567743
+0 0
+ v -2.533237 0.224669 -0.552677
+1 0
+v -2.529603 0.224669 0.576378
+1 1
+ */
+
+char *tex_files_short[] = { "helloWorld" };
 char *meshes_files_short[] = { "textPanel.obj" };
 
 void AssetsFetcher__init(struct AssetsFetcher* self) {
@@ -56,6 +71,10 @@ void get_file_data(
     *len = obj->length;
 }
 
+bool equal_up_to_decimal(float val1, float val2, int decimal) {
+    return fabsf(val1 - val2) < 1.0f / pow(10, decimal);
+}
+
 // bmax, bmin give the dimensions in order to scale the object in the world
 int AssetsFetcher__LoadObjAndConvert(struct AssetsFetcher* self, float bmin[3], float bmax[3], const char* filename, struct ObjAsset* obj, tinyobj_attrib_t **outAttrib) {
     tinyobj_attrib_t attrib;
@@ -99,13 +118,13 @@ int AssetsFetcher__LoadObjAndConvert(struct AssetsFetcher* self, float bmin[3], 
         size_t num_triangles = attrib.num_face_num_verts;
         size_t stride = 9;
 
-        size_t arraySize = num_triangles * 3 * 3;
+        size_t arraySize = num_triangles * 3 * (3 + 2);
         self->arraySize = arraySize;
-        self->triangles = (float*)malloc(sizeof(float) * arraySize);
+        self->triangles = (float*)calloc(sizeof(float) * arraySize, 1);
 
         //vb = (float*)malloc(sizeof(float) * stride * num_triangles * 3);
 
-        for (i = 0; i < attrib.num_face_num_verts; i++) {
+        for (i = 0; i < attrib.num_face_num_verts; i++) { // for each triangle
             size_t f;
             assert(attrib.face_num_verts[i] % 3 ==
                    0);
@@ -116,6 +135,7 @@ int AssetsFetcher__LoadObjAndConvert(struct AssetsFetcher* self, float bmin[3], 
                 float c[3];
                 float len2;
 
+                // the index starts at 0, not like in the .obj where it starts at 1
                 tinyobj_vertex_index_t idx0 = attrib.faces[face_offset + 3 * f + 0];
                 tinyobj_vertex_index_t idx1 = attrib.faces[face_offset + 3 * f + 1];
                 tinyobj_vertex_index_t idx2 = attrib.faces[face_offset + 3 * f + 2];
@@ -141,10 +161,37 @@ int AssetsFetcher__LoadObjAndConvert(struct AssetsFetcher* self, float bmin[3], 
 
                 // one triangle is made of v[0], v[1], v[2], and each is made of x, y, z
                 for (int p =0; p < 3; p++) {
-                    self->triangles[9*i + 3*p] = v[p][0];
-                    self->triangles[9*i + 3*p + 1] = v[p][1];
-                    self->triangles[9*i + 3*p + 2] = v[p][2];
+                    self->triangles[5*3*i + 5*p] = v[p][0];
+                    self->triangles[5*3*i + 5*p + 1] = v[p][1];
+                    self->triangles[5*3*i + 5*p + 2] = v[p][2];
+                    self->triangles[5*3*i + 5*p + 3] = 0;
+                    self->triangles[5*3*i + 5*p + 4] = 0;
+                    if (equal_up_to_decimal(v[p][0], 2.585544, 6)
+                        && equal_up_to_decimal(v[p][1], 0.224669, 6)
+                        && equal_up_to_decimal(v[p][2], -0.567743, 6)) {
+                        self->triangles[5*3*i + 5*p + 3] = 1;
+                        self->triangles[5*3*i + 5*p + 4] = 0;
+                    }
+                    if (equal_up_to_decimal(v[p][0], -2.533237, 6)
+                        && equal_up_to_decimal(v[p][1], 0.224669, 6)
+                        && equal_up_to_decimal(v[p][2], -0.552677, 6)) {
+                        self->triangles[5*3*i + 5*p + 3] = 0;
+                        self->triangles[5*3*i + 5*p + 4] = 0;
+                    }
+                    if (equal_up_to_decimal(v[p][0], -2.529603, 6)
+                        && equal_up_to_decimal(v[p][1], 0.224669, 6)
+                        && equal_up_to_decimal(v[p][2], 0.576378, 6)) {
+                        self->triangles[5*3*i + 5*p + 3] = 0;
+                        self->triangles[5*3*i + 5*p + 4] = 1;
+                    }
+                    if (equal_up_to_decimal(v[p][0], 2.596588, 6)
+                        && equal_up_to_decimal(v[p][1], 0.224669, 6)
+                        && equal_up_to_decimal(v[p][2], 0.568969, 6)) {
+                        self->triangles[5*3*i + 5*p + 3] = 1;
+                        self->triangles[5*3*i + 5*p + 4] = 1;
+                    }
                 }
+
 /*
                 if (attrib.num_normals > 0) {
                     int f0 = idx0.vn_idx;
@@ -202,7 +249,7 @@ int AssetsFetcher__LoadObjAndConvert(struct AssetsFetcher* self, float bmin[3], 
                     vb[(3 * i + k) * stride + 7] = (c[1] * 0.5f + 0.5f);
                     vb[(3 * i + k) * stride + 8] = (c[2] * 0.5f + 0.5f);
                 }
-                        */
+                    */
             }
 
             face_offset += (size_t)attrib.face_num_verts[i];
