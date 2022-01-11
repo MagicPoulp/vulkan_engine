@@ -30,7 +30,7 @@ layout(std140, binding = 0) uniform buf {
 layout (location = 0) in vec3 pos;
 layout (location = 1) in vec2 tex_coord_in;
 
-layout (location = 0) out vec2 texcoord;
+layout (location = 0) out vec4 texcoord;
 layout (location = 1) out vec3 frag_pos;
 layout (location = 2) out vec3 frag_pos_model;
 
@@ -46,9 +46,9 @@ void main()
     //texcoord = ubuf.attr[gl_VertexIndex];
     //texcoord = vec4(.5,.5,0,0);
 
-    texcoord = tex_coord_in;
+    texcoord = vec4(tex_coord_in.xy, 0, 0);
     frag_pos_model = frag_pos_model;
-    /*
+    ///*
     if (pos == vec3(2.585544, 0.224669, -0.567743)) {
         texcoord = vec4(0,0,0,0);
     }
@@ -62,5 +62,5 @@ void main()
         texcoord = vec4(1,0,0,0);
     }
     frag_pos_model = pos;
-    */
+    //*/
 }
