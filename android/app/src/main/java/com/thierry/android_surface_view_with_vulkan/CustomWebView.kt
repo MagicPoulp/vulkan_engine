@@ -29,7 +29,7 @@ class CustomWebView(context: Context, attrs: AttributeSet) : WebView(context, at
         //addJavascriptInterface(
         //    WebViewJavascriptInterface(getContext(), callback), "interface"
         //)
-        loadUrl("https://appassets.androidplatform.net/assets/index.html")
+        loadUrl("https://appassets.androidplatform.net/assets/www/index.html")
     }
 
     @SuppressLint("ObsoleteSdkInt", "SetJavaScriptEnabled")
@@ -44,7 +44,9 @@ class CustomWebView(context: Context, attrs: AttributeSet) : WebView(context, at
                 request: WebResourceRequest
             ): WebResourceResponse? {
                 val url = request.url
-                return assetLoader.shouldInterceptRequest(url)
+                val last = url.toString().split("/").last()
+                val url2 = Uri.parse("https://appassets.androidplatform.net/assets/www/" + last)
+                return assetLoader.shouldInterceptRequest(url2)
             }
         }
         val webViewSettings = settings
