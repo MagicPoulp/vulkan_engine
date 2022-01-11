@@ -1471,14 +1471,26 @@ void VulkanDSL__prepare_vertex_buffer(struct VulkanDSL *vulkanDSL, tinyobj_attri
 
     vulkanDSL->vi_binding.binding = 0;
     vulkanDSL->vi_binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-    vulkanDSL->vi_binding.stride = sizeof(float) * 3;
+    // 5 for 3 coordinates + 2 uv texture coordinates
+    vulkanDSL->vi_binding.stride = 5 * sizeof(float);
 
+    // this is for vertices in variables
     // a color format is used for vec3, see this link here
     // https://vulkan-tutorial.com/Vertex_buffers/Vertex_input_description#page_Attribute-descriptions
+    // float: VK_FORMAT_R32_SFLOAT
+    // vec2: VK_FORMAT_R32G32_SFLOAT
+    // vec3: VK_FORMAT_R32G32B32_SFLOAT
+    // vec4: VK_FORMAT_R32G32B32A32_SFLOAT
     vulkanDSL->vi_attribs[0].binding = 0;
     vulkanDSL->vi_attribs[0].location = 0;
     vulkanDSL->vi_attribs[0].format = VK_FORMAT_R32G32B32_SFLOAT;
     vulkanDSL->vi_attribs[0].offset = 0;
+    vulkanDSL->vi_attribs[1].binding = 0;
+    vulkanDSL->vi_attribs[1].location = 1;
+    vulkanDSL->vi_attribs[1].format = VK_FORMAT_R32G32_SFLOAT;
+    // offset represents the shift copmared to the start of the vertex struct
+    // so it is the size of the attrib 0 for the coordinates
+    vulkanDSL->vi_attribs[1].offset = 3 * sizeof(float);
 
     for (unsigned int i = 0; i < vulkanDSL->swapchainImageCount; i++) {
         err = vkCreateBuffer(vulkanDSL->device, &buf_info, NULL, &vulkanDSL->swapchain_image_resources[i].vertex_buffer);
@@ -1739,7 +1751,7 @@ static void demo_prepare_pipeline(struct VulkanDSL *vulkanDSL) {
         vi.flags = 0;
         vi.vertexBindingDescriptionCount = 1;
         vi.pVertexBindingDescriptions = &vulkanDSL->vi_binding;
-        vi.vertexAttributeDescriptionCount = 1;
+        vi.vertexAttributeDescriptionCount = 2;
         vi.pVertexAttributeDescriptions = &vulkanDSL->vi_attribs;
     }
 

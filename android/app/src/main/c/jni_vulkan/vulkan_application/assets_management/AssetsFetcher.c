@@ -114,9 +114,9 @@ int AssetsFetcher__LoadObjAndConvert(struct AssetsFetcher* self, float bmin[3], 
         size_t num_triangles = attrib.num_face_num_verts;
         size_t stride = 9;
 
-        size_t arraySize = num_triangles * 3 * 3;
+        size_t arraySize = num_triangles * 3 * (3 + 2);
         self->arraySize = arraySize;
-        self->triangles = (float*)malloc(sizeof(float) * arraySize);
+        self->triangles = (float*)calloc(sizeof(float) * arraySize, 1);
 
         //vb = (float*)malloc(sizeof(float) * stride * num_triangles * 3);
 
@@ -156,32 +156,40 @@ int AssetsFetcher__LoadObjAndConvert(struct AssetsFetcher* self, float bmin[3], 
 
                 // one triangle is made of v[0], v[1], v[2], and each is made of x, y, z
                 for (int p =0; p < 3; p++) {
-                    self->triangles[9*i + 3*p] = v[p][0];
-                    self->triangles[9*i + 3*p + 1] = v[p][1];
-                    self->triangles[9*i + 3*p + 2] = v[p][2];
-                }
+                    self->triangles[5*3*i + 5*p] = v[p][0];
+                    self->triangles[5*3*i + 5*p + 1] = v[p][1];
+                    self->triangles[5*3*i + 5*p + 2] = v[p][2];
+                    //if ( v[p][0] == 2.585544 && v[p][2] == 0.224669 &&  v[p][2] == -0.567743) {
+                    self->triangles[5*3*i + 5*p + 3] = 0;
+                    self->triangles[5*3*i + 5*p + 4] = 0;
+                    //}
+                    if ( v[p][0] == -2.533237 && v[p][1] == 0.224669 &&  v[p][2] == -0.552677) {
+                        self->triangles[5*3*i + 5*p + 3] = 1;
+                        self->triangles[5*3*i + 5*p + 4] = 0;
+                    }
+                    if ( v[p][0] == -2.529603 && v[p][1] == 0.224669 &&  v[p][2] == 0.576378) {
+                        self->triangles[5*3*i + 5*p + 3] = 1;
+                        self->triangles[5*3*i + 5*p + 4] = 1;
+                    }
+                    if ( v[p][0] == 2.596588 && v[p][1] == 0.224669 &&  v[p][2] == 0.568969) {
+                        self->triangles[5*3*i + 5*p + 3] = 0;
+                        self->triangles[5*3*i + 5*p + 4] = 1;
+                    }
+            }
+
 /*
-                if (attrib.num_normals > 0) {
-                    int f0 = idx0.vn_idx;
-                    int f1 = idx1.vn_idx;
-                    int f2 = idx2.vn_idx;
-                    if (f0 >= 0 && f1 >= 0 && f2 >= 0) {
-                        assert(f0 < (int)attrib.num_normals);
-                        assert(f1 < (int)attrib.num_normals);
-                        assert(f2 < (int)attrib.num_normals);
-                        for (k = 0; k < 3; k++) {
-                            n[0][k] = attrib.normals[3 * (size_t)f0 + k];
-                            n[1][k] = attrib.normals[3 * (size_t)f1 + k];
-                            n[2][k] = attrib.normals[3 * (size_t)f2 + k];
-                        }
-                    } else {
-                        CalcNormal(n[0], v[0], v[1], v[2]);
-                        n[1][0] = n[0][0];
-                        n[1][1] = n[0][1];
-                        n[1][2] = n[0][2];
-                        n[2][0] = n[0][0];
-                        n[2][1] = n[0][1];
-                        n[2][2] = n[0][2];
+            if (attrib.num_normals > 0) {
+                int f0 = idx0.vn_idx;
+                int f1 = idx1.vn_idx;
+                int f2 = idx2.vn_idx;
+                if (f0 >= 0 && f1 >= 0 && f2 >= 0) {
+                    assert(f0 < (int)attrib.num_normals);
+                    assert(f1 < (int)attrib.num_normals);
+                    assert(f2 < (int)attrib.num_normals);
+                    for (k = 0; k < 3; k++) {
+                        n[0][k] = attrib.normals[3 * (size_t)f0 + k];
+                        n[1][k] = attrib.normals[3 * (size_t)f1 + k];
+                        n[2][k] = attrib.normals[3 * (size_t)f2 + k];
                     }
                 } else {
                     CalcNormal(n[0], v[0], v[1], v[2]);
@@ -192,32 +200,41 @@ int AssetsFetcher__LoadObjAndConvert(struct AssetsFetcher* self, float bmin[3], 
                     n[2][1] = n[0][1];
                     n[2][2] = n[0][2];
                 }
+            } else {
+                CalcNormal(n[0], v[0], v[1], v[2]);
+                n[1][0] = n[0][0];
+                n[1][1] = n[0][1];
+                n[1][2] = n[0][2];
+                n[2][0] = n[0][0];
+                n[2][1] = n[0][1];
+                n[2][2] = n[0][2];
+            }
 
-                for (k = 0; k < 3; k++) {
-                    vb[(3 * i + k) * stride + 0] = v[k][0];
-                    vb[(3 * i + k) * stride + 1] = v[k][1];
-                    vb[(3 * i + k) * stride + 2] = v[k][2];
-                    vb[(3 * i + k) * stride + 3] = n[k][0];
-                    vb[(3 * i + k) * stride + 4] = n[k][1];
-                    vb[(3 * i + k) * stride + 5] = n[k][2];
+            for (k = 0; k < 3; k++) {
+                vb[(3 * i + k) * stride + 0] = v[k][0];
+                vb[(3 * i + k) * stride + 1] = v[k][1];
+                vb[(3 * i + k) * stride + 2] = v[k][2];
+                vb[(3 * i + k) * stride + 3] = n[k][0];
+                vb[(3 * i + k) * stride + 4] = n[k][1];
+                vb[(3 * i + k) * stride + 5] = n[k][2];
 
-                    c[0] = n[k][0];
-                    c[1] = n[k][1];
-                    c[2] = n[k][2];
-                    len2 = c[0] * c[0] + c[1] * c[1] + c[2] * c[2];
-                    if (len2 > 0.0f) {
-                        float len = (float)sqrt((double)len2);
+                c[0] = n[k][0];
+                c[1] = n[k][1];
+                c[2] = n[k][2];
+                len2 = c[0] * c[0] + c[1] * c[1] + c[2] * c[2];
+                if (len2 > 0.0f) {
+                    float len = (float)sqrt((double)len2);
 
-                        c[0] /= len;
-                        c[1] /= len;
-                        c[2] /= len;
-                    }
-
-                    vb[(3 * i + k) * stride + 6] = (c[0] * 0.5f + 0.5f);
-                    vb[(3 * i + k) * stride + 7] = (c[1] * 0.5f + 0.5f);
-                    vb[(3 * i + k) * stride + 8] = (c[2] * 0.5f + 0.5f);
+                    c[0] /= len;
+                    c[1] /= len;
+                    c[2] /= len;
                 }
-                        */
+
+                vb[(3 * i + k) * stride + 6] = (c[0] * 0.5f + 0.5f);
+                vb[(3 * i + k) * stride + 7] = (c[1] * 0.5f + 0.5f);
+                vb[(3 * i + k) * stride + 8] = (c[2] * 0.5f + 0.5f);
+            }
+                    */
             }
 
             face_offset += (size_t)attrib.face_num_verts[i];
