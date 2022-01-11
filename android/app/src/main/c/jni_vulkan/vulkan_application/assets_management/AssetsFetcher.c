@@ -72,7 +72,7 @@ void get_file_data(
 }
 
 bool equal_up_to_decimal(float val1, float val2, int decimal) {
-    return abs(val1 - val2) < 1.0f / pow(10, decimal);
+    return fabsf(val1 - val2) < 1.0f / pow(10, decimal);
 }
 
 // bmax, bmin give the dimensions in order to scale the object in the world
@@ -135,6 +135,7 @@ int AssetsFetcher__LoadObjAndConvert(struct AssetsFetcher* self, float bmin[3], 
                 float c[3];
                 float len2;
 
+                // the index starts at 0, not like in the .obj where it starts at 1
                 tinyobj_vertex_index_t idx0 = attrib.faces[face_offset + 3 * f + 0];
                 tinyobj_vertex_index_t idx1 = attrib.faces[face_offset + 3 * f + 1];
                 tinyobj_vertex_index_t idx2 = attrib.faces[face_offset + 3 * f + 2];
@@ -163,35 +164,30 @@ int AssetsFetcher__LoadObjAndConvert(struct AssetsFetcher* self, float bmin[3], 
                     self->triangles[5*3*i + 5*p] = v[p][0];
                     self->triangles[5*3*i + 5*p + 1] = v[p][1];
                     self->triangles[5*3*i + 5*p + 2] = v[p][2];
-                    //if ( v[p][0] == 2.585544 && v[p][2] == 0.224669 &&  v[p][2] == -0.567743) {
                     self->triangles[5*3*i + 5*p + 3] = 0;
                     self->triangles[5*3*i + 5*p + 4] = 0;
-                    //}
-                    if (idx0.v_idx == 0 || idx1.v_idx == 0 || idx2.v_idx == 0) {
-                        float a1 = v[p][0];
-                    }
-                    if (idx0.v_idx == 5768 || idx1.v_idx == 5768 || idx2.v_idx == 5768) {
-                        float a1 = v[p][0];
-                        float a2 = v[p][1];
-                        float a3 = v[p][2];
-                        float a4 = v[p][0];
+                    if (equal_up_to_decimal(v[p][0], 2.585544, 6)
+                        && equal_up_to_decimal(v[p][1], 0.224669, 6)
+                        && equal_up_to_decimal(v[p][2], -0.567743, 6)) {
+                        self->triangles[5*3*i + 5*p + 3] = 1;
+                        self->triangles[5*3*i + 5*p + 4] = 0;
                     }
                     if (equal_up_to_decimal(v[p][0], -2.533237, 6)
                         && equal_up_to_decimal(v[p][1], 0.224669, 6)
                         && equal_up_to_decimal(v[p][2], -0.552677, 6)) {
-                        self->triangles[5*3*i + 5*p + 3] = 1;
+                        self->triangles[5*3*i + 5*p + 3] = 0;
                         self->triangles[5*3*i + 5*p + 4] = 0;
                     }
                     if (equal_up_to_decimal(v[p][0], -2.529603, 6)
                         && equal_up_to_decimal(v[p][1], 0.224669, 6)
                         && equal_up_to_decimal(v[p][2], 0.576378, 6)) {
-                        self->triangles[5*3*i + 5*p + 3] = 1;
+                        self->triangles[5*3*i + 5*p + 3] = 0;
                         self->triangles[5*3*i + 5*p + 4] = 1;
                     }
                     if (equal_up_to_decimal(v[p][0], 2.596588, 6)
                         && equal_up_to_decimal(v[p][1], 0.224669, 6)
                         && equal_up_to_decimal(v[p][2], 0.568969, 6)) {
-                        self->triangles[5*3*i + 5*p + 3] = 0;
+                        self->triangles[5*3*i + 5*p + 3] = 1;
                         self->triangles[5*3*i + 5*p + 4] = 1;
                     }
                 }
