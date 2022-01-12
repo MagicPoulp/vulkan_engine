@@ -41,7 +41,7 @@ void main() {
    vec3 normal = normalize(cross(dX,dY));
    float light = max(0.0, dot(lightDir, normal));
    // 0, 32, 246, the colour was picked using Digital Coulour Meter
-   vec4 blue = vec4(0, 1.0 * 32 / 255, 1.0 * 246 / 255, 1);
+   vec4 blue = vec4(1.0 * 35 / 255, 0, 1.0 * 255 / 255, 1);
    float t = insideBox3D(frag_pos_model, bottomLeftBox, topRightBox);
    vec4 colorWithTexture = texture(tex, texcoord.xy);
 

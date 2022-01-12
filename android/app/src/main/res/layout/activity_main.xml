@@ -15,12 +15,12 @@ android:id= "@+id/linearlayout1" >
             android:id="@+id/previewView" />
         <com.getwemap.vulkan_engine.VulkanSurfaceView
            android:id="@+id/myVulkanSurfaceView"
-           android:layout_width="fill_parent"
+           android:layout_width="match_parent"
            android:layout_height="wrap_content" />
         <com.getwemap.vulkan_engine.CustomWebView
             android:id="@+id/myCustomWebView"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent" />
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
     </FrameLayout>
 
 </LinearLayout>
