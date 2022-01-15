@@ -495,23 +495,17 @@ void demo_build_image_ownership_cmd(struct VulkanDSL *vulkanDSL, int i) {
     assert(!err);
 }
 
+float accumulatedAngle = 0;
 void demo_update_data_buffer(struct VulkanDSL *vulkanDSL, double elapsedTimeS) {
     mat4x4 MVP, Model, VP;
     int matrixSize = sizeof(MVP);
-
     mat4x4_mul(VP, vulkanDSL->projection_matrix, vulkanDSL->view_matrix);
-    mat4x4_orthonormalize(VP, VP);
-    // Rotate around the Y axis
     mat4x4_dup(Model, vulkanDSL->model_matrix);
     // degrees per second
-    double movedAngle = vulkanDSL->spin_angle * elapsedTimeS;
-    //__android_log_print(ANDROID_LOG_INFO, "LOG", "%lf - &lf - %lf", vulkanDSL->spin_angle, elapsedTimeS, movedAngle);
-    //NSLog(@"%lf", movedAngle);
-    mat4x4_rotate_Z(vulkanDSL->model_matrix, Model, (float)degreesToRadians(movedAngle));
-    mat4x4_orthonormalize(vulkanDSL->model_matrix, vulkanDSL->model_matrix);
-    mat4x4_mul(MVP, VP, vulkanDSL->model_matrix);
-    mat4x4_orthonormalize(MVP, MVP);
-
+    float movedAngle = vulkanDSL->spin_angle * elapsedTimeS;
+    accumulatedAngle = fmodf(accumulatedAngle + movedAngle, 360);
+    mat4x4_rotate_Z(Model, vulkanDSL->model_matrix, (float)degreesToRadians(accumulatedAngle));
+    mat4x4_mul(MVP, VP, Model);
     memcpy(vulkanDSL->swapchain_image_resources[vulkanDSL->current_buffer].uniform_memory_ptr, (const void *)&MVP[0][0], matrixSize);
 }
 
@@ -3062,32 +3056,32 @@ static void registry_handle_global_remove(void *data UNUSED, struct wl_registry 
 static const struct wl_registry_listener registry_listener = {registry_handle_global, registry_handle_global_remove};
 #endif
 
-static void demo_init(struct VulkanDSL *vulkanDSL) {
-    vec3 eye = {0.0f, 0, 4.5f};
+static void demo_init_matrices(struct VulkanDSL *vulkanDSL, int width, int height) {
+    //vec3 eye = {0.0f, 0, 12.0f}; // to be on the axis of rotation
+    vec3 eye = {0.0f, 4.5f, 6.5f};
     vec3 origin = {0, 0, 0};
     vec3 up = {0.0f, 1.0f, 1.0};
-
-    vulkanDSL->presentMode = VK_PRESENT_MODE_FIFO_KHR;
-    vulkanDSL->frameCount = INT32_MAX;
-    /* Autodetect suitable / best GPU by default */
-    vulkanDSL->gpu_number = -1;
-    vulkanDSL->width = 10;
-    vulkanDSL->height = 10;
-
-    demo_init_vk(vulkanDSL);
-
     // degrees per second
     vulkanDSL->spin_angle = 32.0f;
     vulkanDSL->spin_increment = 0.2f;
     vulkanDSL->pause = false;
 
-    mat4x4_perspective(vulkanDSL->projection_matrix, (float)degreesToRadians(45.0f), 1.0f, 0.1f, 100.0f);
+    mat4x4_perspective(vulkanDSL->projection_matrix, (float)degreesToRadians(45.0f), (float)width/height, 0.1f, 100.0f);
     mat4x4_look_at(vulkanDSL->view_matrix, eye, origin, up);
     mat4x4_identity(vulkanDSL->model_matrix);
 
     vulkanDSL->projection_matrix[1][1] *= -1;  // Flip projection matrix from GL to Vulkan orientation.
-    mat4x4_orthonormalize(vulkanDSL->projection_matrix, vulkanDSL->projection_matrix);
-    mat4x4_orthonormalize(vulkanDSL->view_matrix, vulkanDSL->view_matrix);
+}
+
+static void demo_init(struct VulkanDSL *vulkanDSL, int width, int height) {
+    vulkanDSL->presentMode = VK_PRESENT_MODE_FIFO_KHR;
+    vulkanDSL->frameCount = INT32_MAX;
+    // Autodetect suitable / best GPU by default
+    vulkanDSL->gpu_number = -1;
+    vulkanDSL->width = width;
+    vulkanDSL->height = height;
+    demo_init_vk(vulkanDSL);
+    demo_init_matrices(vulkanDSL, width, height);
 }
 
 // https://developer.android.com/ndk/reference/group/asset#group___asset_1ga90c459935e76acf809b9ec90d1872771
@@ -3105,7 +3099,7 @@ void setTextures(struct AssetsFetcher *assetsFetcher, const char* texturesPath) 
 void vulkanDSL_main(struct VulkanDSL *vulkanDSL, struct AssetsFetcher *assetsFetcher, const char* assetsPath) {
     setTextures(assetsFetcher, assetsPath);
 
-    demo_init(vulkanDSL);
+    demo_init(vulkanDSL, 10, 10);
 
     demo_init_vk_swapchain(vulkanDSL);
 
@@ -3115,8 +3109,7 @@ void vulkanDSL_main(struct VulkanDSL *vulkanDSL, struct AssetsFetcher *assetsFet
 }
 
 void VulkanDSL__setSize(struct VulkanDSL *vulkanDSL, int32_t width, int32_t height) {
-    vulkanDSL->width = width;
-    vulkanDSL->height = height;
+    demo_init_matrices(vulkanDSL, width, height);
     demo_resize(vulkanDSL);
 }
 
