@@ -633,7 +633,7 @@ void demo_draw(struct VulkanDSL *vulkanDSL, double elapsedTimeS) {
     VkResult U_ASSERT_ONLY err;
 
     // Ensure no more than FRAME_LAG renderings are outstanding
-    vkWaitForFences(vulkanDSL->device, 1, &vulkanDSL->fences[vulkanDSL->frame_index], VK_TRUE, UINT64_MAX);
+    VkResult res = vkWaitForFences(vulkanDSL->device, 1, &vulkanDSL->fences[vulkanDSL->frame_index], VK_TRUE, UINT64_MAX);
     vkResetFences(vulkanDSL->device, 1, &vulkanDSL->fences[vulkanDSL->frame_index]);
 
     do {
