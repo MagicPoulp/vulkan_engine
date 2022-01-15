@@ -2179,9 +2179,9 @@ void demo_resize(struct VulkanDSL *vulkanDSL) {
         vkDestroyBuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_buffer, NULL);
         vkUnmapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_memory);
         vkFreeMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_memory, NULL);
-        //vkDestroyBuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_buffer, NULL);
-        //vkUnmapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_memory);
-        //vkFreeMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_memory, NULL);
+        vkDestroyBuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_buffer, NULL);
+        vkUnmapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_memory);
+        vkFreeMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_memory, NULL);
     }
     vkDestroyCommandPool(vulkanDSL->device, vulkanDSL->cmd_pool, NULL);
     vulkanDSL->cmd_pool = VK_NULL_HANDLE;
