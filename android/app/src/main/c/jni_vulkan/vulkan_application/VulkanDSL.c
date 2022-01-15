@@ -9,6 +9,7 @@ THe CMakeLists copies to a .c
 #ifdef __ANDROID__
 #include <android/native_activity.h>
 #include <stdio.h>
+#define printf(...) __android_log_print(ANDROID_LOG_DEBUG, "TAG", __VA_ARGS__);
 #endif
 #include "VulkanDSL.h"
 #include "Program.h"
@@ -499,7 +500,7 @@ void demo_update_data_buffer(struct VulkanDSL *vulkanDSL, double elapsedTimeS) {
     int matrixSize = sizeof(MVP);
 
     mat4x4_mul(VP, vulkanDSL->projection_matrix, vulkanDSL->view_matrix);
-
+    mat4x4_orthonormalize(VP, VP);
     // Rotate around the Y axis
     mat4x4_dup(Model, vulkanDSL->model_matrix);
     // degrees per second
@@ -509,6 +510,7 @@ void demo_update_data_buffer(struct VulkanDSL *vulkanDSL, double elapsedTimeS) {
     mat4x4_rotate_Z(vulkanDSL->model_matrix, Model, (float)degreesToRadians(movedAngle));
     mat4x4_orthonormalize(vulkanDSL->model_matrix, vulkanDSL->model_matrix);
     mat4x4_mul(MVP, VP, vulkanDSL->model_matrix);
+    mat4x4_orthonormalize(MVP, MVP);
 
     memcpy(vulkanDSL->swapchain_image_resources[vulkanDSL->current_buffer].uniform_memory_ptr, (const void *)&MVP[0][0], matrixSize);
 }
@@ -3061,7 +3063,7 @@ static const struct wl_registry_listener registry_listener = {registry_handle_gl
 #endif
 
 static void demo_init(struct VulkanDSL *vulkanDSL) {
-    vec3 eye = {0.0f, 4.5f, 6.5f};
+    vec3 eye = {0.0f, 0, 4.5f};
     vec3 origin = {0, 0, 0};
     vec3 up = {0.0f, 1.0f, 1.0};
 
@@ -3084,6 +3086,8 @@ static void demo_init(struct VulkanDSL *vulkanDSL) {
     mat4x4_identity(vulkanDSL->model_matrix);
 
     vulkanDSL->projection_matrix[1][1] *= -1;  // Flip projection matrix from GL to Vulkan orientation.
+    mat4x4_orthonormalize(vulkanDSL->projection_matrix, vulkanDSL->projection_matrix);
+    mat4x4_orthonormalize(vulkanDSL->view_matrix, vulkanDSL->view_matrix);
 }
 
 // https://developer.android.com/ndk/reference/group/asset#group___asset_1ga90c459935e76acf809b9ec90d1872771
