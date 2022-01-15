@@ -319,6 +319,7 @@ static inline void mat4x4_ortho(mat4x4 M, float l, float r, float b, float t, fl
     M[3][2] = -(f + n) / (f - n);
     M[3][3] = 1.f;
 }
+
 static inline void mat4x4_perspective(mat4x4 m, float y_fov, float aspect, float n, float f) {
     /* NOTE: Degrees are an unhandy unit to work with.
      * linmath.h uses radians for everything! */
