@@ -42,6 +42,6 @@ Java_com_getwemap_vulkan_1engine_VulkanAppBridge_nativeResize(JNIEnv *env, jobje
 
 JNIEXPORT void JNICALL
 Java_com_getwemap_vulkan_1engine_VulkanAppBridge_nativeDraw(JNIEnv *env, jobject vulkanAppBridge, jdouble elapsedTimeS) {
-    __android_log_print(ANDROID_LOG_DEBUG, "mc-native-VulkanAppBridge", "draw");
+    //__android_log_print(ANDROID_LOG_DEBUG, "mc-native-VulkanAppBridge", "draw");
     drawFrame(elapsedTimeS);
 }

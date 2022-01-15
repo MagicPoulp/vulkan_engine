@@ -8,7 +8,12 @@ import android.view.SurfaceView
 class VulkanSurfaceView: SurfaceView, SurfaceHolder.Callback2 {
 
     private var vulkanApp = VulkanAppBridge()
-    private val syncedRenderer: SyncedRenderer = SyncedRenderer { elapsedTimeNanos: Long ->
+    var isSyncRendererCreated: Boolean = false
+    var isSyncRendererStarted: Boolean = false
+    val syncedRenderer: SyncedRenderer = SyncedRenderer { elapsedTimeNanos: Long ->
+        if (!isSyncRendererStarted) {
+            return@SyncedRenderer
+        }
         vulkanApp.draw(elapsedTimeNanos.toDouble()/1000000000.0)
     }
 
@@ -24,9 +29,34 @@ class VulkanSurfaceView: SurfaceView, SurfaceHolder.Callback2 {
     constructor(context: Context, attrs: AttributeSet, defStyle: Int, defStyleRes: Int): super(context, attrs, defStyle, defStyleRes) {
     }
 
+    fun syncedRendererStart() {
+        if (!isSyncRendererCreated) {
+            return
+        }
+        if (!isSyncRendererStarted) {
+            isSyncRendererStarted = true
+            syncedRenderer.start()
+        }
+    }
+
+    fun syncedRendererStop() {
+        if (!isSyncRendererCreated) {
+            return
+        }
+        if (isSyncRendererStarted) {
+            isSyncRendererStarted = false
+            syncedRenderer.stop()
+        }
+    }
+
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
-        syncedRenderer.stop()
+        syncedRendererStop()
+    }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        syncedRendererStart()
     }
 
     init {
@@ -44,13 +74,15 @@ class VulkanSurfaceView: SurfaceView, SurfaceHolder.Callback2 {
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
+        isSyncRendererCreated = false
         vulkanApp.destroy()
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
         holder.let { h ->
             vulkanApp.create(h.surface, resources.assets)
-            syncedRenderer.start();
+            isSyncRendererCreated = true
+            syncedRendererStart();
         }
     }
 

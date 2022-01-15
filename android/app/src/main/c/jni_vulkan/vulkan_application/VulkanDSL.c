@@ -633,7 +633,7 @@ void demo_draw(struct VulkanDSL *vulkanDSL, double elapsedTimeS) {
     VkResult U_ASSERT_ONLY err;
 
     // Ensure no more than FRAME_LAG renderings are outstanding
-    vkWaitForFences(vulkanDSL->device, 1, &vulkanDSL->fences[vulkanDSL->frame_index], VK_TRUE, UINT64_MAX);
+    VkResult res = vkWaitForFences(vulkanDSL->device, 1, &vulkanDSL->fences[vulkanDSL->frame_index], VK_TRUE, UINT64_MAX);
     vkResetFences(vulkanDSL->device, 1, &vulkanDSL->fences[vulkanDSL->frame_index]);
 
     do {
@@ -2179,9 +2179,9 @@ void demo_resize(struct VulkanDSL *vulkanDSL) {
         vkDestroyBuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_buffer, NULL);
         vkUnmapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_memory);
         vkFreeMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_memory, NULL);
-        //vkDestroyBuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_buffer, NULL);
-        //vkUnmapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_memory);
-        //vkFreeMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_memory, NULL);
+        vkDestroyBuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_buffer, NULL);
+        vkUnmapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_memory);
+        vkFreeMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_memory, NULL);
     }
     vkDestroyCommandPool(vulkanDSL->device, vulkanDSL->cmd_pool, NULL);
     vulkanDSL->cmd_pool = VK_NULL_HANDLE;

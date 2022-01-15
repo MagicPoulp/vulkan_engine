@@ -17,13 +17,14 @@ import android.view.SurfaceView
 
 class MainActivity : AppCompatActivity() {
     private lateinit var cameraProviderFuture : ListenableFuture<ProcessCameraProvider>
+    private lateinit var sfvTrack: VulkanSurfaceView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         // solution to superpose the camera and the Vulkan surface
-        val sfvTrack = findViewById<SurfaceView>(R.id.myVulkanSurfaceView)
+        sfvTrack = findViewById(R.id.myVulkanSurfaceView)
         //sfvTrack.setZOrderOnTop(true) // not needed
         sfvTrack.setZOrderMediaOverlay(true)
 
@@ -50,10 +51,19 @@ class MainActivity : AppCompatActivity() {
             .requireLensFacing(CameraSelector.LENS_FACING_BACK)
             .build()
 
-        //val previewView = findViewById<PreviewView>(R.id.previewView)
-        //preview.setSurfaceProvider(previewView.surfaceProvider)
+        val previewView = findViewById<PreviewView>(R.id.previewView)
+        preview.setSurfaceProvider(previewView.surfaceProvider)
 
-        //cameraProvider.bindToLifecycle(this as LifecycleOwner, cameraSelector, preview)
+        cameraProvider.bindToLifecycle(this as LifecycleOwner, cameraSelector, preview)
     }
 
+    override fun onPause() {
+        super.onPause()
+        sfvTrack.syncedRendererStop()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        sfvTrack.syncedRendererStart()
+    }
 }
