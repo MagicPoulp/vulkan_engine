@@ -420,10 +420,10 @@ void VulkanDSL__draw_build_cmd(struct VulkanDSL *vulkanDSL, VkCommandBuffer cmd_
     }
 
     VkBuffer vertexBuffers[] = { vulkanDSL->swapchain_image_resources[0].vertex_buffer };
-    VkBuffer b = vertexBuffers[0];
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(cmd_buf, 0, 1, vertexBuffers, offsets);
 
+    //vkCmdDraw(cmd_buf, 10000, 1, 0, 0);
     vkCmdDraw(cmd_buf, vulkanDSL->assetsFetcher.arraySize, 1, 0, 0);
     //vkCmdDraw(cmd_buf, 1, 1, 0, 0);
     //vkCmdDraw(cmd_buf, 12 * 3, 1, 0, 0);
@@ -1488,36 +1488,37 @@ void VulkanDSL__prepare_vertex_buffer(struct VulkanDSL *vulkanDSL, tinyobj_attri
     // so it is the size of the attrib 0 for the coordinates
     vulkanDSL->vi_attribs[1].offset = 3 * sizeof(float);
 
-    for (unsigned int i = 0; i < vulkanDSL->swapchainImageCount; i++) {
-        err = vkCreateBuffer(vulkanDSL->device, &buf_info, NULL, &vulkanDSL->swapchain_image_resources[i].vertex_buffer);
-        assert(!err);
+    // https://vulkan-tutorial.com/Vertex_buffers/Vertex_buffer_creation
+    unsigned int i = 0;
+    err = vkCreateBuffer(vulkanDSL->device, &buf_info, NULL, &vulkanDSL->swapchain_image_resources[i].vertex_buffer);
+    assert(!err);
 
-        vkGetBufferMemoryRequirements(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_buffer, &mem_reqs);
+    vkGetBufferMemoryRequirements(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_buffer, &mem_reqs);
 
-        mem_alloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        mem_alloc.pNext = NULL;
-        mem_alloc.allocationSize = mem_reqs.size;
-        mem_alloc.memoryTypeIndex = 0;
+    mem_alloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    mem_alloc.pNext = NULL;
+    mem_alloc.allocationSize = mem_reqs.size;
+    mem_alloc.memoryTypeIndex = 0;
 
-        pass = memory_type_from_properties(vulkanDSL, mem_reqs.memoryTypeBits,
-                                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                                           &mem_alloc.memoryTypeIndex);
-        assert(pass);
+    pass = memory_type_from_properties(vulkanDSL, mem_reqs.memoryTypeBits,
+                                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                       &mem_alloc.memoryTypeIndex);
+    assert(pass);
 
-        err = vkAllocateMemory(vulkanDSL->device, &mem_alloc, NULL, &vulkanDSL->swapchain_image_resources[i].vertex_memory);
-        assert(!err);
+    err = vkAllocateMemory(vulkanDSL->device, &mem_alloc, NULL, &vulkanDSL->swapchain_image_resources[i].vertex_memory);
+    assert(!err);
 
-        // map to the application address space
-        err = vkMapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_memory, 0, VK_WHOLE_SIZE, 0,
-                          &vulkanDSL->swapchain_image_resources[i].vertex_memory_ptr);
-        assert(!err);
+    // map to the application address space
+    err = vkMapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_memory, 0, VK_WHOLE_SIZE, 0,
+                      &vulkanDSL->swapchain_image_resources[i].vertex_memory_ptr);
+    assert(!err);
 
-        memcpy(vulkanDSL->swapchain_image_resources[i].vertex_memory_ptr, vulkanDSL->assetsFetcher.triangles, sizeVertices);
+    memcpy(vulkanDSL->swapchain_image_resources[i].vertex_memory_ptr, vulkanDSL->assetsFetcher.triangles, sizeVertices);
+    //vkUnmapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_memory);
 
-        err = vkBindBufferMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_buffer,
-                                 vulkanDSL->swapchain_image_resources[i].vertex_memory, 0);
-        assert(!err);
-    }
+    err = vkBindBufferMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_buffer,
+                             vulkanDSL->swapchain_image_resources[i].vertex_memory, 0);
+    assert(!err);
 }
 
 // here we define the in variables in the shader that have the tag "binding"
@@ -2146,10 +2147,10 @@ void demo_cleanup(struct VulkanDSL *vulkanDSL) {
             vkDestroyBuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_buffer, NULL);
             vkUnmapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_memory);
             vkFreeMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_memory, NULL);
-            vkDestroyBuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_buffer, NULL);
-            vkUnmapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_memory);
-            vkFreeMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_memory, NULL);
         }
+        vkDestroyBuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[0].vertex_buffer, NULL);
+        vkUnmapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[0].vertex_memory);
+        vkFreeMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[0].vertex_memory, NULL);
         free(vulkanDSL->swapchain_image_resources);
         free(vulkanDSL->queue_props);
         vkDestroyCommandPool(vulkanDSL->device, vulkanDSL->cmd_pool, NULL);
@@ -2212,10 +2213,10 @@ void demo_resize(struct VulkanDSL *vulkanDSL) {
         vkDestroyBuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_buffer, NULL);
         vkUnmapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_memory);
         vkFreeMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_memory, NULL);
-        vkDestroyBuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_buffer, NULL);
-        vkUnmapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_memory);
-        vkFreeMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_memory, NULL);
     }
+    vkDestroyBuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[0].vertex_buffer, NULL);
+    vkUnmapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[0].vertex_memory);
+    vkFreeMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[0].vertex_memory, NULL);
     vkDestroyCommandPool(vulkanDSL->device, vulkanDSL->cmd_pool, NULL);
     vulkanDSL->cmd_pool = VK_NULL_HANDLE;
     if (vulkanDSL->separate_present_queue) {
