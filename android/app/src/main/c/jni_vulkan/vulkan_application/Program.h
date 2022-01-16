@@ -13,8 +13,8 @@ struct Program
     struct VulkanDSL* vulkanDSL;
 };
 
-void Program__init(struct Program* self);
-struct Program* Program__create();
+void Program__init(struct Program* self, const char *assetsPath);
+struct Program* Program__create(const char *assetsPath);
 void Program__reset(struct Program* self);
 void Program__destroy(struct Program* self);
 

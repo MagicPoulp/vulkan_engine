@@ -354,8 +354,8 @@ struct VulkanDSL {
     uint32_t queue_family_count;
 };
 
-void vulkanDSL_main(struct VulkanDSL *vulkanDSL, struct AssetsFetcher *assetsFetcher, const char* assetsPath);
-void setTextures(struct AssetsFetcher *assetsFetcher, const char* assetsPath);
+void vulkanDSL_main(struct VulkanDSL *vulkanDSL);
+void setTextures(struct VulkanDSL *vulkanDSL);
 bool loadTexture(struct VulkanDSL *vulkanDSL, const char *filename, uint8_t *rgba_data, VkSubresourceLayout *layout, int32_t *width, int32_t *height);
 void demo_draw(struct VulkanDSL *vulkanDSL, double elapsedTimeS);
 void demo_prepare(struct VulkanDSL *vulkanDSL);

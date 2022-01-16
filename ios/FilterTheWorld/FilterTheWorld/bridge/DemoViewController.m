@@ -66,10 +66,10 @@
   NSMutableArray *split2 = [split mutableCopy];
   [split2 removeObjectAtIndex:[split count]-1];
   NSString *joined = [split2 componentsJoinedByString:@"/"];
-  const char *texturesPath = [joined cStringUsingEncoding:1];
-  program = Program__create();
+  const char *assetsPath = [joined cStringUsingEncoding:1];
+  program = Program__create(assetsPath);
   program->vulkanDSL->caMetalLayer = self.view.layer;
-  vulkanDSL_main(program->vulkanDSL, &program->assetsFetcher, texturesPath);
+  vulkanDSL_main(program->vulkanDSL);
 
 	displayLink = [CADisplayLink displayLinkWithTarget: self selector: @selector(renderLoop)];
   [displayLink addToRunLoop: NSRunLoop.currentRunLoop forMode: NSDefaultRunLoopMode];

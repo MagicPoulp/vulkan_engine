@@ -1679,6 +1679,7 @@ static VkShaderModule demo_prepare_shader_module(struct VulkanDSL *vulkanDSL, co
 }
 
 void VulkanDSL__read_shader(struct VulkanDSL *vulkanDSL, const char* filename, uint32_t* vs_code, size_t *length1) {
+#ifdef __ANDROID__
     AAsset* asset = AAssetManager_open(
             vulkanDSL->assetsFetcher.assetManager,
             filename,
@@ -1692,6 +1693,37 @@ void VulkanDSL__read_shader(struct VulkanDSL *vulkanDSL, const char* filename, u
     FILE* file = fmemopen(rawData, length1, "rb");
     fread(vs_code, 1, *length1, file);
     fclose(file);
+#else
+    char *filename2 = NULL;
+    for (int i = 0; i < strlen(filename); i++) {
+      if (filename[i] == '/') {
+        filename2 = (char*)&filename[i+1];
+        break;
+      }
+    }
+    char filePath[strlen(vulkanDSL->assetsFetcher.assetsPath) + strlen(filename2) + 5];
+    sprintf(filePath, "%s/%s", vulkanDSL->assetsFetcher.assetsPath, filename2);
+    FILE* ptr = fopen(filePath, "rb");
+    int chunk = 100000;
+    void* buffer = (void*) vs_code;
+  void* buffer_start = buffer;
+    if (vs_code == NULL) {
+        buffer = (void*) malloc(sizeof(char)* chunk);
+    }
+    int length = 0;
+    size_t added = 0;
+    do {
+        added = fread(buffer, 1, chunk, ptr);
+        length += added;
+        buffer += chunk;
+    }
+    while (added == chunk);
+    *length1 = length;
+    fclose(ptr);
+    if (vs_code == NULL) {
+        free(buffer_start);
+    }
+#endif
 }
 
 static void demo_prepare_vs(struct VulkanDSL *vulkanDSL) {
@@ -2000,7 +2032,12 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
     demo_prepare_textures(vulkanDSL);
     demo_prepare_cube_data_buffers(vulkanDSL);
     tinyobj_attrib_t* outAttrib;
-    AssetsFetcher__loadObj(&vulkanDSL->assetsFetcher, "meshes/textPanel.obj", &outAttrib);
+#ifdef __ANDROID__
+    const char* objFile = "meshes/textPanel.obj";
+#else
+    const char* objFile = "textPanel.obj";
+#endif
+    AssetsFetcher__loadObj(&vulkanDSL->assetsFetcher, objFile, &outAttrib);
     VulkanDSL__prepare_vertex_buffer(vulkanDSL, outAttrib);
 
     demo_prepare_descriptor_layout(vulkanDSL);
@@ -2943,119 +2980,6 @@ static void demo_init_vk_swapchain(struct VulkanDSL *vulkanDSL) {
     vkGetPhysicalDeviceMemoryProperties(vulkanDSL->gpu, &vulkanDSL->memory_properties);
 }
 
-#if defined(VK_USE_PLATFORM_WAYLAND_KHR)
-static void pointer_handle_enter(void *data, struct wl_pointer *pointer, uint32_t serial, struct wl_surface *surface, wl_fixed_t sx,
-                                 wl_fixed_t sy) {}
-
-static void pointer_handle_leave(void *data, struct wl_pointer *pointer, uint32_t serial, struct wl_surface *surface) {}
-
-static void pointer_handle_motion(void *data, struct wl_pointer *pointer, uint32_t time, wl_fixed_t sx, wl_fixed_t sy) {}
-
-static void pointer_handle_button(void *data, struct wl_pointer *wl_pointer, uint32_t serial, uint32_t time, uint32_t button,
-                                  uint32_t state) {
-    struct VulkanDSL *vulkanDSL = data;
-    if (button == BTN_LEFT && state == WL_POINTER_BUTTON_STATE_PRESSED) {
-        xdg_toplevel_move(vulkanDSL->xdg_toplevel, vulkanDSL->seat, serial);
-    }
-}
-
-static void pointer_handle_axis(void *data, struct wl_pointer *wl_pointer, uint32_t time, uint32_t axis, wl_fixed_t value) {}
-
-static const struct wl_pointer_listener pointer_listener = {
-    pointer_handle_enter, pointer_handle_leave, pointer_handle_motion, pointer_handle_button, pointer_handle_axis,
-};
-
-static void keyboard_handle_keymap(void *data, struct wl_keyboard *keyboard, uint32_t format, int fd, uint32_t size) {}
-
-static void keyboard_handle_enter(void *data, struct wl_keyboard *keyboard, uint32_t serial, struct wl_surface *surface,
-                                  struct wl_array *keys) {}
-
-static void keyboard_handle_leave(void *data, struct wl_keyboard *keyboard, uint32_t serial, struct wl_surface *surface) {}
-
-static void keyboard_handle_key(void *data, struct wl_keyboard *keyboard, uint32_t serial, uint32_t time, uint32_t key,
-                                uint32_t state) {
-    if (state != WL_KEYBOARD_KEY_STATE_RELEASED) return;
-    struct VulkanDSL *vulkanDSL = data;
-    switch (key) {
-        case KEY_ESC:  // Escape
-            vulkanDSL->quit = true;
-            break;
-        case KEY_LEFT:  // left arrow key
-            vulkanDSL->spin_angle -= vulkanDSL->spin_increment;
-            break;
-        case KEY_RIGHT:  // right arrow key
-            vulkanDSL->spin_angle += vulkanDSL->spin_increment;
-            break;
-        case KEY_SPACE:  // space bar
-            vulkanDSL->pause = !vulkanDSL->pause;
-            break;
-    }
-}
-
-static void keyboard_handle_modifiers(void *data, struct wl_keyboard *keyboard, uint32_t serial, uint32_t mods_depressed,
-                                      uint32_t mods_latched, uint32_t mods_locked, uint32_t group) {}
-
-static const struct wl_keyboard_listener keyboard_listener = {
-    keyboard_handle_keymap, keyboard_handle_enter, keyboard_handle_leave, keyboard_handle_key, keyboard_handle_modifiers,
-};
-
-static void seat_handle_capabilities(void *data, struct wl_seat *seat, enum wl_seat_capability caps) {
-    // Subscribe to pointer events
-    struct VulkanDSL *vulkanDSL = data;
-    if ((caps & WL_SEAT_CAPABILITY_POINTER) && !vulkanDSL->pointer) {
-        vulkanDSL->pointer = wl_seat_get_pointer(seat);
-        wl_pointer_add_listener(vulkanDSL->pointer, &pointer_listener, demo);
-    } else if (!(caps & WL_SEAT_CAPABILITY_POINTER) && vulkanDSL->pointer) {
-        wl_pointer_destroy(vulkanDSL->pointer);
-        vulkanDSL->pointer = NULL;
-    }
-    // Subscribe to keyboard events
-    if (caps & WL_SEAT_CAPABILITY_KEYBOARD) {
-        vulkanDSL->keyboard = wl_seat_get_keyboard(seat);
-        wl_keyboard_add_listener(vulkanDSL->keyboard, &keyboard_listener, demo);
-    } else if (!(caps & WL_SEAT_CAPABILITY_KEYBOARD)) {
-        wl_keyboard_destroy(vulkanDSL->keyboard);
-        vulkanDSL->keyboard = NULL;
-    }
-}
-
-static const struct wl_seat_listener seat_listener = {
-    seat_handle_capabilities,
-};
-
-static void wm_base_ping(void *data UNUSED, struct xdg_wm_base *xdg_wm_base, uint32_t serial) {
-    xdg_wm_base_pong(xdg_wm_base, serial);
-}
-
-static const struct xdg_wm_base_listener wm_base_listener = {wm_base_ping};
-
-static void registry_handle_global(void *data, struct wl_registry *registry, uint32_t id, const char *interface,
-                                   uint32_t version UNUSED) {
-    struct VulkanDSL *vulkanDSL = data;
-    // pickup wayland objects when they appear
-    if (strcmp(interface, wl_compositor_interface.name) == 0) {
-        uint32_t minVersion = version < 4 ? version : 4;
-        vulkanDSL->compositor = wl_registry_bind(registry, id, &wl_compositor_interface, minVersion);
-        if (vulkanDSL->VK_KHR_incremental_present_enabled && minVersion < 4) {
-            fprintf(stderr, "Wayland compositor doesn't support VK_KHR_incremental_present, disabling.\n");
-            vulkanDSL->VK_KHR_incremental_present_enabled = false;
-        }
-    } else if (strcmp(interface, xdg_wm_base_interface.name) == 0) {
-        vulkanDSL->xdg_wm_base = wl_registry_bind(registry, id, &xdg_wm_base_interface, 1);
-        xdg_wm_base_add_listener(vulkanDSL->xdg_wm_base, &wm_base_listener, NULL);
-    } else if (strcmp(interface, wl_seat_interface.name) == 0) {
-        vulkanDSL->seat = wl_registry_bind(registry, id, &wl_seat_interface, 1);
-        wl_seat_add_listener(vulkanDSL->seat, &seat_listener, demo);
-    } else if (strcmp(interface, zxdg_decoration_manager_v1_interface.name) == 0) {
-        vulkanDSL->xdg_decoration_mgr = wl_registry_bind(registry, id, &zxdg_decoration_manager_v1_interface, 1);
-    }
-}
-
-static void registry_handle_global_remove(void *data UNUSED, struct wl_registry *registry UNUSED, uint32_t name UNUSED) {}
-
-static const struct wl_registry_listener registry_listener = {registry_handle_global, registry_handle_global_remove};
-#endif
-
 static void demo_init_matrices(struct VulkanDSL *vulkanDSL, int width, int height) {
     //vec3 eye = {0.0f, 0, 12.0f}; // to be on the axis of rotation
     vec3 eye = {0.0f, 4.5f, 6.5f};
@@ -3070,7 +2994,7 @@ static void demo_init_matrices(struct VulkanDSL *vulkanDSL, int width, int heigh
     mat4x4_look_at(vulkanDSL->view_matrix, eye, origin, up);
     mat4x4_identity(vulkanDSL->model_matrix);
 
-    vulkanDSL->projection_matrix[1][1] *= -1;  // Flip projection matrix from GL to Vulkan orientation.
+    vulkanDSL->projection_matrix[1][1] *= -1;  // Flip the projection matrix from GL to Vulkan orientation.
 }
 
 static void demo_init(struct VulkanDSL *vulkanDSL, int width, int height) {
@@ -3085,19 +3009,26 @@ static void demo_init(struct VulkanDSL *vulkanDSL, int width, int height) {
 }
 
 // https://developer.android.com/ndk/reference/group/asset#group___asset_1ga90c459935e76acf809b9ec90d1872771
-void setTextures(struct AssetsFetcher *assetsFetcher, const char* texturesPath) {
+void setTextures(struct VulkanDSL *vulkanDSL ) {
+    struct AssetsFetcher *assetsFetcher = &vulkanDSL->assetsFetcher;
+    const char* assetsPath = assetsFetcher->assetsPath;
     tex_files = (char**) malloc((sizeof (char*)) * DEMO_TEXTURE_COUNT);
     char **tex_files_short = assetsFetcher->tex_files_short;
     for (int i = 0; i < DEMO_TEXTURE_COUNT; i++) {
-        // 5+1=6 for \0
-        size_t allocatedSize = strlen(texturesPath) + strlen(tex_files_short[i]) + 6;
+#ifdef __ANDROID__
+        const char *format = "%stextures/%s.png";
+#else
+        const char *format = "%s/%s.png";
+#endif
+        // +1 for the \0
+        size_t allocatedSize = strlen(assetsPath) + strlen(tex_files_short[i]) + strlen(format) + 1;
         tex_files[i] = (char*) malloc((sizeof(char)) * allocatedSize);
-        snprintf(tex_files[i], allocatedSize, "%s/%s.png", texturesPath, tex_files_short[i]);
+        sprintf(tex_files[i], format, assetsPath, tex_files_short[i]);
     }
 }
 
-void vulkanDSL_main(struct VulkanDSL *vulkanDSL, struct AssetsFetcher *assetsFetcher, const char* assetsPath) {
-    setTextures(assetsFetcher, assetsPath);
+void vulkanDSL_main(struct VulkanDSL *vulkanDSL) {
+    setTextures(vulkanDSL);
 
     demo_init(vulkanDSL, 10, 10);
 

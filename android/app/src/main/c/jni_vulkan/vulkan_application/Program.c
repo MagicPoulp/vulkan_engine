@@ -4,15 +4,15 @@
 
 #include "Program.h"
 
-void Program__init(struct Program* self) {
+void Program__init(struct Program* self, const char* assetsPath) {
     struct VulkanDSL* vulkanDSL = (struct VulkanDSL*) calloc(1, sizeof(struct VulkanDSL));
     self->vulkanDSL = vulkanDSL;
-    AssetsFetcher__init(&self->vulkanDSL->assetsFetcher);
+    AssetsFetcher__init(&self->vulkanDSL->assetsFetcher, assetsPath);
 }
 
-struct Program* Program__create() {
+struct Program* Program__create(const char* assetsPath) {
     struct Program* result = (struct Program*) malloc(sizeof(struct Program));
-    Program__init(result);
+    Program__init(result, assetsPath);
     return result;
 }
 
