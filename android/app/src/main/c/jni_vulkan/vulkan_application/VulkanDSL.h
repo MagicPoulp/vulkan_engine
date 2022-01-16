@@ -54,7 +54,7 @@
 #define APP_LONG_NAME "Vulkan Cube"
 
 // Allow a maximum of two outstanding presentation operations.
-#define FRAME_LAG 2
+#define FRAME_LAG 6
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 

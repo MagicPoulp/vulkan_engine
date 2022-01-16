@@ -422,9 +422,9 @@ void VulkanDSL__draw_build_cmd(struct VulkanDSL *vulkanDSL, VkCommandBuffer cmd_
     VkBuffer vertexBuffers[] = { vulkanDSL->swapchain_image_resources[0].vertex_buffer };
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(cmd_buf, 0, 1, vertexBuffers, offsets);
+    //vkCmdDraw(cmd_buf, 30000, 1, 0, 0);
 
-    //vkCmdDraw(cmd_buf, 10000, 1, 0, 0);
-    vkCmdDraw(cmd_buf, vulkanDSL->assetsFetcher.arraySize, 1, 0, 0);
+    vkCmdDraw(cmd_buf, (uint32_t)vulkanDSL->assetsFetcher.arraySize, 1, 0, 0);
     //vkCmdDraw(cmd_buf, 1, 1, 0, 0);
     //vkCmdDraw(cmd_buf, 12 * 3, 1, 0, 0);
 
@@ -908,7 +908,7 @@ static void demo_prepare_buffers(struct VulkanDSL *vulkanDSL) {
     // Determine the number of VkImages to use in the swap chain.
     // Application desires to acquire 3 images at a time for triple
     // buffering
-    uint32_t desiredNumOfSwapchainImages = 3;
+    uint32_t desiredNumOfSwapchainImages = 2;
     if (desiredNumOfSwapchainImages < surfCapabilities.minImageCount) {
         desiredNumOfSwapchainImages = surfCapabilities.minImageCount;
     }
@@ -1501,7 +1501,7 @@ void VulkanDSL__prepare_vertex_buffer(struct VulkanDSL *vulkanDSL, tinyobj_attri
     mem_alloc.memoryTypeIndex = 0;
 
     pass = memory_type_from_properties(vulkanDSL, mem_reqs.memoryTypeBits,
-                                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
                                        &mem_alloc.memoryTypeIndex);
     assert(pass);
 
@@ -1509,12 +1509,34 @@ void VulkanDSL__prepare_vertex_buffer(struct VulkanDSL *vulkanDSL, tinyobj_attri
     assert(!err);
 
     // map to the application address space
-    err = vkMapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_memory, 0, VK_WHOLE_SIZE, 0,
+    err = vkMapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_memory, 0, sizeVertices, 0,
                       &vulkanDSL->swapchain_image_resources[i].vertex_memory_ptr);
     assert(!err);
 
     memcpy(vulkanDSL->swapchain_image_resources[i].vertex_memory_ptr, vulkanDSL->assetsFetcher.triangles, sizeVertices);
     //vkUnmapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_memory);
+/*
+  VkMappedMemoryRange range = {VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE, nullptr, m_memory,
+                                   m_map_offset, m_map_size};
+      vkInvalidateMappedMemoryRanges(g_vulkan_context->GetDevice(), 1, &range);
+
+  typedef struct VkMappedMemoryRange {
+      VkStructureType    sType;
+      const void*        pNext;
+      VkDeviceMemory     memory;
+      VkDeviceSize       offset;
+      VkDeviceSize       size;
+  } VkMappedMemoryRange;
+ */
+  VkMappedMemoryRange range;
+  range.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+  range.pNext = 0;
+  range.memory = vulkanDSL->swapchain_image_resources[i].vertex_memory;
+  range.offset = 0;
+  range.size = sizeVertices;
+  
+  err = vkFlushMappedMemoryRanges(vulkanDSL->device, 1, &range);
+  assert(!err);
 
     err = vkBindBufferMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_buffer,
                              vulkanDSL->swapchain_image_resources[i].vertex_memory, 0);
