@@ -931,7 +931,7 @@ static void demo_prepare_buffers(struct VulkanDSL *vulkanDSL) {
     // Determine the number of VkImages to use in the swap chain.
     // Application desires to acquire 3 images at a time for triple
     // buffering
-    uint32_t desiredNumOfSwapchainImages = 3;
+    uint32_t desiredNumOfSwapchainImages = 1;
     if (desiredNumOfSwapchainImages < surfCapabilities.minImageCount) {
         desiredNumOfSwapchainImages = surfCapabilities.minImageCount;
     }
@@ -1822,7 +1822,7 @@ static void demo_prepare_pipeline(struct VulkanDSL *vulkanDSL) {
         vi.vertexBindingDescriptionCount = 1;
         vi.pVertexBindingDescriptions = &vulkanDSL->vi_binding;
         vi.vertexAttributeDescriptionCount = 2;
-        vi.pVertexAttributeDescriptions = &vulkanDSL->vi_attribs;
+        vi.pVertexAttributeDescriptions = vulkanDSL->vi_attribs;
     }
 
     memset(&ia, 0, sizeof(ia));
