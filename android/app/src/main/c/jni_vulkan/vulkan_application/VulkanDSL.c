@@ -218,7 +218,28 @@ bool CanPresentEarlier(uint64_t earliest, uint64_t actual, uint64_t margin, uint
 void demo_resize(struct VulkanDSL *vulkanDSL);
 static void demo_create_surface(struct VulkanDSL *vulkanDSL);
 
+// modified to return the memory that has the least flags besides the required ones
 static bool memory_type_from_properties(struct VulkanDSL *vulkanDSL, uint32_t typeBits, VkFlags requirements_mask, uint32_t *typeIndex) {
+    bool result = false;
+    VkMemoryPropertyFlagBits minimalFlagsFound = VK_MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM;
+    for (uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; i++) {
+        if ((typeBits & 1) == 1) { // a compatible memory index with the structure to use
+            // Type is available, does it match user properties?
+            if ((vulkanDSL->memory_properties.memoryTypes[i].propertyFlags & requirements_mask) == requirements_mask) {
+                *typeIndex = i;
+                if (vulkanDSL->memory_properties.memoryTypes[i].propertyFlags < minimalFlagsFound) {
+                    minimalFlagsFound = vulkanDSL->memory_properties.memoryTypes[i].propertyFlags;
+                }
+                result = true;
+            }
+        }
+        typeBits >>= 1; // an array of bits representing all compatible memory indexes
+    }
+    // No memory types matched, return failure
+    return result;
+}
+
+static bool memory_type_from_properties_legacy(struct VulkanDSL *vulkanDSL, uint32_t typeBits, VkFlags requirements_mask, uint32_t *typeIndex) {
     // Search memtypes to find first index with those properties
     for (uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; i++) {
         if (i == 1 && * typeIndex == -1) continue;
@@ -1499,7 +1520,7 @@ void VulkanDSL__prepare_vertex_buffer(struct VulkanDSL *vulkanDSL, tinyobj_attri
     mem_alloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     mem_alloc.pNext = NULL;
     mem_alloc.allocationSize = mem_reqs.size;
-    mem_alloc.memoryTypeIndex = -1;
+    mem_alloc.memoryTypeIndex = 0;
 
     pass = memory_type_from_properties(vulkanDSL, mem_reqs.memoryTypeBits,
                                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
@@ -1520,6 +1541,7 @@ void VulkanDSL__prepare_vertex_buffer(struct VulkanDSL *vulkanDSL, tinyobj_attri
 
     memcpy(vulkanDSL->swapchain_image_resources[i].vertex_memory_ptr, vulkanDSL->assetsFetcher.triangles, sizeVertices);
 
+    // this is because we use non coherent memory, actually 10 = cached memory Host_visible
     VkMappedMemoryRange range;
     range.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
     range.pNext = 0;
