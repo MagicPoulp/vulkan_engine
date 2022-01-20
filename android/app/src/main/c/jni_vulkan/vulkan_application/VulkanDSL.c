@@ -221,6 +221,7 @@ static void demo_create_surface(struct VulkanDSL *vulkanDSL);
 static bool memory_type_from_properties(struct VulkanDSL *vulkanDSL, uint32_t typeBits, VkFlags requirements_mask, uint32_t *typeIndex) {
     // Search memtypes to find first index with those properties
     for (uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; i++) {
+        if (i == 1 && * typeIndex == -1) continue;
         if ((typeBits & 1) == 1) {
             // Type is available, does it match user properties?
             if ((vulkanDSL->memory_properties.memoryTypes[i].propertyFlags & requirements_mask) == requirements_mask) {
@@ -908,7 +909,7 @@ static void demo_prepare_buffers(struct VulkanDSL *vulkanDSL) {
     // Determine the number of VkImages to use in the swap chain.
     // Application desires to acquire 3 images at a time for triple
     // buffering
-    uint32_t desiredNumOfSwapchainImages = 2;
+    uint32_t desiredNumOfSwapchainImages = 3;
     if (desiredNumOfSwapchainImages < surfCapabilities.minImageCount) {
         desiredNumOfSwapchainImages = surfCapabilities.minImageCount;
     }
@@ -1498,7 +1499,7 @@ void VulkanDSL__prepare_vertex_buffer(struct VulkanDSL *vulkanDSL, tinyobj_attri
     mem_alloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     mem_alloc.pNext = NULL;
     mem_alloc.allocationSize = mem_reqs.size;
-    mem_alloc.memoryTypeIndex = 0;
+    mem_alloc.memoryTypeIndex = -1;
 
     pass = memory_type_from_properties(vulkanDSL, mem_reqs.memoryTypeBits,
                                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
@@ -1508,39 +1509,34 @@ void VulkanDSL__prepare_vertex_buffer(struct VulkanDSL *vulkanDSL, tinyobj_attri
     err = vkAllocateMemory(vulkanDSL->device, &mem_alloc, NULL, &vulkanDSL->swapchain_image_resources[i].vertex_memory);
     assert(!err);
 
+    err = vkBindBufferMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_buffer,
+                             vulkanDSL->swapchain_image_resources[i].vertex_memory, 0);
+    assert(!err);
+
     // map to the application address space
     err = vkMapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_memory, 0, sizeVertices, 0,
                       &vulkanDSL->swapchain_image_resources[i].vertex_memory_ptr);
     assert(!err);
 
     memcpy(vulkanDSL->swapchain_image_resources[i].vertex_memory_ptr, vulkanDSL->assetsFetcher.triangles, sizeVertices);
-    //vkUnmapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_memory);
-/*
-  VkMappedMemoryRange range = {VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE, nullptr, m_memory,
-                                   m_map_offset, m_map_size};
-      vkInvalidateMappedMemoryRanges(g_vulkan_context->GetDevice(), 1, &range);
 
-  typedef struct VkMappedMemoryRange {
-      VkStructureType    sType;
-      const void*        pNext;
-      VkDeviceMemory     memory;
-      VkDeviceSize       offset;
-      VkDeviceSize       size;
-  } VkMappedMemoryRange;
- */
-  VkMappedMemoryRange range;
-  range.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-  range.pNext = 0;
-  range.memory = vulkanDSL->swapchain_image_resources[i].vertex_memory;
-  range.offset = 0;
-  range.size = sizeVertices;
-  
-  err = vkFlushMappedMemoryRanges(vulkanDSL->device, 1, &range);
-  assert(!err);
+    VkMappedMemoryRange range;
+    range.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+    range.pNext = 0;
+    range.memory = vulkanDSL->swapchain_image_resources[i].vertex_memory;
+    range.offset = 0;
+    range.size = sizeVertices;
 
-    err = vkBindBufferMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_buffer,
-                             vulkanDSL->swapchain_image_resources[i].vertex_memory, 0);
+    err = vkFlushMappedMemoryRanges(vulkanDSL->device, 1, &range);
     assert(!err);
+
+    err = vkInvalidateMappedMemoryRanges(vulkanDSL->device, 1, &range);
+    assert(!err);
+
+    //err = vkBindBufferMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_buffer,
+    //                         vulkanDSL->swapchain_image_resources[i].vertex_memory, 0);
+    assert(!err);
+
 }
 
 // here we define the in variables in the shader that have the tag "binding"
