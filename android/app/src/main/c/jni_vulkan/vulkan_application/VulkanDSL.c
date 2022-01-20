@@ -344,6 +344,7 @@ static void demo_set_image_layout(struct VulkanDSL *vulkanDSL, VkImage image, Vk
 
     VkImageMemoryBarrier *pmemory_barrier = &image_memory_barrier;
 
+    // https://www.khronos.org/blog/understanding-vulkan-synchronization
     vkCmdPipelineBarrier(vulkanDSL->cmd, src_stages, dest_stages, 0, 0, NULL, 0, NULL, 1, pmemory_barrier);
 }
 
