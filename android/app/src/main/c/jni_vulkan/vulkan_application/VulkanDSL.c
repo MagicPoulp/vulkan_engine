@@ -452,11 +452,9 @@ void VulkanDSL__draw_build_cmd(struct VulkanDSL *vulkanDSL, VkCommandBuffer cmd_
     //vkCmdDraw(cmd_buf, 1, 1, 0, 0);
     //vkCmdDraw(cmd_buf, 12 * 3, 1, 0, 0);
 */
-    VkBufferCopy copy;
-    copy.dstOffset = 0;
-    copy.srcOffset = 0;
-    copy.size = vulkanDSL->assetsFetcher.arraySize;
-    vkCmdCopyBuffer(cmd_buf, vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu, vulkanDSL->vertex_buffer_resources->vertex_buffer, 1, &copy);
+    VkBuffer vertexBuffers[] = { vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu };
+    VkDeviceSize offsets[] = {0};
+    vkCmdBindVertexBuffers(cmd_buf, 0, 1, vertexBuffers, offsets);
     vkCmdDraw(cmd_buf, (uint32_t)vulkanDSL->assetsFetcher.vertexCount, 1, 0, 0);
 
     if (vulkanDSL->validate) {
@@ -2185,9 +2183,6 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
     err = vkBeginCommandBuffer(vulkanDSL->cmd, &cmd_buf_info);
     assert(!err);
 
-    demo_prepare_depth(vulkanDSL);
-    demo_prepare_textures(vulkanDSL);
-    demo_prepare_cube_data_buffers(vulkanDSL);
     tinyobj_attrib_t* outAttrib;
 #ifdef __ANDROID__
     const char* objFile = "meshes/textPanel.obj";
@@ -2196,6 +2191,16 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
 #endif
     AssetsFetcher__loadObj(&vulkanDSL->assetsFetcher, objFile, &outAttrib);
     VulkanDSL__prepare_vertex_buffer_gpu_only(vulkanDSL, outAttrib);
+
+    VkBufferCopy copy;
+    copy.dstOffset = 0;
+    copy.srcOffset = 0;
+    copy.size = vulkanDSL->assetsFetcher.arraySize;
+    vkCmdCopyBuffer(vulkanDSL->cmd, vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu, vulkanDSL->vertex_buffer_resources->vertex_buffer, 1, &copy);
+
+    demo_prepare_depth(vulkanDSL);
+    demo_prepare_textures(vulkanDSL);
+    demo_prepare_cube_data_buffers(vulkanDSL);
 
     demo_prepare_descriptor_layout(vulkanDSL);
     demo_prepare_render_pass(vulkanDSL);
@@ -2240,10 +2245,11 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
         VulkanDSL__draw_build_cmd(vulkanDSL, vulkanDSL->swapchain_image_resources[i].cmd);
     }
 
-    /*
+     /*
      * Prepare functions above may generate pipeline commands
      * that need to be flushed before beginning the render loop.
      */
+    // vulkanDSL->cmd is used to transfer the images and wait for them before the fragment shader
     demo_flush_init_cmd(vulkanDSL);
     if (vulkanDSL->staging_texture.buffer) {
         demo_destroy_texture(vulkanDSL, &vulkanDSL->staging_texture);
