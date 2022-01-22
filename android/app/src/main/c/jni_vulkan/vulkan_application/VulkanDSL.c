@@ -226,9 +226,9 @@ static bool memory_type_from_properties(struct VulkanDSL *vulkanDSL, uint32_t ty
         if ((typeBits & 1) == 1) { // a compatible memory index with the structure to use
             // Type is available, does it match user properties?
             if ((vulkanDSL->memory_properties.memoryTypes[i].propertyFlags & requirements_mask) == requirements_mask) {
-                *typeIndex = i;
                 if (vulkanDSL->memory_properties.memoryTypes[i].propertyFlags < minimalFlagsFound) {
                     minimalFlagsFound = vulkanDSL->memory_properties.memoryTypes[i].propertyFlags;
+                    *typeIndex = i;
                 }
                 result = true;
             }
@@ -1529,8 +1529,8 @@ void VulkanDSL__allocate_vulkan_buffer(
     err = vkAllocateMemory(vulkanDSL->device, &mem_alloc, NULL, buffer_memory);
     assert(!err);
 
-    err = vkBindBufferMemory(vulkanDSL->device, vulkanDSL->vertex_buffer_resources->vertex_buffer,
-                             vulkanDSL->vertex_buffer_resources->vertex_memory, 0);
+    err = vkBindBufferMemory(vulkanDSL->device, *buffer,
+                             *buffer_memory, 0);
     assert(!err);
 }
 
@@ -2198,7 +2198,7 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
     copy.dstOffset = 0;
     copy.srcOffset = 0;
     copy.size = vulkanDSL->assetsFetcher.arraySize;
-    vkCmdCopyBuffer(vulkanDSL->cmd, vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu, vulkanDSL->vertex_buffer_resources->vertex_buffer, 1, &copy);
+    vkCmdCopyBuffer(vulkanDSL->cmd, vulkanDSL->vertex_buffer_resources->vertex_buffer, vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu, 1, &copy);
 
     demo_prepare_depth(vulkanDSL);
     demo_prepare_textures(vulkanDSL);
