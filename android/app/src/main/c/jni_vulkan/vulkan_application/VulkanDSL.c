@@ -452,8 +452,8 @@ void VulkanDSL__draw_build_cmd(struct VulkanDSL *vulkanDSL, VkCommandBuffer cmd_
     //vkCmdDraw(cmd_buf, 1, 1, 0, 0);
     //vkCmdDraw(cmd_buf, 12 * 3, 1, 0, 0);
 */
-    VkBuffer vertexBuffers[] = { vulkanDSL->vertex_buffer_resources->vertex_buffer };
-    //VkBuffer vertexBuffers[] = { vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu };
+    VkBuffer vertexBuffers[] = { vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu };
+    //VkBuffer vertexBuffers[] = { vulkanDSL->vertex_buffer_resources->vertex_buffer };
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(cmd_buf, 0, 1, vertexBuffers, offsets);
     vkCmdDraw(cmd_buf, (uint32_t)vulkanDSL->assetsFetcher.vertexCount, 1, 0, 0);
@@ -2191,14 +2191,15 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
     const char* objFile = "textPanel.obj";
 #endif
     AssetsFetcher__loadObj(&vulkanDSL->assetsFetcher, objFile, &outAttrib);
-    VulkanDSL__prepare_vertex_buffer_classic(vulkanDSL, outAttrib);
-/*
+    //VulkanDSL__prepare_vertex_buffer_classic(vulkanDSL, outAttrib);
+    VulkanDSL__prepare_vertex_buffer_gpu_only(vulkanDSL, outAttrib);
+
     VkBufferCopy copy;
     copy.dstOffset = 0;
     copy.srcOffset = 0;
     copy.size = vulkanDSL->assetsFetcher.arraySize;
     vkCmdCopyBuffer(vulkanDSL->cmd, vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu, vulkanDSL->vertex_buffer_resources->vertex_buffer, 1, &copy);
-*/
+
     demo_prepare_depth(vulkanDSL);
     demo_prepare_textures(vulkanDSL);
     demo_prepare_cube_data_buffers(vulkanDSL);
