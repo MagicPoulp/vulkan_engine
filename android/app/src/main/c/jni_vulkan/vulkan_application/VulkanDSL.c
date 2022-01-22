@@ -447,7 +447,7 @@ void VulkanDSL__draw_build_cmd(struct VulkanDSL *vulkanDSL, VkCommandBuffer cmd_
     vkCmdBindVertexBuffers(cmd_buf, 0, 1, vertexBuffers, offsets);
     //vkCmdDraw(cmd_buf, 30000, 1, 0, 0);
 
-    vkCmdDraw(cmd_buf, (uint32_t)vulkanDSL->assetsFetcher.arraySize, 1, 0, 0);
+    vkCmdDraw(cmd_buf, (uint32_t)vulkanDSL->assetsFetcher.vertexCount, 1, 0, 0);
     //vkCmdDraw(cmd_buf, 1, 1, 0, 0);
     //vkCmdDraw(cmd_buf, 12 * 3, 1, 0, 0);
 
@@ -1524,7 +1524,7 @@ void VulkanDSL__prepare_vertex_buffer(struct VulkanDSL *vulkanDSL, tinyobj_attri
     mem_alloc.memoryTypeIndex = 0;
 
     pass = memory_type_from_properties(vulkanDSL, mem_reqs.memoryTypeBits,
-                                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+                                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, // no coherent is required
                                        &mem_alloc.memoryTypeIndex);
     assert(pass);
 

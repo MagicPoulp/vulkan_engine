@@ -142,9 +142,10 @@ int AssetsFetcher__LoadObjAndConvert(struct AssetsFetcher* self, float bmin[3], 
         size_t i;
 
         size_t num_triangles = attrib.num_face_num_verts;
-        size_t stride = 9;
+        size_t stride = 3 + 2;
 
-        size_t arraySize = num_triangles * 3 * (3 + 2);
+        self->vertexCount = num_triangles * 3;
+        size_t arraySize = num_triangles * 3 * stride;
         self->arraySize = arraySize;
         self->triangles = (float*)calloc(sizeof(float) * arraySize, 1);
 

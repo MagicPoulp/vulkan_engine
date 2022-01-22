@@ -28,6 +28,7 @@ struct AssetsFetcher {
     bool attribAllocated;
     float *triangles; // 3 points * 3 elements (x, y, z) * num_triangles
     size_t arraySize;
+    size_t vertexCount;
 };
 
 void AssetsFetcher__init(struct AssetsFetcher* self, const char *assetsPath);
