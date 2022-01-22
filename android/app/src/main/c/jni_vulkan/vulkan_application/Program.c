@@ -18,7 +18,7 @@ struct Program* Program__create(const char* assetsPath) {
 }
 
 void Program__reset(struct Program* self) {
-    demo_cleanup(self->vulkanDSL);
+    VulkanDSL__cleanup(self->vulkanDSL);
 }
 
 void Program__destroy(struct Program* self) {

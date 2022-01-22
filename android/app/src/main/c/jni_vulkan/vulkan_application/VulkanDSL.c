@@ -2253,107 +2253,8 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
     vulkanDSL->prepared = true;
 }
 
-void demo_cleanup(struct VulkanDSL *vulkanDSL) {
-    VulkanDSL__freeResources(vulkanDSL);
-
-    uint32_t i;
-
-    vulkanDSL->prepared = false;
-    vkDeviceWaitIdle(vulkanDSL->device);
-
-    // Wait for fences from present operations
-    for (i = 0; i < FRAME_LAG; i++) {
-        vkWaitForFences(vulkanDSL->device, 1, &vulkanDSL->fences[i], VK_TRUE, UINT64_MAX);
-        vkDestroyFence(vulkanDSL->device, vulkanDSL->fences[i], NULL);
-        vkDestroySemaphore(vulkanDSL->device, vulkanDSL->image_acquired_semaphores[i], NULL);
-        vkDestroySemaphore(vulkanDSL->device, vulkanDSL->draw_complete_semaphores[i], NULL);
-        if (vulkanDSL->separate_present_queue) {
-            vkDestroySemaphore(vulkanDSL->device, vulkanDSL->image_ownership_semaphores[i], NULL);
-        }
-    }
-
-    // If the window is currently minimized, demo_resize has already done some cleanup for us.
-    if (!vulkanDSL->is_minimized) {
-        for (i = 0; i < vulkanDSL->swapchainImageCount; i++) {
-            vkDestroyFramebuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].framebuffer, NULL);
-        }
-        vkDestroyDescriptorPool(vulkanDSL->device, vulkanDSL->desc_pool, NULL);
-
-        vkDestroyPipeline(vulkanDSL->device, vulkanDSL->pipeline, NULL);
-        vkDestroyPipelineCache(vulkanDSL->device, vulkanDSL->pipelineCache, NULL);
-        vkDestroyRenderPass(vulkanDSL->device, vulkanDSL->render_pass, NULL);
-        vkDestroyPipelineLayout(vulkanDSL->device, vulkanDSL->pipeline_layout, NULL);
-        vkDestroyDescriptorSetLayout(vulkanDSL->device, vulkanDSL->desc_layout, NULL);
-
-        for (i = 0; i < DEMO_TEXTURE_COUNT; i++) {
-            vkDestroyImageView(vulkanDSL->device, vulkanDSL->textures[i].view, NULL);
-            vkDestroyImage(vulkanDSL->device, vulkanDSL->textures[i].image, NULL);
-            vkFreeMemory(vulkanDSL->device, vulkanDSL->textures[i].mem, NULL);
-            vkDestroySampler(vulkanDSL->device, vulkanDSL->textures[i].sampler, NULL);
-        }
-        vulkanDSL->fpDestroySwapchainKHR(vulkanDSL->device, vulkanDSL->swapchain, NULL);
-
-        vkDestroyImageView(vulkanDSL->device, vulkanDSL->depth.view, NULL);
-        vkDestroyImage(vulkanDSL->device, vulkanDSL->depth.image, NULL);
-        vkFreeMemory(vulkanDSL->device, vulkanDSL->depth.mem, NULL);
-
-        for (i = 0; i < vulkanDSL->swapchainImageCount; i++) {
-            vkDestroyImageView(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].view, NULL);
-            vkFreeCommandBuffers(vulkanDSL->device, vulkanDSL->cmd_pool, 1, &vulkanDSL->swapchain_image_resources[i].cmd);
-            vkDestroyBuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_buffer, NULL);
-            vkUnmapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_memory);
-            vkFreeMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_memory, NULL);
-        }
-        if (vulkanDSL->vertex_buffer_resources->vertex_buffer_allocated) {
-            vkDestroyBuffer(vulkanDSL->device, vulkanDSL->vertex_buffer_resources->vertex_buffer,
-                            NULL);
-            if (vulkanDSL->vertex_buffer_resources->vertex_memory_mapped) {
-                vkUnmapMemory(vulkanDSL->device, vulkanDSL->vertex_buffer_resources->vertex_memory);
-            }
-            vkFreeMemory(vulkanDSL->device, vulkanDSL->vertex_buffer_resources->vertex_memory,
-                         NULL);
-        }
-        if (vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu_allocated) {
-            vkDestroyBuffer(vulkanDSL->device, vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu,
-                            NULL);
-            vkFreeMemory(vulkanDSL->device, vulkanDSL->vertex_buffer_resources->vertex_memory_gpu,
-                         NULL);
-        }
-        free(vulkanDSL->swapchain_image_resources);
-        free(vulkanDSL->vertex_buffer_resources);
-        free(vulkanDSL->queue_props);
-        vkDestroyCommandPool(vulkanDSL->device, vulkanDSL->cmd_pool, NULL);
-
-        if (vulkanDSL->separate_present_queue) {
-            vkDestroyCommandPool(vulkanDSL->device, vulkanDSL->present_cmd_pool, NULL);
-        }
-    }
-    vkDeviceWaitIdle(vulkanDSL->device);
-    vkDestroyDevice(vulkanDSL->device, NULL);
-    if (vulkanDSL->validate) {
-        vulkanDSL->DestroyDebugUtilsMessengerEXT(vulkanDSL->inst, vulkanDSL->dbg_messenger, NULL);
-    }
-    vkDestroySurfaceKHR(vulkanDSL->inst, vulkanDSL->surface, NULL);
-    vkDestroyInstance(vulkanDSL->inst, NULL);
-}
-
-void demo_resize(struct VulkanDSL *vulkanDSL) {
-    uint32_t i;
-
-    // Don't react to resize until after first initialization.
-    if (!vulkanDSL->prepared) {
-        if (vulkanDSL->is_minimized) {
-            demo_prepare(vulkanDSL);
-        }
-        return;
-    }
-    // In order to properly resize the window, we must re-create the swapchain
-    // AND redo the command buffers, etc.
-    //
-    // First, perform part of the demo_cleanup() function:
-    vulkanDSL->prepared = false;
-    vkDeviceWaitIdle(vulkanDSL->device);
-
+void VulkanDSL__half_cleanup(struct VulkanDSL *vulkanDSL) {
+    int i;
     for (i = 0; i < vulkanDSL->swapchainImageCount; i++) {
         vkDestroyFramebuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].framebuffer, NULL);
     }
@@ -2405,6 +2306,58 @@ void demo_resize(struct VulkanDSL *vulkanDSL) {
     }
     free(vulkanDSL->swapchain_image_resources);
     free(vulkanDSL->vertex_buffer_resources);
+}
+
+void VulkanDSL__cleanup(struct VulkanDSL *vulkanDSL) {
+    VulkanDSL__freeResources(vulkanDSL);
+
+    uint32_t i;
+
+    vulkanDSL->prepared = false;
+    vkDeviceWaitIdle(vulkanDSL->device);
+
+    // Wait for fences from present operations
+    for (i = 0; i < FRAME_LAG; i++) {
+        vkWaitForFences(vulkanDSL->device, 1, &vulkanDSL->fences[i], VK_TRUE, UINT64_MAX);
+        vkDestroyFence(vulkanDSL->device, vulkanDSL->fences[i], NULL);
+        vkDestroySemaphore(vulkanDSL->device, vulkanDSL->image_acquired_semaphores[i], NULL);
+        vkDestroySemaphore(vulkanDSL->device, vulkanDSL->draw_complete_semaphores[i], NULL);
+        if (vulkanDSL->separate_present_queue) {
+            vkDestroySemaphore(vulkanDSL->device, vulkanDSL->image_ownership_semaphores[i], NULL);
+        }
+    }
+
+    // If the window is currently minimized, demo_resize has already done some cleanup for us.
+    if (!vulkanDSL->is_minimized) {
+        VulkanDSL__half_cleanup(vulkanDSL);
+    }
+    vkDeviceWaitIdle(vulkanDSL->device);
+    vkDestroyDevice(vulkanDSL->device, NULL);
+    if (vulkanDSL->validate) {
+        vulkanDSL->DestroyDebugUtilsMessengerEXT(vulkanDSL->inst, vulkanDSL->dbg_messenger, NULL);
+    }
+    vkDestroySurfaceKHR(vulkanDSL->inst, vulkanDSL->surface, NULL);
+    vkDestroyInstance(vulkanDSL->inst, NULL);
+}
+
+void demo_resize(struct VulkanDSL *vulkanDSL) {
+    uint32_t i;
+
+    // Don't react to resize until after first initialization.
+    if (!vulkanDSL->prepared) {
+        if (vulkanDSL->is_minimized) {
+            demo_prepare(vulkanDSL);
+        }
+        return;
+    }
+    // In order to properly resize the window, we must re-create the swapchain
+    // AND redo the command buffers, etc.
+    //
+    // First, perform part of the demo_cleanup() function:
+    vulkanDSL->prepared = false;
+    vkDeviceWaitIdle(vulkanDSL->device);
+
+    VulkanDSL__half_cleanup(vulkanDSL);
 
     // Second, re-perform the demo_prepare() function, which will re-create the
     // swapchain:

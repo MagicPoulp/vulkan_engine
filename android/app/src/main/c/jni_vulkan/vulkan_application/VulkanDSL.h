@@ -370,7 +370,8 @@ bool loadTexture(struct VulkanDSL *vulkanDSL, const char *filename, uint8_t *rgb
 void demo_draw(struct VulkanDSL *vulkanDSL, double elapsedTimeS);
 void demo_init_matrices(struct VulkanDSL *vulkanDSL, int width, int height);
 void demo_prepare(struct VulkanDSL *vulkanDSL);
-void demo_cleanup(struct VulkanDSL *vulkanDSL);
+void VulkanDSL__half_cleanup(struct VulkanDSL *vulkanDSL);
+void VulkanDSL__cleanup(struct VulkanDSL *vulkanDSL);
 void demo_resize(struct VulkanDSL *vulkanDSL);
 void VulkanDSL__setSize(struct VulkanDSL *vulkanDSL, int32_t width, int32_t height);
 void VulkanDSL__freeResources(struct VulkanDSL *vulkanDSL);
