@@ -373,10 +373,9 @@ void VulkanDSL__read_shader(struct VulkanDSL *vulkanDSL, const char* filename, u
 void VulkanDSL__prepare_vertex_buffer_gpu_only(struct VulkanDSL *vulkanDSL, tinyobj_attrib_t *outAttrib);
 void VulkanDSL__prepare_vertex_buffer_classic(struct VulkanDSL *vulkanDSL, tinyobj_attrib_t *outAttrib);
 
-void VulkanDSL__init_vulkan_buffer(
+void VulkanDSL__allocate_vulkan_buffer(
         struct VulkanDSL *vulkanDSL, VkBufferCreateInfo *buf_info, VkBuffer *buffer,
         VkFlags memory_properties, VkDeviceMemory *buffer_memory,
-        bool *coherentMemory,
-        void **buffer_memory_ptr_ptr,
-        void *data);
+        bool *coherentMemory);
+
 #endif
