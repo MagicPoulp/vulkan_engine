@@ -224,6 +224,11 @@ typedef struct {
     VkBuffer vertex_buffer;
     VkDeviceMemory vertex_memory;
     void *vertex_memory_ptr;
+    bool vertex_buffer_allocated;
+    bool vertex_memory_mapped;
+    VkBuffer vertex_buffer_gpu;
+    VkDeviceMemory vertex_memory_gpu;
+    bool vertex_buffer_gpu_allocated;
 } VertexBufferResources;
 
 struct VulkanDSL {
