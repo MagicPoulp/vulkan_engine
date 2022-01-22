@@ -1529,7 +1529,13 @@ void VulkanDSL__prepare_vertex_buffer(struct VulkanDSL *vulkanDSL, tinyobj_attri
     pass = memory_type_from_properties(vulkanDSL, mem_reqs.memoryTypeBits,
                                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, // no coherent is required
                                        &mem_alloc.memoryTypeIndex);
+    if (!pass) {
+        pass = memory_type_from_properties(vulkanDSL, mem_reqs.memoryTypeBits,
+                                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                           &mem_alloc.memoryTypeIndex);
+    }
     assert(pass);
+    bool coherentMemory = vulkanDSL->memory_properties.memoryTypes[mem_alloc.memoryTypeIndex].propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 
     err = vkAllocateMemory(vulkanDSL->device, &mem_alloc, NULL, &vulkanDSL->swapchain_image_resources[i].vertex_memory);
     assert(!err);
@@ -1545,24 +1551,21 @@ void VulkanDSL__prepare_vertex_buffer(struct VulkanDSL *vulkanDSL, tinyobj_attri
 
     memcpy(vulkanDSL->swapchain_image_resources[i].vertex_memory_ptr, vulkanDSL->assetsFetcher.triangles, sizeVertices);
 
-    // this is because we use non coherent memory, actually 10 = cached memory Host_visible
-    VkMappedMemoryRange range;
-    range.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-    range.pNext = 0;
-    range.memory = vulkanDSL->swapchain_image_resources[i].vertex_memory;
-    range.offset = 0;
-    range.size = sizeVertices;
+    if (!coherentMemory) {
+        // this is because we use non coherent memory
+        VkMappedMemoryRange range;
+        range.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+        range.pNext = 0;
+        range.memory = vulkanDSL->swapchain_image_resources[i].vertex_memory;
+        range.offset = 0;
+        range.size = sizeVertices;
 
-    err = vkFlushMappedMemoryRanges(vulkanDSL->device, 1, &range);
-    assert(!err);
+        err = vkFlushMappedMemoryRanges(vulkanDSL->device, 1, &range);
+        assert(!err);
 
-    err = vkInvalidateMappedMemoryRanges(vulkanDSL->device, 1, &range);
-    assert(!err);
-
-    //err = vkBindBufferMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_buffer,
-    //                         vulkanDSL->swapchain_image_resources[i].vertex_memory, 0);
-    assert(!err);
-
+        err = vkInvalidateMappedMemoryRanges(vulkanDSL->device, 1, &range);
+        assert(!err);
+    }
 }
 
 // here we define the in variables in the shader that have the tag "binding"
