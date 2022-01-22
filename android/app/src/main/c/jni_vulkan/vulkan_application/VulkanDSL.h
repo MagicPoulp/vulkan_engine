@@ -359,6 +359,7 @@ void vulkanDSL_main(struct VulkanDSL *vulkanDSL);
 void setTextures(struct VulkanDSL *vulkanDSL);
 bool loadTexture(struct VulkanDSL *vulkanDSL, const char *filename, uint8_t *rgba_data, VkSubresourceLayout *layout, int32_t *width, int32_t *height);
 void demo_draw(struct VulkanDSL *vulkanDSL, double elapsedTimeS);
+void demo_init_matrices(struct VulkanDSL *vulkanDSL, int width, int height);
 void demo_prepare(struct VulkanDSL *vulkanDSL);
 void demo_cleanup(struct VulkanDSL *vulkanDSL);
 void demo_resize(struct VulkanDSL *vulkanDSL);

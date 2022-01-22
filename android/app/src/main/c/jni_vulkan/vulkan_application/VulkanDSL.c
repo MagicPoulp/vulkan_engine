@@ -876,6 +876,7 @@ static void demo_prepare_buffers(struct VulkanDSL *vulkanDSL) {
         swapchainExtent = surfCapabilities.currentExtent;
         vulkanDSL->width = surfCapabilities.currentExtent.width;
         vulkanDSL->height = surfCapabilities.currentExtent.height;
+        demo_init_matrices(vulkanDSL, vulkanDSL->width, vulkanDSL->height);
     }
 
     if (surfCapabilities.maxImageExtent.width == 0 || surfCapabilities.maxImageExtent.height == 0) {
@@ -1333,7 +1334,7 @@ static void demo_prepare_textures(struct VulkanDSL *vulkanDSL) {
                                   VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
             vulkanDSL->staging_texture.image = 0;
         } else if (props.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT) {
-            /* Must use staging buffer to copy linear texture to optimized */
+            /* Must use staging buffer to copy linear texture to optimize */
 
             memset(&vulkanDSL->staging_texture, 0, sizeof(vulkanDSL->staging_texture));
             demo_prepare_texture_buffer(vulkanDSL, tex_files[i], &vulkanDSL->staging_texture);
@@ -3024,7 +3025,7 @@ static void demo_init_vk_swapchain(struct VulkanDSL *vulkanDSL) {
     vkGetPhysicalDeviceMemoryProperties(vulkanDSL->gpu, &vulkanDSL->memory_properties);
 }
 
-static void demo_init_matrices(struct VulkanDSL *vulkanDSL, int width, int height) {
+void demo_init_matrices(struct VulkanDSL *vulkanDSL, int width, int height) {
     //vec3 eye = {0.0f, 0, 12.0f}; // to be on the axis of rotation
     vec3 eye = {0.0f, 4.5f, 6.5f};
     vec3 origin = {0, 0, 0};
