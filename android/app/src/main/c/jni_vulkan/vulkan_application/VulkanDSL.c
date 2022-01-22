@@ -1140,6 +1140,7 @@ bool loadTexture(struct VulkanDSL *vulkanDSL, const char *filename, uint8_t *rgb
     stbi_uc* pixels = stbi_load_from_file(file, width, height, &texChannels, STBI_rgb_alpha);
     fclose(file);
 #else
+    stbi_convert_iphone_png_to_rgb(1);
     stbi_uc* pixels = stbi_load(filename, width, height, &texChannels, STBI_rgb_alpha);
 #endif
     if (rgba_data == NULL) {
