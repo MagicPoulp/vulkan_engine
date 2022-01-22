@@ -214,14 +214,17 @@ typedef struct {
     VkCommandBuffer graphics_to_present_cmd;
     VkImageView view;
     VkBuffer uniform_buffer;
-    VkBuffer vertex_buffer;
     VkDeviceMemory uniform_memory;
-    VkDeviceMemory vertex_memory;
-    void *vertex_memory_ptr;
     void *uniform_memory_ptr;
     VkFramebuffer framebuffer;
     VkDescriptorSet descriptor_set;
 } SwapchainImageResources;
+
+typedef struct {
+    VkBuffer vertex_buffer;
+    VkDeviceMemory vertex_memory;
+    void *vertex_memory_ptr;
+} VertexBufferResources;
 
 struct VulkanDSL {
     VkVertexInputBindingDescription vi_binding;
@@ -293,6 +296,7 @@ struct VulkanDSL {
     uint32_t swapchainImageCount;
     VkSwapchainKHR swapchain;
     SwapchainImageResources *swapchain_image_resources;
+    VertexBufferResources *vertex_buffer_resources;
     VkPresentModeKHR presentMode;
     VkFence fences[FRAME_LAG];
     int frame_index;
@@ -366,6 +370,11 @@ void demo_resize(struct VulkanDSL *vulkanDSL);
 void VulkanDSL__setSize(struct VulkanDSL *vulkanDSL, int32_t width, int32_t height);
 void VulkanDSL__freeResources(struct VulkanDSL *vulkanDSL);
 void VulkanDSL__read_shader(struct VulkanDSL *vulkanDSL, const char* filename, uint32_t* vs_code, size_t *length1);
-void VulkanDSL__prepare_vertex_buffer(struct VulkanDSL *vulkanDSL, tinyobj_attrib_t *outAttrib);
+void VulkanDSL__prepare_vertex_buffer_gpu_only(struct VulkanDSL *vulkanDSL, tinyobj_attrib_t *outAttrib);
+void VulkanDSL__prepare_vertex_buffer_classic(struct VulkanDSL *vulkanDSL, tinyobj_attrib_t *outAttrib);
 
+void VulkanDSL__init_vulkan_buffer(
+        struct VulkanDSL *vulkanDSL, VkBufferCreateInfo *buf_info, VkBuffer *buffer,
+        VkFlags memory_properties, VkDeviceMemory *buffer_memory,
+        bool *coherentMemory);
 #endif
