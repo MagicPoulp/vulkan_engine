@@ -1481,11 +1481,12 @@ void demo_prepare_cube_data_buffers(struct VulkanDSL *vulkanDSL) {
 }
 
 // https://vulkan-tutorial.com/Vertex_buffers/Vertex_buffer_creation
-// https://vkguide.dev/docs/chapter-5/memory_transfers/
 void VulkanDSL__init_vulkan_buffer(
         struct VulkanDSL *vulkanDSL, VkBufferCreateInfo *buf_info, VkBuffer *buffer,
         VkFlags memory_properties, VkDeviceMemory *buffer_memory,
-        bool *coherentMemory) {
+        bool *coherentMemory,
+        void **buffer_memory_ptr_ptr,
+        void *data) {
     VkResult U_ASSERT_ONLY err;
     bool U_ASSERT_ONLY pass;
 
@@ -1522,6 +1523,33 @@ void VulkanDSL__init_vulkan_buffer(
 
     err = vkAllocateMemory(vulkanDSL->device, &mem_alloc, NULL, buffer_memory);
     assert(!err);
+
+    err = vkBindBufferMemory(vulkanDSL->device, vulkanDSL->vertex_buffer_resources->vertex_buffer,
+                             vulkanDSL->vertex_buffer_resources->vertex_memory, 0);
+    assert(!err);
+
+    // map to the application address space
+    err = vkMapMemory(vulkanDSL->device, *buffer_memory, 0, buf_info->size, 0,
+                      buffer_memory_ptr_ptr);
+    assert(!err);
+
+    memcpy(*buffer_memory_ptr_ptr, data, buf_info->size);
+
+    if (!*coherentMemory) {
+        // this is because we use non coherent memory
+        VkMappedMemoryRange range;
+        range.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+        range.pNext = 0;
+        range.memory = *buffer_memory;
+        range.offset = 0;
+        range.size = buf_info->size;
+
+        err = vkFlushMappedMemoryRanges(vulkanDSL->device, 1, &range);
+        assert(!err);
+
+        err = vkInvalidateMappedMemoryRanges(vulkanDSL->device, 1, &range);
+        assert(!err);
+    }
 }
 
 void VulkanDSL__prepare_vertex_buffer_classic(struct VulkanDSL *vulkanDSL, tinyobj_attrib_t *attrib) {
@@ -1562,37 +1590,12 @@ void VulkanDSL__prepare_vertex_buffer_classic(struct VulkanDSL *vulkanDSL, tinyo
     VulkanDSL__init_vulkan_buffer(
             vulkanDSL, &buf_info, &vulkanDSL->vertex_buffer_resources->vertex_buffer,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, &vulkanDSL->vertex_buffer_resources->vertex_memory,
-            &coherentMemory);
-
-    err = vkBindBufferMemory(vulkanDSL->device, vulkanDSL->vertex_buffer_resources->vertex_buffer,
-                             vulkanDSL->vertex_buffer_resources->vertex_memory, 0);
-    assert(!err);
-
-    // map to the application address space
-    err = vkMapMemory(vulkanDSL->device, vulkanDSL->vertex_buffer_resources->vertex_memory, 0, sizeVertices, 0,
-                      &vulkanDSL->vertex_buffer_resources->vertex_memory_ptr);
-    assert(!err);
-
-    memcpy(vulkanDSL->vertex_buffer_resources->vertex_memory_ptr, vulkanDSL->assetsFetcher.triangles, sizeVertices);
-
-    if (!*coherentMemory) {
-        // this is because we use non coherent memory
-        VkMappedMemoryRange range;
-        range.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-        range.pNext = 0;
-        range.memory = vulkanDSL->vertex_buffer_resources->vertex_memory;
-        range.offset = 0;
-        range.size = sizeVertices;
-
-        err = vkFlushMappedMemoryRanges(vulkanDSL->device, 1, &range);
-        assert(!err);
-
-        err = vkInvalidateMappedMemoryRanges(vulkanDSL->device, 1, &range);
-        assert(!err);
-    }
+            &coherentMemory,
+            &vulkanDSL->vertex_buffer_resources->vertex_memory_ptr,
+            vulkanDSL->assetsFetcher.triangles);
 }
 
-
+// https://vkguide.dev/docs/chapter-5/memory_transfers/
 void VulkanDSL__prepare_vertex_buffer_gpu_only(struct VulkanDSL *vulkanDSL, tinyobj_attrib_t *attrib) {
     VkResult U_ASSERT_ONLY err;
 
@@ -1600,7 +1603,7 @@ void VulkanDSL__prepare_vertex_buffer_gpu_only(struct VulkanDSL *vulkanDSL, tiny
     memset(&buf_info, 0, sizeof(buf_info));
     buf_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     buf_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    buf_info.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    buf_info.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
     int sizeVertices = vulkanDSL->assetsFetcher.arraySize * sizeof(vulkanDSL->assetsFetcher.triangles[0]);
     buf_info.size = sizeVertices;
 
@@ -1631,34 +1634,9 @@ void VulkanDSL__prepare_vertex_buffer_gpu_only(struct VulkanDSL *vulkanDSL, tiny
     VulkanDSL__init_vulkan_buffer(
             vulkanDSL, &buf_info, &vulkanDSL->vertex_buffer_resources->vertex_buffer,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, &vulkanDSL->vertex_buffer_resources->vertex_memory,
-            &coherentMemory);
-
-    err = vkBindBufferMemory(vulkanDSL->device, vulkanDSL->vertex_buffer_resources->vertex_buffer,
-                             vulkanDSL->vertex_buffer_resources->vertex_memory, 0);
-    assert(!err);
-
-    // map to the application address space
-    err = vkMapMemory(vulkanDSL->device, vulkanDSL->vertex_buffer_resources->vertex_memory, 0, sizeVertices, 0,
-                      &vulkanDSL->vertex_buffer_resources->vertex_memory_ptr);
-    assert(!err);
-
-    memcpy(vulkanDSL->vertex_buffer_resources->vertex_memory_ptr, vulkanDSL->assetsFetcher.triangles, sizeVertices);
-
-    if (!*coherentMemory) {
-        // this is because we use non coherent memory
-        VkMappedMemoryRange range;
-        range.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-        range.pNext = 0;
-        range.memory = vulkanDSL->vertex_buffer_resources->vertex_memory;
-        range.offset = 0;
-        range.size = sizeVertices;
-
-        err = vkFlushMappedMemoryRanges(vulkanDSL->device, 1, &range);
-        assert(!err);
-
-        err = vkInvalidateMappedMemoryRanges(vulkanDSL->device, 1, &range);
-        assert(!err);
-    }
+            &coherentMemory,
+            &vulkanDSL->vertex_buffer_resources->vertex_memory_ptr,
+            vulkanDSL->assetsFetcher.triangles);
 }
 
 // here we define the in variables in the shader that have the tag "binding"

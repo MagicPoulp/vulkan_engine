@@ -376,5 +376,7 @@ void VulkanDSL__prepare_vertex_buffer_classic(struct VulkanDSL *vulkanDSL, tinyo
 void VulkanDSL__init_vulkan_buffer(
         struct VulkanDSL *vulkanDSL, VkBufferCreateInfo *buf_info, VkBuffer *buffer,
         VkFlags memory_properties, VkDeviceMemory *buffer_memory,
-        bool *coherentMemory);
+        bool *coherentMemory,
+        void **buffer_memory_ptr_ptr,
+        void *data);
 #endif
