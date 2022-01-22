@@ -20,16 +20,18 @@ struct AssetsFetcher {
 #ifdef __ANDROID__
     struct AAssetManager* assetManager;
 #endif
+    const char* assetsPath;
     // only for png files, and on iOS the background in the header of the PNG is not interpreted
     char** tex_files_short;
     char** meshes_files_short;
     tinyobj_attrib_t attrib;
-    float *triangles; // 3 points * 3 elements (x, y, z) * num_triangles
     bool attribAllocated;
+    float *triangles; // 3 points * 3 elements (x, y, z) * num_triangles
     size_t arraySize;
+    size_t vertexCount;
 };
 
-void AssetsFetcher__init(struct AssetsFetcher* self);
+void AssetsFetcher__init(struct AssetsFetcher* self, const char *assetsPath);
 void AssetsFetcher__reset(struct AssetsFetcher* self);
         void AssetsFetcher__loadObj(struct AssetsFetcher* self, const char* filename, tinyobj_attrib_t **outAttrib);
 int AssetsFetcher__LoadObjAndConvert(struct AssetsFetcher* self,

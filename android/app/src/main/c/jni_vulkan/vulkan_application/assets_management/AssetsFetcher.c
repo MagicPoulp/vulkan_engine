@@ -5,6 +5,8 @@
 
 #ifdef __ANDROID__
 #include <android_native_app_glue.h>
+#else
+#include <float.h>
 #endif
 
 /*
@@ -25,7 +27,8 @@ v -2.529603 0.224669 0.576378
 char *tex_files_short[] = { "helloWorld" };
 char *meshes_files_short[] = { "textPanel.obj" };
 
-void AssetsFetcher__init(struct AssetsFetcher* self) {
+void AssetsFetcher__init(struct AssetsFetcher* self, const char *assetsPath) {
+    self->assetsPath = assetsPath;
     self->tex_files_short = tex_files_short;
     self->meshes_files_short = meshes_files_short;
     self->attribAllocated = false;
@@ -48,6 +51,7 @@ void AssetsFetcher__loadObj(struct AssetsFetcher* self, const char* filename, ti
     AssetsFetcher__reset(self);
     float bmin[3];
     float bmax[3];
+#ifdef __ANDROID__
     AAsset* asset = AAssetManager_open(
             self->assetManager,
             filename,
@@ -60,6 +64,28 @@ void AssetsFetcher__loadObj(struct AssetsFetcher* self, const char* filename, ti
     obj.rawData = rawData;
     AssetsFetcher__LoadObjAndConvert(self, bmin, bmax, filename, &obj, outAttrib);
     AAsset_close(asset);
+#else
+    char filePath[strlen(self->assetsPath) + strlen(filename) + 5];
+    sprintf(filePath, "%s/%s", self->assetsPath, filename);
+    FILE* ptr = fopen(filePath,"rb"); // enlever le b pour observer dans le debugger
+    int chunk = 500000;
+    char* buffer = (char*) malloc(sizeof(char)* chunk);
+    char* buffer_start = (char*)buffer;
+    int length1 = 0;
+    size_t added = 0;
+    do {
+      added = fread(buffer, 1, chunk, ptr);
+      length1 += added;
+      buffer += chunk;
+    }
+    while (added == chunk);
+    fclose(ptr);
+    struct ObjAsset obj;
+    obj.length = length1;
+    obj.rawData = buffer_start;
+    AssetsFetcher__LoadObjAndConvert(self, bmin, bmax, filename, &obj, outAttrib);
+    free(buffer_start);
+#endif
 }
 
 // https://github.com/syoyo/tinyobjloader-c/blob/master/examples/viewer/viewer.c
@@ -116,9 +142,10 @@ int AssetsFetcher__LoadObjAndConvert(struct AssetsFetcher* self, float bmin[3], 
         size_t i;
 
         size_t num_triangles = attrib.num_face_num_verts;
-        size_t stride = 9;
+        size_t stride = 3 + 2;
 
-        size_t arraySize = num_triangles * 3 * (3 + 2);
+        self->vertexCount = num_triangles * 3;
+        size_t arraySize = num_triangles * 3 * stride;
         self->arraySize = arraySize;
         self->triangles = (float*)calloc(sizeof(float) * arraySize, 1);
 
