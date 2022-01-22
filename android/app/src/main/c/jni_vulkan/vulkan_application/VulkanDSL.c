@@ -931,7 +931,7 @@ static void demo_prepare_buffers(struct VulkanDSL *vulkanDSL) {
     // Determine the number of VkImages to use in the swap chain.
     // Application desires to acquire 3 images at a time for triple
     // buffering
-    uint32_t desiredNumOfSwapchainImages = 1;
+    uint32_t desiredNumOfSwapchainImages = 3;
     if (desiredNumOfSwapchainImages < surfCapabilities.minImageCount) {
         desiredNumOfSwapchainImages = surfCapabilities.minImageCount;
     }
@@ -1320,7 +1320,8 @@ static void demo_prepare_textures(struct VulkanDSL *vulkanDSL) {
     vkGetPhysicalDeviceFormatProperties(vulkanDSL->gpu, tex_format, &props);
     for (i = 0; i < DEMO_TEXTURE_COUNT; i++) {
         VkResult U_ASSERT_ONLY err;
-        if ((props.linearTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT) && !vulkanDSL->use_staging_buffer) {
+
+        if (!vulkanDSL->iosSim && (props.linearTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT) && !vulkanDSL->use_staging_buffer) {
             //NSLog(@"--> Linear tiling is supported");
             /* Device can texture using linear textures */
             demo_prepare_texture_image(vulkanDSL, tex_files[i], &vulkanDSL->textures[i], VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_SAMPLED_BIT,

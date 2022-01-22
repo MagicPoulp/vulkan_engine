@@ -69,6 +69,9 @@
   const char *assetsPath = [joined cStringUsingEncoding:1];
   program = Program__create(assetsPath);
   program->vulkanDSL->caMetalLayer = self.view.layer;
+#if TARGET_OS_SIMULATOR
+  program->vulkanDSL->iosSim = true;
+#endif
   vulkanDSL_main(program->vulkanDSL);
 
 	displayLink = [CADisplayLink displayLinkWithTarget: self selector: @selector(renderLoop)];
