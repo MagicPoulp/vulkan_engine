@@ -2491,6 +2491,7 @@ static void demo_init_vk(struct VulkanDSL *vulkanDSL) {
         err = vkEnumerateInstanceExtensionProperties(NULL, &instance_extension_count, instance_extensions);
         assert(!err);
         for (uint32_t i = 0; i < instance_extension_count; i++) {
+            //fprintf(stdout, "%s\n", instance_extensions[i].extensionName);
             if (!strcmp(VK_KHR_SURFACE_EXTENSION_NAME, instance_extensions[i].extensionName)) {
                 surfaceExtFound = 1;
                 vulkanDSL->extension_names[vulkanDSL->enabled_extension_count++] = VK_KHR_SURFACE_EXTENSION_NAME;
@@ -2883,13 +2884,13 @@ static void demo_init_vk(struct VulkanDSL *vulkanDSL) {
 
 static void demo_create_device(struct VulkanDSL *vulkanDSL) {
     VkResult U_ASSERT_ONLY err;
-    float queue_priorities[2] = {0.0, 0.0};
+    float queue_priorities[1] = {0.0};
     VkDeviceQueueCreateInfo queues[1];
     // in the spec, we cannot have the same queue family on separate VkDeviceQueueCreateInfos
     queues[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     queues[0].pNext = NULL;
     queues[0].queueFamilyIndex = vulkanDSL->graphics_queue_family_index;
-    queues[0].queueCount = 2;
+    queues[0].queueCount = 1;
     queues[0].pQueuePriorities = queue_priorities;
     queues[0].flags = 0;
 
@@ -2917,6 +2918,7 @@ static void demo_create_device(struct VulkanDSL *vulkanDSL) {
     */
 
     device.queueCreateInfoCount = 1;
+
     err = vkCreateDevice(vulkanDSL->gpu, &device, NULL, &vulkanDSL->device);
     assert(!err);
 }
@@ -3070,8 +3072,8 @@ static void demo_init_vk_swapchain(struct VulkanDSL *vulkanDSL) {
     vulkanDSL->fpGetSwapchainImagesKHR = vkGetSwapchainImagesKHR;
     vulkanDSL->fpAcquireNextImageKHR = vkAcquireNextImageKHR;
     vulkanDSL->fpQueuePresentKHR = vkQueuePresentKHR;
-    vulkanDSL->fpGetRefreshCycleDurationGOOGLE = vkGetRefreshCycleDurationGOOGLE;
-    vulkanDSL->fpGetPastPresentationTimingGOOGLE = vkGetPastPresentationTimingGOOGLE;
+    //vulkanDSL->fpGetRefreshCycleDurationGOOGLE = vkGetRefreshCycleDurationGOOGLE;
+    //vulkanDSL->fpGetPastPresentationTimingGOOGLE = vkGetPastPresentationTimingGOOGLE;
 
     /*
    GET_DEVICE_PROC_ADDR(vulkanDSL->device, CreateSwapchainKHR);
@@ -3086,7 +3088,7 @@ static void demo_init_vk_swapchain(struct VulkanDSL *vulkanDSL) {
     */
 
     vkGetDeviceQueue(vulkanDSL->device, vulkanDSL->graphics_queue_family_index, 0, &vulkanDSL->graphics_queue);
-    vkGetDeviceQueue(vulkanDSL->device, vulkanDSL->graphics_queue_family_index, 1, &vulkanDSL->graphics_queue2);
+    //vkGetDeviceQueue(vulkanDSL->device, vulkanDSL->graphics_queue_family_index, 1, &vulkanDSL->graphics_queue2);
 
     if (!vulkanDSL->separate_present_queue) {
         vulkanDSL->present_queue = vulkanDSL->graphics_queue;
