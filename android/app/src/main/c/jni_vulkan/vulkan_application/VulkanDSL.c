@@ -1618,6 +1618,8 @@ void VulkanDSL__prepare_vertex_buffer_classic(struct VulkanDSL *vulkanDSL, tinyo
 
 // https://vkguide.dev/docs/chapter-5/memory_transfers/
 // https://raw.githubusercontent.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/master/include/vk_mem_alloc.h
+// see also the flag USE_STAGING here:
+// https://github.com/SaschaWillems/Vulkan/blob/master/examples/triangle/triangle.cpp
 void VulkanDSL__prepare_vertex_buffer_gpu_only(struct VulkanDSL *vulkanDSL, tinyobj_attrib_t *attrib) {
     VkResult U_ASSERT_ONLY err;
 
@@ -2208,7 +2210,7 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
     memoryBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
     memoryBarrier.sType =
     memoryBarrier.pNext = NULL;
-    memoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+    memoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
     memoryBarrier.dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
     //VkBufferMemoryBarrier
     //VkMemoryBarrier
