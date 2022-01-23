@@ -2196,7 +2196,7 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
     //VulkanDSL__prepare_vertex_buffer_classic(vulkanDSL, outAttrib);
     VulkanDSL__prepare_vertex_buffer_gpu_only(vulkanDSL, outAttrib);
 
-    // if (isUnifiedGraphicsAndTransferQueue)
+    // see the code at "if (isUnifiedGraphicsAndTransferQueue)"
     // https://github.com/cforfang/Vulkan-Tools/wiki/Synchronization-Examples
     VkBufferCopy copy;
     copy.dstOffset = 0;
@@ -3024,7 +3024,9 @@ static void demo_init_vk_swapchain(struct VulkanDSL *vulkanDSL) {
     uint32_t presentQueueFamilyIndex2 = UINT32_MAX;
     bool val1 = false;
     for (uint32_t i = 0; i < vulkanDSL->queue_family_count; i++) {
-        if ((vulkanDSL->queue_props[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0) {
+        //if ((vulkanDSL->queue_props[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0) {
+        if ((vulkanDSL->queue_props[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0
+        && (vulkanDSL->queue_props[i].queueFlags & VK_QUEUE_TRANSFER_BIT) != 0) {
             if (graphicsQueueFamilyIndex == UINT32_MAX) {
                 graphicsQueueFamilyIndex = i;
             }
