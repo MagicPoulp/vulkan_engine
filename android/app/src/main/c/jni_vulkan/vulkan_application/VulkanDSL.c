@@ -2202,6 +2202,7 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
 
     // see the code at "if (isUnifiedGraphicsAndTransferQueue)"
     // https://github.com/cforfang/Vulkan-Tools/wiki/Synchronization-Examples
+    // https://cpp-rendering.io/barriers-vulkan-not-difficult/
     VkBufferCopy copy;
     copy.dstOffset = 0;
     copy.srcOffset = 0;
@@ -2216,9 +2217,11 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
     memoryBarrier.dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
     //VkBufferMemoryBarrier
     //VkMemoryBarrier
-    vkCmdPipelineBarrier(vulkanDSL->cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, 1,
+    vkCmdPipelineBarrier(vulkanDSL->cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, 0, NULL);
+    //vkCmdPipelineBarrier(vulkanDSL->cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 1,
+    //vkCmdPipelineBarrier(vulkanDSL->cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, 1,
     //vkCmdPipelineBarrier(vulkanDSL->cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, 1,
-                         (const VkMemoryBarrier *) &memoryBarrier, 0, NULL, 0, NULL);
+    //                     (const VkMemoryBarrier *) &memoryBarrier, 0, NULL, 0, NULL);
 
     demo_prepare_depth(vulkanDSL);
     demo_prepare_textures(vulkanDSL);
