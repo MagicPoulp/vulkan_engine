@@ -93,3 +93,9 @@ how to make exact .obj export
 uncheck all except triangulate
 
 add the apply transform to get the smooth back and with less decimals Y is still fine
+
+# Links
+
+Vulkan synchronization examples
+https://github.com/cforfang/Vulkan-Tools/wiki/Synchronization-Examples
+https://www.lunarg.com/wp-content/uploads/2021/08/Vulkan-Synchronization-SIGGRAPH-2021.pdf

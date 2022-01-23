@@ -300,7 +300,8 @@ static void demo_set_image_layout(struct VulkanDSL *vulkanDSL, VkImage image, Vk
                                   VkPipelineStageFlags dest_stages) {
     assert(vulkanDSL->cmd);
 
-    VkImageMemoryBarrier image_memory_barrier = {.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+    VkImageMemoryBarrier image_memory_barrier = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
             .pNext = NULL,
             .srcAccessMask = srcAccessMask,
             .dstAccessMask = 0,
@@ -1626,6 +1627,7 @@ void VulkanDSL__prepare_vertex_buffer_gpu_only(struct VulkanDSL *vulkanDSL, tiny
     buf_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     buf_info.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
     int sizeVertices = vulkanDSL->assetsFetcher.arraySize * sizeof(vulkanDSL->assetsFetcher.triangles[0]);
+    // the size must be a multiple of nonCoherentAtomSize (16 often)
     buf_info.size = sizeVertices;
 
     vulkanDSL->vi_binding.binding = 0;
@@ -2194,11 +2196,25 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
     //VulkanDSL__prepare_vertex_buffer_classic(vulkanDSL, outAttrib);
     VulkanDSL__prepare_vertex_buffer_gpu_only(vulkanDSL, outAttrib);
 
+    // if (isUnifiedGraphicsAndTransferQueue)
+    // https://github.com/cforfang/Vulkan-Tools/wiki/Synchronization-Examples
     VkBufferCopy copy;
     copy.dstOffset = 0;
     copy.srcOffset = 0;
     copy.size = vulkanDSL->assetsFetcher.arraySize;
     vkCmdCopyBuffer(vulkanDSL->cmd, vulkanDSL->vertex_buffer_resources->vertex_buffer, vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu, 1, &copy);
+
+    VkMemoryBarrier memoryBarrier;
+    memoryBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+    memoryBarrier.sType =
+    memoryBarrier.pNext = NULL;
+    memoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+    memoryBarrier.dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
+    //VkBufferMemoryBarrier
+    //VkMemoryBarrier
+    vkCmdPipelineBarrier(vulkanDSL->cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, 1,
+    //vkCmdPipelineBarrier(vulkanDSL->cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, 1,
+                         (const VkMemoryBarrier *) &memoryBarrier, 0, NULL, 0, NULL);
 
     demo_prepare_depth(vulkanDSL);
     demo_prepare_textures(vulkanDSL);
@@ -2687,7 +2703,9 @@ static void demo_init_vk(struct VulkanDSL *vulkanDSL) {
             assert(physicalDeviceProperties.deviceType <= VK_PHYSICAL_DEVICE_TYPE_CPU);
             count_device_type[physicalDeviceProperties.deviceType]++;
         }
-
+        // nonCoherentAtomSize is the size and alignment in bytes that bounds concurrent access
+        // to host-mapped device memory. The value must be a power of two.
+        // size_t nonCoherentAtomSize = physicalDeviceProperties.limits.nonCoherentAtomSize;
         VkPhysicalDeviceType search_for_device_type = VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
         if (count_device_type[VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU]) {
             search_for_device_type = VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
