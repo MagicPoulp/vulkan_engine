@@ -3208,6 +3208,9 @@ void vulkanDSL_main(struct VulkanDSL *vulkanDSL) {
 }
 
 void VulkanDSL__setSize(struct VulkanDSL *vulkanDSL, int32_t width, int32_t height) {
+    if (width == vulkanDSL->width && height == vulkanDSL->height) {
+        return;
+    }
     demo_init_matrices(vulkanDSL, width, height);
     demo_resize(vulkanDSL);
 }
