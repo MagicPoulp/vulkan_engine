@@ -962,10 +962,10 @@ static void demo_prepare_buffers(struct VulkanDSL *vulkanDSL) {
     // Find a supported composite alpha mode - one of these is guaranteed to be set
     VkCompositeAlphaFlagBitsKHR compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     VkCompositeAlphaFlagBitsKHR compositeAlphaFlags[4] = {
-            VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
             VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR,
             VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR,
             VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR,
+            VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR
     };
     for (uint32_t i = 0; i < ARRAY_SIZE(compositeAlphaFlags); i++) {
         if (surfCapabilities.supportedCompositeAlpha & compositeAlphaFlags[i]) {
@@ -975,7 +975,9 @@ static void demo_prepare_buffers(struct VulkanDSL *vulkanDSL) {
     }
 
     // we do not want opaque
-    compositeAlpha = VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR;
+    if (surfCapabilities.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR) {
+        compositeAlpha = VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR;
+    }
 
     VkSwapchainCreateInfoKHR swapchain_ci = {
             .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
@@ -2617,6 +2619,8 @@ static void demo_init_vk(struct VulkanDSL *vulkanDSL) {
             // #define VULKAN_1_1 is defined in the volk_setup.h
             .apiVersion = VK_API_VERSION_1_1,
     };
+    // spec 1.1, different from the latest one
+    // https://www.khronos.org/registry/vulkan/specs/1.1/html/vkspec.html
     VkInstanceCreateInfo inst_info = {
             .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
             .pNext = NULL,

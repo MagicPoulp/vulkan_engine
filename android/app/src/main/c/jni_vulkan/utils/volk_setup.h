@@ -10,7 +10,7 @@
 #define VK_USE_PLATFORM_ANDROID_KHR
 #endif
 // MoltenVK supports only 1.1
-#define VULKAN_1_1
+#define VK_VERSION_1_1
 // volk allows not to ship vulkan, or define pointers
 #include "../volk/volk.h"
 
