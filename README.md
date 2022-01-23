@@ -99,3 +99,12 @@ add the apply transform to get the smooth back and with less decimals Y is still
 Vulkan synchronization examples
 https://github.com/cforfang/Vulkan-Tools/wiki/Synchronization-Examples
 https://www.lunarg.com/wp-content/uploads/2021/08/Vulkan-Synchronization-SIGGRAPH-2021.pdf
+
+# Debug with validation layers
+
+This is important to check anomalies in the use of Vulkan
+
+It is much simpler on Android. On iOs one must read the doc, and there is a LunarG SDK
+https://developer.android.com/ndk/guides/graphics/validation-layer
+just copy the zip content in the jniLib folder
+And put the flag vulkanDSL->validate = true

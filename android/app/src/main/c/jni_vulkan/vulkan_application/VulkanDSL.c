@@ -2614,7 +2614,9 @@ static void demo_init_vk(struct VulkanDSL *vulkanDSL) {
             .applicationVersion = 0,
             .pEngineName = APP_SHORT_NAME,
             .engineVersion = 0,
-            .apiVersion = VK_API_VERSION_1_0,
+            // MoltenVK supports only 1.1
+            // #define VULKAN_1_1 is defined in the volk_setup.h
+            .apiVersion = VK_API_VERSION_1_1,
     };
     VkInstanceCreateInfo inst_info = {
             .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
