@@ -2144,7 +2144,7 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
         const VkCommandPoolCreateInfo cmd_pool_info2 = {
                 .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
                 .pNext = NULL,
-                .queueFamilyIndex = vulkanDSL->graphics_queue_family_index2,
+                .queueFamilyIndex = vulkanDSL->graphics_queue_family_index,
                 .flags = 0,
         };
         err = vkCreateCommandPool(vulkanDSL->device, &cmd_pool_info2, NULL, &vulkanDSL->cmd_pool2);
@@ -2211,7 +2211,6 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
 
     VkMemoryBarrier memoryBarrier;
     memoryBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
-    memoryBarrier.sType =
     memoryBarrier.pNext = NULL;
     memoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
     memoryBarrier.dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
@@ -2880,12 +2879,13 @@ static void demo_init_vk(struct VulkanDSL *vulkanDSL) {
 
 static void demo_create_device(struct VulkanDSL *vulkanDSL) {
     VkResult U_ASSERT_ONLY err;
-    float queue_priorities[1] = {0.0};
-    VkDeviceQueueCreateInfo queues[2];
+    float queue_priorities[2] = {0.0, 0.0};
+    VkDeviceQueueCreateInfo queues[1];
+    // in the spec, we cannot have the same queue family on separate VkDeviceQueueCreateInfos
     queues[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     queues[0].pNext = NULL;
     queues[0].queueFamilyIndex = vulkanDSL->graphics_queue_family_index;
-    queues[0].queueCount = 1;
+    queues[0].queueCount = 2;
     queues[0].pQueuePriorities = queue_priorities;
     queues[0].flags = 0;
 
@@ -2912,13 +2912,7 @@ static void demo_create_device(struct VulkanDSL *vulkanDSL) {
       }
     */
 
-    queues[1].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queues[1].pNext = NULL;
-    queues[1].queueFamilyIndex = vulkanDSL->graphics_queue_family_index2;
-    queues[1].queueCount = 1;
-    queues[1].pQueuePriorities = queue_priorities;
-    queues[1].flags = 0;
-    device.queueCreateInfoCount = 2;
+    device.queueCreateInfoCount = 1;
     err = vkCreateDevice(vulkanDSL->gpu, &device, NULL, &vulkanDSL->device);
     assert(!err);
 }
@@ -3029,9 +3023,6 @@ static void demo_init_vk_swapchain(struct VulkanDSL *vulkanDSL) {
     // families, try to find one that supports both
     uint32_t graphicsQueueFamilyIndex = UINT32_MAX;
     uint32_t presentQueueFamilyIndex = UINT32_MAX;
-    uint32_t graphicsQueueFamilyIndex2 = UINT32_MAX;
-    uint32_t presentQueueFamilyIndex2 = UINT32_MAX;
-    bool val1 = false;
     for (uint32_t i = 0; i < vulkanDSL->queue_family_count; i++) {
         //if ((vulkanDSL->queue_props[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0) {
         if ((vulkanDSL->queue_props[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0
@@ -3040,15 +3031,9 @@ static void demo_init_vk_swapchain(struct VulkanDSL *vulkanDSL) {
                 graphicsQueueFamilyIndex = i;
             }
 
-            if (val1 && supportsPresent[i] == VK_TRUE) {
-                graphicsQueueFamilyIndex2 = i;
-                presentQueueFamilyIndex2 = i;
-                break;
-            }
-            if (!val1 && supportsPresent[i] == VK_TRUE) {
+            if (supportsPresent[i] == VK_TRUE) {
                 graphicsQueueFamilyIndex = i;
                 presentQueueFamilyIndex = i;
-                val1 = true;
             }
         }
     }
@@ -3097,7 +3082,7 @@ static void demo_init_vk_swapchain(struct VulkanDSL *vulkanDSL) {
     */
 
     vkGetDeviceQueue(vulkanDSL->device, vulkanDSL->graphics_queue_family_index, 0, &vulkanDSL->graphics_queue);
-    vkGetDeviceQueue(vulkanDSL->device, vulkanDSL->graphics_queue_family_index2, 0, &vulkanDSL->graphics_queue2);
+    vkGetDeviceQueue(vulkanDSL->device, vulkanDSL->graphics_queue_family_index, 1, &vulkanDSL->graphics_queue2);
 
     if (!vulkanDSL->separate_present_queue) {
         vulkanDSL->present_queue = vulkanDSL->graphics_queue;
