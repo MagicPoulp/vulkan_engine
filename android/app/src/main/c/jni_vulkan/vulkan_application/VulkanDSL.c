@@ -457,7 +457,8 @@ void VulkanDSL__draw_build_cmd(struct VulkanDSL *vulkanDSL, VkCommandBuffer cmd_
     //VkBuffer vertexBuffers[] = { vulkanDSL->vertex_buffer_resources->vertex_buffer };
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(cmd_buf, 0, 1, vertexBuffers, offsets);
-    vkCmdDraw(cmd_buf, (uint32_t)vulkanDSL->assetsFetcher.vertexCount, 1, 0, 0);
+    //vkCmdDraw(cmd_buf, (uint32_t)vulkanDSL->assetsFetcher.vertexCount, 1, 0, 0);
+    vkCmdDraw(cmd_buf,10, 1, 0, 0);
 
     if (vulkanDSL->validate) {
         vulkanDSL->CmdEndDebugUtilsLabelEXT(cmd_buf);
@@ -1525,7 +1526,7 @@ void VulkanDSL__allocate_vulkan_buffer(
     }
     assert(pass);
 
-    *coherentMemory = (memory_properties & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) == memory_properties;
+    *coherentMemory = (memory_properties & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) == VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 
     err = vkAllocateMemory(vulkanDSL->device, &mem_alloc, NULL, buffer_memory);
     assert(!err);
@@ -1659,7 +1660,8 @@ void VulkanDSL__prepare_vertex_buffer_gpu_only(struct VulkanDSL *vulkanDSL, tiny
     // a CPU buffer used as a transfer source
     VulkanDSL__allocate_vulkan_buffer(
             vulkanDSL, &buf_info, &vulkanDSL->vertex_buffer_resources->vertex_buffer,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, &vulkanDSL->vertex_buffer_resources->vertex_memory,
+            //VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, &vulkanDSL->vertex_buffer_resources->vertex_memory,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &vulkanDSL->vertex_buffer_resources->vertex_memory,
             &coherentMemory);
     vulkanDSL->vertex_buffer_resources->vertex_buffer_allocated = true;
     // we copy the data
