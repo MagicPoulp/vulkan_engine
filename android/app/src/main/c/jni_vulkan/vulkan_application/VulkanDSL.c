@@ -2181,6 +2181,8 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
     //VulkanDSL__prepare_vertex_buffer_classic(vulkanDSL, outAttrib);
     VulkanDSL__prepare_vertex_buffer_gpu_only(vulkanDSL, outAttrib);
 
+    // best full intel tutorial:
+    // https://www.intel.com/content/www/us/en/developer/articles/training/api-without-secrets-introduction-to-vulkan-part-5.html
     // see the code at "if (isUnifiedGraphicsAndTransferQueue)"
     // https://github.com/cforfang/Vulkan-Tools/wiki/Synchronization-Examples
     // https://cpp-rendering.io/barriers-vulkan-not-difficult/
@@ -2190,6 +2192,19 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
     copy.size = vulkanDSL->assetsFetcher.arraySize;
     vkCmdCopyBuffer(vulkanDSL->cmd, vulkanDSL->vertex_buffer_resources->vertex_buffer, vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu, 1, &copy);
 
+    VkBufferMemoryBarrier buffer_memory_barrier = {
+            VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,          // VkStructureType                        sType;
+            NULL,                                             // const void                            *pNext
+            VK_ACCESS_MEMORY_WRITE_BIT,                       // VkAccessFlags                          srcAccessMask
+            VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT,              // VkAccessFlags                          dstAccessMask
+            VK_QUEUE_FAMILY_IGNORED,                          // uint32_t                               srcQueueFamilyIndex
+            VK_QUEUE_FAMILY_IGNORED,                          // uint32_t                               dstQueueFamilyIndex
+            vulkanDSL->vertex_buffer_resources->vertex_buffer,// VkBuffer                               buffer
+            0,                                                // VkDeviceSize                           offset
+            VK_WHOLE_SIZE                                     // VkDeviceSize                           size
+    };
+    vkCmdPipelineBarrier(vulkanDSL->cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, 0, NULL, 1, &buffer_memory_barrier, 0, NULL );
+/*
     VkMemoryBarrier memoryBarrier;
     memoryBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
     memoryBarrier.pNext = NULL;
@@ -2198,6 +2213,7 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
     //VkBufferMemoryBarrier
     //VkMemoryBarrier
     vkCmdPipelineBarrier(vulkanDSL->cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, 0, NULL);
+*/
     //vkCmdPipelineBarrier(vulkanDSL->cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 1,
     //vkCmdPipelineBarrier(vulkanDSL->cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, 1,
     //vkCmdPipelineBarrier(vulkanDSL->cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, 1,
@@ -2249,14 +2265,14 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
         vulkanDSL->current_buffer = i;
         VulkanDSL__draw_build_cmd(vulkanDSL, vulkanDSL->swapchain_image_resources[i].cmd);
     }
-    vkDeviceWaitIdle(vulkanDSL->device);
+
      /*
      * Prepare functions above may generate pipeline commands
      * that need to be flushed before beginning the render loop.
      */
     // vulkanDSL->cmd is used to transfer the images and wait for them before the fragment shader
     demo_flush_init_cmd(vulkanDSL);
-    vkDeviceWaitIdle(vulkanDSL->device);
+
     if (vulkanDSL->staging_texture.buffer) {
         demo_destroy_texture(vulkanDSL, &vulkanDSL->staging_texture);
     }
