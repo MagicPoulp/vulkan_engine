@@ -2142,27 +2142,6 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
     }
 
     VkResult U_ASSERT_ONLY err;
-    if (vulkanDSL->cmd_pool2 == VK_NULL_HANDLE) {
-        const VkCommandPoolCreateInfo cmd_pool_info2 = {
-                .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-                .pNext = NULL,
-                .queueFamilyIndex = vulkanDSL->graphics_queue_family_index,
-                .flags = 0,
-        };
-        err = vkCreateCommandPool(vulkanDSL->device, &cmd_pool_info2, NULL, &vulkanDSL->cmd_pool2);
-        assert(!err);
-    }
-
-    const VkCommandBufferAllocateInfo cmd2 = {
-            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-            .pNext = NULL,
-            .commandPool = vulkanDSL->cmd_pool2,
-            .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-            .commandBufferCount = 1,
-    };
-    err = vkAllocateCommandBuffers(vulkanDSL->device, &cmd2, &vulkanDSL->cmd2);
-    assert(!err);
-
     if (vulkanDSL->cmd_pool == VK_NULL_HANDLE) {
         const VkCommandPoolCreateInfo cmd_pool_info = {
                 .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
@@ -2270,13 +2249,14 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
         vulkanDSL->current_buffer = i;
         VulkanDSL__draw_build_cmd(vulkanDSL, vulkanDSL->swapchain_image_resources[i].cmd);
     }
-
+    vkDeviceWaitIdle(vulkanDSL->device);
      /*
      * Prepare functions above may generate pipeline commands
      * that need to be flushed before beginning the render loop.
      */
     // vulkanDSL->cmd is used to transfer the images and wait for them before the fragment shader
     demo_flush_init_cmd(vulkanDSL);
+    vkDeviceWaitIdle(vulkanDSL->device);
     if (vulkanDSL->staging_texture.buffer) {
         demo_destroy_texture(vulkanDSL, &vulkanDSL->staging_texture);
     }
