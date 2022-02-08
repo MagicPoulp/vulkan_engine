@@ -1,6 +1,6 @@
 /*
 The implementation file is in a .h and not a .c to simplify the build on iOS.
-THe CMakeLists copies to a .c
+The CMakeLists copies to a .c
 */
 
 #include <utils/gettime.h>
@@ -289,7 +289,7 @@ static void demo_flush_init_cmd(struct VulkanDSL *vulkanDSL) {
 
     err = vkWaitForFences(vulkanDSL->device, 1, &fence, VK_TRUE, UINT64_MAX);
     assert(!err);
-
+    vkDeviceWaitIdle(vulkanDSL->device);
     vkFreeCommandBuffers(vulkanDSL->device, vulkanDSL->cmd_pool, 1, cmd_bufs);
     vkDestroyFence(vulkanDSL->device, fence, NULL);
     vulkanDSL->cmd = VK_NULL_HANDLE;
@@ -359,7 +359,8 @@ void VulkanDSL__draw_build_cmd(struct VulkanDSL *vulkanDSL, VkCommandBuffer cmd_
             .pInheritanceInfo = NULL,
     };
     const VkClearValue clear_values[2] = {
-            [0] = {.color.float32 = {0.2f, 0.2f, 0.2f, 0.2f}},
+  //          [0] = {.color.float32 = {0.0f, 0.0f, 0.0f, 1.0f}},
+            [0] = {.color.float32 = {0.0f, 0.0f, 0.0f, 1.0f}},
             [1] = {.depthStencil = {1.0f, 0}},
     };
     const VkRenderPassBeginInfo rp_begin = {
@@ -372,6 +373,7 @@ void VulkanDSL__draw_build_cmd(struct VulkanDSL *vulkanDSL, VkCommandBuffer cmd_
             .renderArea.extent.width = vulkanDSL->width,
             .renderArea.extent.height = vulkanDSL->height,
             .clearValueCount = 2,
+            //.clearValueCount = 1,
             .pClearValues = clear_values,
     };
     VkResult U_ASSERT_ONLY err;
@@ -453,12 +455,16 @@ void VulkanDSL__draw_build_cmd(struct VulkanDSL *vulkanDSL, VkCommandBuffer cmd_
     //vkCmdDraw(cmd_buf, 1, 1, 0, 0);
     //vkCmdDraw(cmd_buf, 12 * 3, 1, 0, 0);
 */
-    VkBuffer vertexBuffers[] = { vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu };
+    VkBuffer *vertexBuffers = &vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu;
+    //VkBuffer vertexBuffers[] = { vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu };
     //VkBuffer vertexBuffers[] = { vulkanDSL->vertex_buffer_resources->vertex_buffer };
-    VkDeviceSize offsets[] = {0};
-    vkCmdBindVertexBuffers(cmd_buf, 0, 1, vertexBuffers, offsets);
-    //vkCmdDraw(cmd_buf, (uint32_t)vulkanDSL->assetsFetcher.vertexCount, 1, 0, 0);
-    vkCmdDraw(cmd_buf,10, 1, 0, 0);
+    //VkDeviceSize offsets[] = {0};
+    VkDeviceSize offsets = 0;
+    vkCmdBindVertexBuffers(cmd_buf, 0, 1, vertexBuffers, &offsets);
+    //vkCmdDraw(cmd_buf, 10, 1, 0, 0);
+    //vkCmdDraw(cmd_buf, 12*3, 1, 0, 0);
+    vkCmdDraw(cmd_buf, (uint32_t)vulkanDSL->assetsFetcher.vertexCount, 1, 0, 0);
+    //vkCmdDraw(cmd_buf, 6, 1, 3, 0);
 
     if (vulkanDSL->validate) {
         vulkanDSL->CmdEndDebugUtilsLabelEXT(cmd_buf);
@@ -1619,20 +1625,102 @@ void VulkanDSL__prepare_vertex_buffer_classic(struct VulkanDSL *vulkanDSL, tinyo
     vulkanDSL->vertex_buffer_resources->vertex_memory_mapped = true;
 }
 
+
+void copyBuffer(struct VulkanDSL *vulkanDSL, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
+    VkResult U_ASSERT_ONLY err;
+    const VkCommandBufferAllocateInfo allocInfo = {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+            .pNext = NULL,
+            .commandPool = vulkanDSL->cmd_pool,
+            .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+            .commandBufferCount = 1,
+    };
+
+    VkCommandBuffer commandBuffer;
+    err = vkAllocateCommandBuffers(vulkanDSL->device, &allocInfo, &commandBuffer);
+    assert(!err);
+
+    VkCommandBufferBeginInfo beginInfo;
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    beginInfo.pNext = 0;
+    vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+    VkBufferCopy copyRegion;
+    copyRegion.srcOffset = 0;
+    copyRegion.dstOffset = 0;
+    copyRegion.size = size;
+    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+    // best full intel tutorial:
+    // https://www.intel.com/content/www/us/en/developer/articles/training/api-without-secrets-introduction-to-vulkan-part-5.html
+    // see the code at "if (isUnifiedGraphicsAndTransferQueue)"
+    // https://github.com/cforfang/Vulkan-Tools/wiki/Synchronization-Examples
+    // https://cpp-rendering.io/barriers-vulkan-not-difficult/
+    // https://github.com/GameTechDev/IntroductionToVulkan/blob/master/Project/Tutorials/05/Tutorial05.cpp
+    VkBufferCopy copy;
+    copy.dstOffset = 0;
+    copy.srcOffset = 0;
+    copy.size = vulkanDSL->assetsFetcher.arraySize;
+    //copy.size = 8 * sizeof(float) * 3 * 3;
+    vkCmdCopyBuffer(commandBuffer, vulkanDSL->vertex_buffer_resources->vertex_buffer, vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu, 1, &copy);
+    VkBufferMemoryBarrier buffer_memory_barrier = {
+            VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,          // VkStructureType                        sType;
+            NULL,                                             // const void                            *pNext
+            VK_ACCESS_MEMORY_WRITE_BIT,                       // VkAccessFlags                          srcAccessMask
+            VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT,              // VkAccessFlags                          dstAccessMask
+            VK_QUEUE_FAMILY_IGNORED,                          // uint32_t                               srcQueueFamilyIndex
+            VK_QUEUE_FAMILY_IGNORED,                          // uint32_t                               dstQueueFamilyIndex
+            //           vulkanDSL->vertex_buffer_resources->vertex_buffer,// VkBuffer                               buffer
+            vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu,// VkBuffer                               buffer
+            0,                                                // VkDeviceSize                           offset
+            VK_WHOLE_SIZE                                     // VkDeviceSize                           size
+    };
+    vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, 0, NULL, 1, &buffer_memory_barrier, 0, NULL );
+
+    vkEndCommandBuffer(commandBuffer);
+
+    VkSubmitInfo submitInfo = {
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+            .pNext = NULL,
+            .waitSemaphoreCount = 0,
+            .pWaitSemaphores = NULL,
+            .pWaitDstStageMask = NULL,
+            .commandBufferCount = 1,
+            .pCommandBuffers = &commandBuffer,
+            .signalSemaphoreCount = 0,
+            .pSignalSemaphores = NULL
+    };
+
+    VkFence fence;
+    VkFenceCreateInfo fence_ci = {.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO, .pNext = NULL, .flags = 0};
+    err = vkCreateFence(vulkanDSL->device, &fence_ci, NULL, &fence);
+    assert(!err);
+    vkQueueSubmit(vulkanDSL->graphics_queue, 1, &submitInfo, fence);
+    err = vkWaitForFences(vulkanDSL->device, 1, &fence, VK_TRUE, UINT64_MAX);
+    assert(!err);
+    vkQueueWaitIdle(vulkanDSL->graphics_queue);
+    vkDestroyFence(vulkanDSL->device, fence, NULL);
+    vkFreeCommandBuffers(vulkanDSL->device, vulkanDSL->cmd_pool, 1, &commandBuffer);
+}
+
 // https://vkguide.dev/docs/chapter-5/memory_transfers/
 // https://raw.githubusercontent.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/master/include/vk_mem_alloc.h
 // see also the flag USE_STAGING here:
 // https://github.com/SaschaWillems/Vulkan/blob/master/examples/triangle/triangle.cpp
 void VulkanDSL__prepare_vertex_buffer_gpu_only(struct VulkanDSL *vulkanDSL, tinyobj_attrib_t *attrib) {
     VkResult U_ASSERT_ONLY err;
+    bool U_ASSERT_ONLY pass;
 
     VkBufferCreateInfo buf_info;
+    VkMemoryRequirements mem_reqs;
+    VkMemoryAllocateInfo mem_alloc;
+
     memset(&buf_info, 0, sizeof(buf_info));
     buf_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     buf_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     buf_info.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
     int sizeVertices = vulkanDSL->assetsFetcher.arraySize * sizeof(vulkanDSL->assetsFetcher.triangles[0]);
-    // the size must be a multiple of nonCoherentAtomSize (16 often)
     buf_info.size = sizeVertices;
 
     vulkanDSL->vi_binding.binding = 0;
@@ -1649,24 +1737,25 @@ void VulkanDSL__prepare_vertex_buffer_gpu_only(struct VulkanDSL *vulkanDSL, tiny
     // vec4: VK_FORMAT_R32G32B32A32_SFLOAT
     vulkanDSL->vi_attribs[0].binding = 0;
     vulkanDSL->vi_attribs[0].location = 0;
-    vulkanDSL->vi_attribs[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+    //vulkanDSL->vi_attribs[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+    vulkanDSL->vi_attribs[0].format = VK_FORMAT_R32G32B32A32_SFLOAT;
     vulkanDSL->vi_attribs[0].offset = 0;
     vulkanDSL->vi_attribs[1].binding = 0;
     vulkanDSL->vi_attribs[1].location = 1;
-    vulkanDSL->vi_attribs[1].format = VK_FORMAT_R32G32_SFLOAT;
+    //vulkanDSL->vi_attribs[1].format = VK_FORMAT_R32G32_SFLOAT;
+    vulkanDSL->vi_attribs[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
     // offset represents the shift compared to the start of the vertex struct
     // so it is the size of the attrib 0 for the coordinates
     vulkanDSL->vi_attribs[1].offset = 3 * sizeof(float);
 
+
     bool coherentMemory;
-    // a CPU buffer used as a transfer source
     VulkanDSL__allocate_vulkan_buffer(
             vulkanDSL, &buf_info, &vulkanDSL->vertex_buffer_resources->vertex_buffer,
             //VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, &vulkanDSL->vertex_buffer_resources->vertex_memory,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &vulkanDSL->vertex_buffer_resources->vertex_memory,
             &coherentMemory);
     vulkanDSL->vertex_buffer_resources->vertex_buffer_allocated = true;
-    // we copy the data
     VulkanDSL__fill_vulkan_buffer(
             vulkanDSL, &buf_info,
             &vulkanDSL->vertex_buffer_resources->vertex_memory,
@@ -1679,9 +1768,13 @@ void VulkanDSL__prepare_vertex_buffer_gpu_only(struct VulkanDSL *vulkanDSL, tiny
     buf_info.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
     VulkanDSL__allocate_vulkan_buffer(
             vulkanDSL, &buf_info, &vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &vulkanDSL->vertex_buffer_resources->vertex_memory_gpu,
+
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+            //VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+            &vulkanDSL->vertex_buffer_resources->vertex_memory_gpu,
             &coherentMemory);
     vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu_allocated = true;
+    copyBuffer(vulkanDSL, vulkanDSL->vertex_buffer_resources->vertex_buffer, vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu, sizeVertices);
 }
 
 // here we define the in variables in the shader that have the tag "binding"
@@ -1778,6 +1871,7 @@ static void demo_prepare_render_pass(struct VulkanDSL *vulkanDSL) {
             .colorAttachmentCount = 1,
             .pColorAttachments = &color_reference,
             .pResolveAttachments = NULL,
+            //.pDepthStencilAttachment = NULL,
             .pDepthStencilAttachment = &depth_reference,
             .preserveAttachmentCount = 0,
             .pPreserveAttachments = NULL,
@@ -1813,10 +1907,13 @@ static void demo_prepare_render_pass(struct VulkanDSL *vulkanDSL) {
             .pNext = NULL,
             .flags = 0,
             .attachmentCount = 2,
+            //.attachmentCount = 1,
             .pAttachments = attachments,
             .subpassCount = 1,
             .pSubpasses = &subpass,
             .dependencyCount = 2,
+            //.dependencyCount = 1,
+            //.pDependencies = &attachmentDependencies[1],
             .pDependencies = attachmentDependencies,
     };
     VkResult U_ASSERT_ONLY err;
@@ -1993,6 +2090,11 @@ static void demo_prepare_pipeline(struct VulkanDSL *vulkanDSL) {
     ms.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     ms.pSampleMask = NULL;
     ms.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+    // https://vulkan-tutorial.com/Multisampling
+    // https://www.khronos.org/registry/vulkan/specs/1.2/html/chap25.html#primsrast-sampleshading
+    //ms.sampleShadingEnable = VK_FALSE; // NOT SURE
+    //ms.sampleShadingEnable = VK_TRUE; // enable sample shading in the pipeline
+    //ms.minSampleShading = .5f; // min fraction for sample shading; closer to one
 
     demo_prepare_vs(vulkanDSL);
     demo_prepare_fs(vulkanDSL);
@@ -2032,6 +2134,7 @@ static void demo_prepare_pipeline(struct VulkanDSL *vulkanDSL) {
     pipeline.renderPass = vulkanDSL->render_pass;
 
     err = vkCreateGraphicsPipelines(vulkanDSL->device, vulkanDSL->pipelineCache, 1, &pipeline, NULL, &vulkanDSL->pipeline);
+    //err = vkCreateGraphicsPipelines(vulkanDSL->device, VK_NULL_HANDLE, 1, &pipeline, NULL, &vulkanDSL->pipeline);
     assert(!err);
 
     vkDestroyShaderModule(vulkanDSL->device, vulkanDSL->frag_shader_module, NULL);
@@ -2118,6 +2221,7 @@ static void demo_prepare_framebuffers(struct VulkanDSL *vulkanDSL) {
             .pNext = NULL,
             .renderPass = vulkanDSL->render_pass,
             .attachmentCount = 2,
+            //.attachmentCount = 1,
             .pAttachments = attachments,
             .width = vulkanDSL->width,
             .height = vulkanDSL->height,
@@ -2153,6 +2257,17 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
         assert(!err);
     }
 
+    tinyobj_attrib_t* outAttrib;
+#ifdef __ANDROID__
+    const char* objFile = "meshes/textPanel.obj";
+#else
+    const char* objFile = "textPanel.obj";
+#endif
+    AssetsFetcher__loadObj(&vulkanDSL->assetsFetcher, objFile, &outAttrib);
+
+    //VulkanDSL__prepare_vertex_buffer_classic(vulkanDSL, outAttrib);
+    VulkanDSL__prepare_vertex_buffer_gpu_only(vulkanDSL, outAttrib);
+
     const VkCommandBufferAllocateInfo cmd = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
             .pNext = NULL,
@@ -2165,32 +2280,30 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
     VkCommandBufferBeginInfo cmd_buf_info = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
             .pNext = NULL,
-            .flags = 0,
+            //.flags = 0,
+            .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
             .pInheritanceInfo = NULL,
     };
     err = vkBeginCommandBuffer(vulkanDSL->cmd, &cmd_buf_info);
     assert(!err);
-
-    tinyobj_attrib_t* outAttrib;
-#ifdef __ANDROID__
-    const char* objFile = "meshes/textPanel.obj";
-#else
-    const char* objFile = "textPanel.obj";
-#endif
-    AssetsFetcher__loadObj(&vulkanDSL->assetsFetcher, objFile, &outAttrib);
-    //VulkanDSL__prepare_vertex_buffer_classic(vulkanDSL, outAttrib);
-    VulkanDSL__prepare_vertex_buffer_gpu_only(vulkanDSL, outAttrib);
 
     // best full intel tutorial:
     // https://www.intel.com/content/www/us/en/developer/articles/training/api-without-secrets-introduction-to-vulkan-part-5.html
     // see the code at "if (isUnifiedGraphicsAndTransferQueue)"
     // https://github.com/cforfang/Vulkan-Tools/wiki/Synchronization-Examples
     // https://cpp-rendering.io/barriers-vulkan-not-difficult/
+    // https://github.com/GameTechDev/IntroductionToVulkan/blob/master/Project/Tutorials/05/Tutorial05.cpp
     VkBufferCopy copy;
     copy.dstOffset = 0;
     copy.srcOffset = 0;
-    copy.size = vulkanDSL->assetsFetcher.arraySize;
-    vkCmdCopyBuffer(vulkanDSL->cmd, vulkanDSL->vertex_buffer_resources->vertex_buffer, vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu, 1, &copy);
+    //copy.size = vulkanDSL->assetsFetcher.arraySize;
+    copy.size = 8 * sizeof(float) * 3 * 3;
+    //vkCmdCopyBuffer(vulkanDSL->cmd, vulkanDSL->vertex_buffer_resources->vertex_buffer, vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu, 1, &copy);
+    VkBufferCopy copy2;
+    copy.dstOffset = 8 * 6;
+    copy.srcOffset = 8 * 6;
+    copy.size = 32 * 8;
+    //vkCmdCopyBuffer(vulkanDSL->cmd, vulkanDSL->vertex_buffer_resources->vertex_buffer, vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu, 1, &copy2);
 
     VkBufferMemoryBarrier buffer_memory_barrier = {
             VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,          // VkStructureType                        sType;
@@ -2199,12 +2312,24 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
             VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT,              // VkAccessFlags                          dstAccessMask
             VK_QUEUE_FAMILY_IGNORED,                          // uint32_t                               srcQueueFamilyIndex
             VK_QUEUE_FAMILY_IGNORED,                          // uint32_t                               dstQueueFamilyIndex
-            vulkanDSL->vertex_buffer_resources->vertex_buffer,// VkBuffer                               buffer
+ //           vulkanDSL->vertex_buffer_resources->vertex_buffer,// VkBuffer                               buffer
+            vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu,// VkBuffer                               buffer
             0,                                                // VkDeviceSize                           offset
             VK_WHOLE_SIZE                                     // VkDeviceSize                           size
     };
-    vkCmdPipelineBarrier(vulkanDSL->cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, 0, NULL, 1, &buffer_memory_barrier, 0, NULL );
-/*
+    //vkCmdPipelineBarrier(vulkanDSL->cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, 0, NULL, 1, &buffer_memory_barrier, 0, NULL );
+
+    VkMemoryBarrier memoryBarrier;
+    memoryBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+    memoryBarrier.pNext = NULL;
+    memoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    memoryBarrier.dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
+    //VkBufferMemoryBarrier
+    //VkMemoryBarrier
+    vkCmdPipelineBarrier(vulkanDSL->cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, 1,
+                         (const VkMemoryBarrier *) &memoryBarrier, 0, NULL, 0, NULL);
+
+    /*
     VkMemoryBarrier memoryBarrier;
     memoryBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
     memoryBarrier.pNext = NULL;
@@ -3142,9 +3267,13 @@ static void demo_init_vk_swapchain(struct VulkanDSL *vulkanDSL) {
 
 void demo_init_matrices(struct VulkanDSL *vulkanDSL, int width, int height) {
     //vec3 eye = {0.0f, 0, 12.0f}; // to be on the axis of rotation
-    vec3 eye = {0.0f, 4.5f, 6.5f};
+    //vec3 eye = {0.0f, 4.5f, 6.5f};
+    //vec3 origin = {0, 0, 0};
+    //vec3 up = {0.0f, 1.0f, 1.0};
+    vec3 eye = {0.0f, 3.0f, 5.0f};
     vec3 origin = {0, 0, 0};
-    vec3 up = {0.0f, 1.0f, 1.0};
+    vec3 up = {0.0f, 1.0f, 0.0};
+
     // degrees per second
     vulkanDSL->spin_angle = 32.0f;
     vulkanDSL->spin_increment = 0.2f;

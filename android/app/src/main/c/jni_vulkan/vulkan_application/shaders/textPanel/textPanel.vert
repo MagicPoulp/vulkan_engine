@@ -39,5 +39,5 @@ void main()
     gl_Position = ubuf.MVP * vec4(pos, 1);
     frag_pos = gl_Position.xyz;
     texcoord = tex_coord_in;
-    frag_pos_model = pos;
+    frag_pos_model = pos.xyz;
 }
