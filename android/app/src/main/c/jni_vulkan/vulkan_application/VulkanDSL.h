@@ -362,6 +362,10 @@ struct VulkanDSL {
     uint32_t current_buffer;
     uint32_t queue_family_count;
     bool iosSim;
+    VkSampleCountFlagBits msaaSamples;
+    VkImage colorImageMultisample;
+    VkDeviceMemory colorImageMemoryMultisample;
+    VkImageView colorImageViewMultisample;
 };
 
 void vulkanDSL_main(struct VulkanDSL *vulkanDSL);
@@ -380,8 +384,13 @@ void VulkanDSL__prepare_vertex_buffer_gpu_only(struct VulkanDSL *vulkanDSL, tiny
 void VulkanDSL__prepare_vertex_buffer_classic(struct VulkanDSL *vulkanDSL, tinyobj_attrib_t *outAttrib);
 void copyBuffer(struct VulkanDSL *vulkanDSL, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 void VulkanDSL__allocate_vulkan_buffer(
-        struct VulkanDSL *vulkanDSL, VkBufferCreateInfo *buf_info, VkBuffer *buffer,
-        VkFlags memory_properties, VkDeviceMemory *buffer_memory,
-        bool *coherentMemory);
-
+    struct VulkanDSL *vulkanDSL, VkBufferCreateInfo *buf_info, VkBuffer *buffer,
+    VkFlags memory_properties, VkDeviceMemory *buffer_memory,
+    bool *coherentMemory);
+VkSampleCountFlagBits getMaxUsableSampleCount(struct VulkanDSL *vulkanDSL);
+void createImage(struct VulkanDSL* vulkanDSL, uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples,
+    VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage,
+    VkMemoryPropertyFlags properties, VkImage *image, VkDeviceMemory *imageMemory);
+static void demo_prepare_multisample_buffer(struct VulkanDSL *vulkanDSL);
+VkImageView createImageView(struct VulkanDSL *vulkanDSL, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
 #endif

@@ -1069,6 +1069,15 @@ static void demo_prepare_buffers(struct VulkanDSL *vulkanDSL) {
     }
 }
 
+static void demo_prepare_multisample_buffer(struct VulkanDSL *vulkanDSL) {
+    VkFormat colorFormat = vulkanDSL->format;
+
+    createImage(vulkanDSL, vulkanDSL->width, vulkanDSL->height, 1, vulkanDSL->msaaSamples,
+                colorFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &vulkanDSL->colorImageMultisample, &vulkanDSL->colorImageMemoryMultisample);
+    vulkanDSL->colorImageViewMultisample = createImageView(vulkanDSL, vulkanDSL->colorImageMultisample, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+}
+
 static void demo_prepare_depth(struct VulkanDSL *vulkanDSL) {
     const VkFormat depth_format = VK_FORMAT_D16_UNORM;
     const VkImageCreateInfo image = {
@@ -1079,7 +1088,7 @@ static void demo_prepare_depth(struct VulkanDSL *vulkanDSL) {
             .extent = {vulkanDSL->width, vulkanDSL->height, 1},
             .mipLevels = 1,
             .arrayLayers = 1,
-            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .samples = vulkanDSL->msaaSamples,
             .tiling = VK_IMAGE_TILING_OPTIMAL,
             .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
             .flags = 0,
@@ -1257,7 +1266,8 @@ static void demo_prepare_texture_image(struct VulkanDSL *vulkanDSL, const char *
             .extent = {tex_width, tex_height, 1},
             .mipLevels = 1,
             .arrayLayers = 1,
-            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .samples = VK_SAMPLE_COUNT_1_BIT, // in tiling linear
+            //.samples = vulkanDSL->msaaSamples,
             .tiling = tiling,
             .usage = usage,
             .flags = 0,
@@ -1265,6 +1275,7 @@ static void demo_prepare_texture_image(struct VulkanDSL *vulkanDSL, const char *
     };
 
     VkMemoryRequirements mem_reqs;
+    memset(&mem_reqs, 0, sizeof(VkMemoryRequirements));
 
     err = vkCreateImage(vulkanDSL->device, &image_create_info, NULL, &tex_obj->image);
     assert(!err);
@@ -1809,12 +1820,12 @@ static void demo_prepare_render_pass(struct VulkanDSL *vulkanDSL) {
     // the renderpass, the color attachment's layout will be transitioned to
     // LAYOUT_PRESENT_SRC_KHR to be ready to present.  This is all done as part of
     // the renderpass, no barriers are necessary.
-    const VkAttachmentDescription attachments[2] = {
+    const VkAttachmentDescription attachments[3] = {
             [0] =
                     {
                             .format = vulkanDSL->format,
                             .flags = 0,
-                            .samples = VK_SAMPLE_COUNT_1_BIT,
+                            .samples = vulkanDSL->msaaSamples,
                             .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
                             .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
                             .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
@@ -1826,13 +1837,26 @@ static void demo_prepare_render_pass(struct VulkanDSL *vulkanDSL) {
                     {
                             .format = vulkanDSL->depth.format,
                             .flags = 0,
-                            .samples = VK_SAMPLE_COUNT_1_BIT,
+                            .samples = vulkanDSL->msaaSamples,
                             .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
                             .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                             .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
                             .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                             .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
                             .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+                    },
+            [2] =
+                    {
+                            .format = vulkanDSL->format,
+                            .flags = 0,
+                            // https://vulkan-tutorial.com/Multisampling
+                            .samples = VK_SAMPLE_COUNT_1_BIT, // the final image is not sampled
+                            .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+                            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+                            .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                            .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                            .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
                     },
     };
     const VkAttachmentReference color_reference = {
@@ -1843,6 +1867,9 @@ static void demo_prepare_render_pass(struct VulkanDSL *vulkanDSL) {
             .attachment = 1,
             .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
     };
+    VkAttachmentReference colorAttachmentResolveRef;
+    colorAttachmentResolveRef.attachment = 2;
+    colorAttachmentResolveRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     const VkSubpassDescription subpass = {
             .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
             .flags = 0,
@@ -1850,8 +1877,7 @@ static void demo_prepare_render_pass(struct VulkanDSL *vulkanDSL) {
             .pInputAttachments = NULL,
             .colorAttachmentCount = 1,
             .pColorAttachments = &color_reference,
-            .pResolveAttachments = NULL,
-            //.pDepthStencilAttachment = NULL,
+            .pResolveAttachments = &colorAttachmentResolveRef,
             .pDepthStencilAttachment = &depth_reference,
             .preserveAttachmentCount = 0,
             .pPreserveAttachments = NULL,
@@ -1886,7 +1912,7 @@ static void demo_prepare_render_pass(struct VulkanDSL *vulkanDSL) {
             .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
             .pNext = NULL,
             .flags = 0,
-            .attachmentCount = 2,
+            .attachmentCount = 3,
             //.attachmentCount = 1,
             .pAttachments = attachments,
             .subpassCount = 1,
@@ -1986,6 +2012,82 @@ static void demo_prepare_fs(struct VulkanDSL *vulkanDSL) {
     vulkanDSL->frag_shader_module = demo_prepare_shader_module(vulkanDSL, vs_code, length1);
 }
 
+VkSampleCountFlagBits getMaxUsableSampleCount(struct VulkanDSL *vulkanDSL) {
+    VkPhysicalDeviceProperties physicalDeviceProperties;
+    vkGetPhysicalDeviceProperties(vulkanDSL->gpu, &physicalDeviceProperties);
+
+    VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts & physicalDeviceProperties.limits.framebufferDepthSampleCounts;
+    if (counts & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
+    if (counts & VK_SAMPLE_COUNT_32_BIT) { return VK_SAMPLE_COUNT_32_BIT; }
+    if (counts & VK_SAMPLE_COUNT_16_BIT) { return VK_SAMPLE_COUNT_16_BIT; }
+    if (counts & VK_SAMPLE_COUNT_8_BIT) { return VK_SAMPLE_COUNT_8_BIT; }
+    if (counts & VK_SAMPLE_COUNT_4_BIT) { return VK_SAMPLE_COUNT_4_BIT; }
+    if (counts & VK_SAMPLE_COUNT_2_BIT) { return VK_SAMPLE_COUNT_2_BIT; }
+
+    return VK_SAMPLE_COUNT_1_BIT;
+}
+
+void createImage(struct VulkanDSL* vulkanDSL, uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples,
+                 VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage,
+                 VkMemoryPropertyFlags properties, VkImage *image, VkDeviceMemory *imageMemory) {
+    VkImageCreateInfo imageInfo;
+    VkResult U_ASSERT_ONLY err;
+    memset(&imageInfo, 0, sizeof(VkImageCreateInfo));
+    imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    imageInfo.imageType = VK_IMAGE_TYPE_2D;
+    imageInfo.extent.width = width;
+    imageInfo.extent.height = height;
+    imageInfo.extent.depth = 1;
+    imageInfo.mipLevels = mipLevels;
+    imageInfo.arrayLayers = 1;
+    imageInfo.format = format;
+    imageInfo.tiling = tiling;
+    imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    imageInfo.usage = usage;
+    imageInfo.samples = numSamples;
+    imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    err = vkCreateImage(vulkanDSL->device, &imageInfo, NULL, image);
+    assert(!err);
+
+    VkMemoryRequirements memRequirements;
+    memset(&memRequirements, 0, sizeof(VkMemoryRequirements));
+    vkGetImageMemoryRequirements(vulkanDSL->device, *image, &memRequirements);
+
+    VkMemoryAllocateInfo allocInfo;
+    memset(&allocInfo, 0, sizeof(VkMemoryAllocateInfo));
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+
+    bool U_ASSERT_ONLY pass = memory_type_from_properties(vulkanDSL, memRequirements.memoryTypeBits,
+                                       properties,
+                                       &allocInfo.memoryTypeIndex);
+    assert(pass);
+
+    err = vkAllocateMemory(vulkanDSL->device, &allocInfo, NULL, imageMemory);
+    assert(!err);
+
+    vkBindImageMemory(vulkanDSL->device, *image, *imageMemory, 0);
+}
+
+VkImageView createImageView(struct VulkanDSL *vulkanDSL, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels) {
+    VkImageViewCreateInfo viewInfo;
+    memset(&viewInfo, 0, sizeof(VkImageViewCreateInfo));
+    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    viewInfo.image = image;
+    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    viewInfo.format = format;
+    viewInfo.subresourceRange.aspectMask = aspectFlags;
+    viewInfo.subresourceRange.baseMipLevel = 0;
+    viewInfo.subresourceRange.levelCount = mipLevels;
+    viewInfo.subresourceRange.baseArrayLayer = 0;
+    viewInfo.subresourceRange.layerCount = 1;
+
+    VkImageView imageView;
+    assert(!vkCreateImageView(vulkanDSL->device, &viewInfo, NULL, &imageView));
+
+    return imageView;
+}
 
 static void demo_prepare_pipeline(struct VulkanDSL *vulkanDSL) {
 #define NUM_DYNAMIC_STATES 2 /*Viewport + Scissor*/
@@ -2069,7 +2171,9 @@ static void demo_prepare_pipeline(struct VulkanDSL *vulkanDSL) {
     memset(&ms, 0, sizeof(ms));
     ms.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     ms.pSampleMask = NULL;
-    ms.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+    ms.sampleShadingEnable = VK_FALSE;
+    ms.rasterizationSamples = vulkanDSL->msaaSamples;
+
     // https://vulkan-tutorial.com/Multisampling
     // https://www.khronos.org/registry/vulkan/specs/1.2/html/chap25.html#primsrast-sampleshading
     //ms.sampleShadingEnable = VK_FALSE; // NOT SURE
@@ -2193,14 +2297,16 @@ static void demo_prepare_descriptor_set(struct VulkanDSL *vulkanDSL) {
 }
 
 static void demo_prepare_framebuffers(struct VulkanDSL *vulkanDSL) {
-    VkImageView attachments[2];
+    VkImageView attachments[3];
+    attachments[0] = vulkanDSL->colorImageViewMultisample;
     attachments[1] = vulkanDSL->depth.view;
 
     const VkFramebufferCreateInfo fb_info = {
             .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
             .pNext = NULL,
             .renderPass = vulkanDSL->render_pass,
-            .attachmentCount = 2,
+            .attachmentCount = 3,
+            //.attachmentCount = 2,
             //.attachmentCount = 1,
             .pAttachments = attachments,
             .width = vulkanDSL->width,
@@ -2211,7 +2317,7 @@ static void demo_prepare_framebuffers(struct VulkanDSL *vulkanDSL) {
     uint32_t i;
 
     for (i = 0; i < vulkanDSL->swapchainImageCount; i++) {
-        attachments[0] = vulkanDSL->swapchain_image_resources[i].view;
+        attachments[2] = vulkanDSL->swapchain_image_resources[i].view;
         err = vkCreateFramebuffer(vulkanDSL->device, &fb_info, NULL, &vulkanDSL->swapchain_image_resources[i].framebuffer);
         assert(!err);
     }
@@ -2324,6 +2430,7 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
     //vkCmdPipelineBarrier(vulkanDSL->cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, 1,
     //                     (const VkMemoryBarrier *) &memoryBarrier, 0, NULL, 0, NULL);
 
+    demo_prepare_multisample_buffer(vulkanDSL);
     demo_prepare_depth(vulkanDSL);
     demo_prepare_textures(vulkanDSL);
     demo_prepare_cube_data_buffers(vulkanDSL);
@@ -2850,6 +2957,7 @@ static void demo_init_vk(struct VulkanDSL *vulkanDSL) {
         fprintf(stderr, "Selected GPU %d: %s, type: %u\n", vulkanDSL->gpu_number, physicalDeviceProperties.deviceName,
                 physicalDeviceProperties.deviceType);
     }
+    vulkanDSL->msaaSamples = getMaxUsableSampleCount(vulkanDSL);
     free(physical_devices);
 
     /* Look for device extensions */
