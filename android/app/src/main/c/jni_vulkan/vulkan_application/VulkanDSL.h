@@ -55,7 +55,7 @@
 
 // see also desiredNumOfSwapchainImages
 // Allow a maximum of two outstanding presentation operations.
-#define FRAME_LAG 2
+#define FRAME_LAG 3
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 

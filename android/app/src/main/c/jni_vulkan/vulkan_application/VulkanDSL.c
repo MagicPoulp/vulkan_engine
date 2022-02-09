@@ -2171,14 +2171,14 @@ static void demo_prepare_pipeline(struct VulkanDSL *vulkanDSL) {
     memset(&ms, 0, sizeof(ms));
     ms.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     ms.pSampleMask = NULL;
-    ms.sampleShadingEnable = VK_FALSE;
+    //ms.sampleShadingEnable = VK_FALSE;
     ms.rasterizationSamples = vulkanDSL->msaaSamples;
 
     // https://vulkan-tutorial.com/Multisampling
     // https://www.khronos.org/registry/vulkan/specs/1.2/html/chap25.html#primsrast-sampleshading
     //ms.sampleShadingEnable = VK_FALSE; // NOT SURE
     //ms.sampleShadingEnable = VK_TRUE; // enable sample shading in the pipeline
-    //ms.minSampleShading = .5f; // min fraction for sample shading; closer to one
+    //ms.minSampleShading = .6f; // min fraction for sample shading; closer to one
 
     demo_prepare_vs(vulkanDSL);
     demo_prepare_fs(vulkanDSL);
@@ -3103,6 +3103,12 @@ static void demo_create_device(struct VulkanDSL *vulkanDSL) {
     queues[0].pQueuePriorities = queue_priorities;
     queues[0].flags = 0;
 
+    // multisampling
+    VkPhysicalDeviceFeatures deviceFeatures;
+    memset(&deviceFeatures, 0, sizeof(VkPhysicalDeviceFeatures));
+    //deviceFeatures.samplerAnisotropy = VK_TRUE;
+    //deviceFeatures.sampleRateShading = VK_TRUE;
+
     VkDeviceCreateInfo device = {
             .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
             .pNext = NULL,
@@ -3112,7 +3118,7 @@ static void demo_create_device(struct VulkanDSL *vulkanDSL) {
             .ppEnabledLayerNames = NULL,
             .enabledExtensionCount = vulkanDSL->enabled_extension_count,
             .ppEnabledExtensionNames = (const char *const *)vulkanDSL->extension_names,
-            .pEnabledFeatures = NULL,  // If specific features are required, pass them in here
+            .pEnabledFeatures = &deviceFeatures,  // If specific features are required, pass them in here
     };
     /*
     if (vulkanDSL->separate_present_queue) {
