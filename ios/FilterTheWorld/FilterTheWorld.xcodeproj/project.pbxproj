@@ -777,7 +777,7 @@
 				HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)../android/app/src/main/c/jni_vulkan/vulkan_application",
 					"$(SRCROOT)",
-					"$(MOLTENVK_PATH)/MoltenVK/include",
+					"$(MOLTENVK_PATH)/include",
 					/Users/thierryvilmart/repos/vulkan_engine/android/app/src/main/c/jni_vulkan/vulkan_application,
 				);
 				INFOPLIST_FILE = FilterTheWorld/Info.plist;
@@ -790,7 +790,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/FilterTheWorld/bridge/build",
 				);
-				MOLTENVK_PATH = /Users/thierryvilmart/repos/MoltenVK;
+				MOLTENVK_PATH = /Users/thierryvilmart/VulkanSDK/1.2.198.1/MoltenVK;
 				PRODUCT_BUNDLE_IDENTIFIER = com.raywenderlich.FilterTheWorld2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/FilterTheWorld/bridge/FilterTheWorld-Bridging-Header.h";
@@ -811,7 +811,7 @@
 				HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)../android/app/src/main/c/jni_vulkan/vulkan_application",
 					"$(SRCROOT)",
-					"$(MOLTENVK_PATH)/MoltenVK/include",
+					"$(MOLTENVK_PATH)/include",
 					/Users/thierryvilmart/repos/vulkan_engine/android/app/src/main/c/jni_vulkan/vulkan_application,
 				);
 				INFOPLIST_FILE = FilterTheWorld/Info.plist;
@@ -824,7 +824,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/FilterTheWorld/bridge/build",
 				);
-				MOLTENVK_PATH = /Users/thierryvilmart/repos/MoltenVK;
+				MOLTENVK_PATH = /Users/thierryvilmart/VulkanSDK/1.2.198.1/MoltenVK;
 				PRODUCT_BUNDLE_IDENTIFIER = com.raywenderlich.FilterTheWorld2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/FilterTheWorld/bridge/FilterTheWorld-Bridging-Header.h";

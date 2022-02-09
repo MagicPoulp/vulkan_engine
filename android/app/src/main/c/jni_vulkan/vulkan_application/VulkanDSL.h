@@ -53,6 +53,7 @@
 #define APP_SHORT_NAME "vkcube"
 #define APP_LONG_NAME "Vulkan Cube"
 
+// see also desiredNumOfSwapchainImages
 // Allow a maximum of two outstanding presentation operations.
 #define FRAME_LAG 2
 

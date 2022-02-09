@@ -445,26 +445,11 @@ void VulkanDSL__draw_build_cmd(struct VulkanDSL *vulkanDSL, VkCommandBuffer cmd_
         vulkanDSL->CmdBeginDebugUtilsLabelEXT(cmd_buf, &label);
     }
 
-    /*
-    VkBuffer vertexBuffers[] = { vulkanDSL->vertex_buffer_resources->vertex_buffer };
+    VkBuffer *vertexBuffers = &vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu;
+    //VkBuffer vertexBuffers[] = { vulkanDSL->vertex_buffer_resources->vertex_buffer };
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(cmd_buf, 0, 1, vertexBuffers, offsets);
-    //vkCmdDraw(cmd_buf, 30000, 1, 0, 0);
-
     vkCmdDraw(cmd_buf, (uint32_t)vulkanDSL->assetsFetcher.vertexCount, 1, 0, 0);
-    //vkCmdDraw(cmd_buf, 1, 1, 0, 0);
-    //vkCmdDraw(cmd_buf, 12 * 3, 1, 0, 0);
-*/
-    VkBuffer *vertexBuffers = &vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu;
-    //VkBuffer vertexBuffers[] = { vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu };
-    //VkBuffer vertexBuffers[] = { vulkanDSL->vertex_buffer_resources->vertex_buffer };
-    //VkDeviceSize offsets[] = {0};
-    VkDeviceSize offsets = 0;
-    vkCmdBindVertexBuffers(cmd_buf, 0, 1, vertexBuffers, &offsets);
-    //vkCmdDraw(cmd_buf, 10, 1, 0, 0);
-    //vkCmdDraw(cmd_buf, 12*3, 1, 0, 0);
-    vkCmdDraw(cmd_buf, (uint32_t)vulkanDSL->assetsFetcher.vertexCount, 1, 0, 0);
-    //vkCmdDraw(cmd_buf, 6, 1, 3, 0);
 
     if (vulkanDSL->validate) {
         vulkanDSL->CmdEndDebugUtilsLabelEXT(cmd_buf);
@@ -1625,7 +1610,15 @@ void VulkanDSL__prepare_vertex_buffer_classic(struct VulkanDSL *vulkanDSL, tinyo
     vulkanDSL->vertex_buffer_resources->vertex_memory_mapped = true;
 }
 
-
+// some tutorials about using a staging buffer to send vertices (and use GPU local memory)
+// best full intel tutorial:
+// https://www.intel.com/content/www/us/en/developer/articles/training/api-without-secrets-introduction-to-vulkan-part-5.html
+// see the code at "if (isUnifiedGraphicsAndTransferQueue)"
+// https://github.com/cforfang/Vulkan-Tools/wiki/Synchronization-Examples
+// https://cpp-rendering.io/barriers-vulkan-not-difficult/
+// https://github.com/GameTechDev/IntroductionToVulkan/blob/master/Project/Tutorials/05/Tutorial05.cpp
+// See in particular the example 19 here:
+// https://github.com/Overv/VulkanTutorial.git
 void copyBuffer(struct VulkanDSL *vulkanDSL, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
     VkResult U_ASSERT_ONLY err;
     const VkCommandBufferAllocateInfo allocInfo = {
@@ -1652,18 +1645,6 @@ void copyBuffer(struct VulkanDSL *vulkanDSL, VkBuffer srcBuffer, VkBuffer dstBuf
     copyRegion.size = size;
     vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
-    // best full intel tutorial:
-    // https://www.intel.com/content/www/us/en/developer/articles/training/api-without-secrets-introduction-to-vulkan-part-5.html
-    // see the code at "if (isUnifiedGraphicsAndTransferQueue)"
-    // https://github.com/cforfang/Vulkan-Tools/wiki/Synchronization-Examples
-    // https://cpp-rendering.io/barriers-vulkan-not-difficult/
-    // https://github.com/GameTechDev/IntroductionToVulkan/blob/master/Project/Tutorials/05/Tutorial05.cpp
-    VkBufferCopy copy;
-    copy.dstOffset = 0;
-    copy.srcOffset = 0;
-    copy.size = vulkanDSL->assetsFetcher.arraySize;
-    //copy.size = 8 * sizeof(float) * 3 * 3;
-    vkCmdCopyBuffer(commandBuffer, vulkanDSL->vertex_buffer_resources->vertex_buffer, vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu, 1, &copy);
     VkBufferMemoryBarrier buffer_memory_barrier = {
             VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,          // VkStructureType                        sType;
             NULL,                                             // const void                            *pNext
@@ -1671,8 +1652,7 @@ void copyBuffer(struct VulkanDSL *vulkanDSL, VkBuffer srcBuffer, VkBuffer dstBuf
             VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT,              // VkAccessFlags                          dstAccessMask
             VK_QUEUE_FAMILY_IGNORED,                          // uint32_t                               srcQueueFamilyIndex
             VK_QUEUE_FAMILY_IGNORED,                          // uint32_t                               dstQueueFamilyIndex
-            //           vulkanDSL->vertex_buffer_resources->vertex_buffer,// VkBuffer                               buffer
-            vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu,// VkBuffer                               buffer
+            dstBuffer,// VkBuffer                               buffer
             0,                                                // VkDeviceSize                           offset
             VK_WHOLE_SIZE                                     // VkDeviceSize                           size
     };
