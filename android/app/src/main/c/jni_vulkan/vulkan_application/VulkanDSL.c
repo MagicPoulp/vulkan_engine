@@ -358,10 +358,11 @@ void VulkanDSL__draw_build_cmd(struct VulkanDSL *vulkanDSL, VkCommandBuffer cmd_
             .flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT,
             .pInheritanceInfo = NULL,
     };
-    const VkClearValue clear_values[2] = {
+    const VkClearValue clear_values[4] = {
   //          [0] = {.color.float32 = {0.0f, 0.0f, 0.0f, 1.0f}},
             [0] = {.color.float32 = {0.0f, 0.0f, 0.0f, 1.0f}},
             [1] = {.depthStencil = {1.0f, 0}},
+            [3] = {.color.float32 = {0.0f, 0.0f, 0.0f, 1.0f}},
     };
     const VkRenderPassBeginInfo rp_begin = {
             .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
@@ -372,7 +373,7 @@ void VulkanDSL__draw_build_cmd(struct VulkanDSL *vulkanDSL, VkCommandBuffer cmd_
             .renderArea.offset.y = 0,
             .renderArea.extent.width = vulkanDSL->width,
             .renderArea.extent.height = vulkanDSL->height,
-            .clearValueCount = 2,
+            .clearValueCount = 3,
             //.clearValueCount = 1,
             .pClearValues = clear_values,
     };
@@ -1733,8 +1734,7 @@ void VulkanDSL__prepare_vertex_buffer_gpu_only(struct VulkanDSL *vulkanDSL, tiny
     vulkanDSL->vi_attribs[0].offset = 0;
     vulkanDSL->vi_attribs[1].binding = 0;
     vulkanDSL->vi_attribs[1].location = 1;
-    //vulkanDSL->vi_attribs[1].format = VK_FORMAT_R32G32_SFLOAT;
-    vulkanDSL->vi_attribs[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+    vulkanDSL->vi_attribs[1].format = VK_FORMAT_R32G32_SFLOAT;
     // offset represents the shift compared to the start of the vertex struct
     // so it is the size of the attrib 0 for the coordinates
     vulkanDSL->vi_attribs[1].offset = 3 * sizeof(float);
@@ -2351,6 +2351,7 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
 #endif
     AssetsFetcher__loadObj(&vulkanDSL->assetsFetcher, objFile, &outAttrib);
 
+    // when change this also change the vkBindVertexBuffer
     //VulkanDSL__prepare_vertex_buffer_classic(vulkanDSL, outAttrib);
     VulkanDSL__prepare_vertex_buffer_gpu_only(vulkanDSL, outAttrib);
 
@@ -2510,6 +2511,7 @@ void VulkanDSL__half_cleanup(struct VulkanDSL *vulkanDSL) {
         vkDestroyImageView(vulkanDSL->device, vulkanDSL->textures[i].view, NULL);
         vkDestroyImage(vulkanDSL->device, vulkanDSL->textures[i].image, NULL);
         vkFreeMemory(vulkanDSL->device, vulkanDSL->textures[i].mem, NULL);
+        vkDestroySampler(vulkanDSL->device, vulkanDSL->textures[i].sampler, NULL);
         vkDestroySampler(vulkanDSL->device, vulkanDSL->textures[i].sampler, NULL);
     }
 
@@ -3415,6 +3417,7 @@ void setTextures(struct VulkanDSL *vulkanDSL ) {
 }
 
 void vulkanDSL_main(struct VulkanDSL *vulkanDSL) {
+    vulkanDSL->use_staging_buffer = true;
     setTextures(vulkanDSL);
 
     demo_init(vulkanDSL, 10, 10);
