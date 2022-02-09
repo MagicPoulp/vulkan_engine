@@ -2177,8 +2177,8 @@ static void demo_prepare_pipeline(struct VulkanDSL *vulkanDSL) {
     // https://vulkan-tutorial.com/Multisampling
     // https://www.khronos.org/registry/vulkan/specs/1.2/html/chap25.html#primsrast-sampleshading
     //ms.sampleShadingEnable = VK_FALSE; // NOT SURE
-    //ms.sampleShadingEnable = VK_TRUE; // enable sample shading in the pipeline
-    //ms.minSampleShading = .6f; // min fraction for sample shading; closer to one
+    ms.sampleShadingEnable = VK_TRUE; // enable sample shading in the pipeline
+    ms.minSampleShading = .2f; // min fraction for sample shading; closer to one
 
     demo_prepare_vs(vulkanDSL);
     demo_prepare_fs(vulkanDSL);
@@ -2516,6 +2516,10 @@ void VulkanDSL__half_cleanup(struct VulkanDSL *vulkanDSL) {
     vkDestroyImageView(vulkanDSL->device, vulkanDSL->depth.view, NULL);
     vkDestroyImage(vulkanDSL->device, vulkanDSL->depth.image, NULL);
     vkFreeMemory(vulkanDSL->device, vulkanDSL->depth.mem, NULL);
+
+    vkDestroyImageView(vulkanDSL->device, vulkanDSL->colorImageViewMultisample, NULL);
+    vkDestroyImage(vulkanDSL->device, vulkanDSL->colorImageMultisample, NULL);
+    vkFreeMemory(vulkanDSL->device, vulkanDSL->colorImageMemoryMultisample, NULL);
 
     for (i = 0; i < vulkanDSL->swapchainImageCount; i++) {
         vkDestroyImageView(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].view, NULL);
@@ -3107,7 +3111,7 @@ static void demo_create_device(struct VulkanDSL *vulkanDSL) {
     VkPhysicalDeviceFeatures deviceFeatures;
     memset(&deviceFeatures, 0, sizeof(VkPhysicalDeviceFeatures));
     //deviceFeatures.samplerAnisotropy = VK_TRUE;
-    //deviceFeatures.sampleRateShading = VK_TRUE;
+    deviceFeatures.sampleRateShading = VK_TRUE;
 
     VkDeviceCreateInfo device = {
             .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
@@ -3419,7 +3423,7 @@ void vulkanDSL_main(struct VulkanDSL *vulkanDSL) {
 
     demo_prepare(vulkanDSL);
 
-    demo_draw(vulkanDSL, 0);
+    demo_draw(vulkanDSL, 0.5);
 }
 
 void VulkanDSL__setSize(struct VulkanDSL *vulkanDSL, int32_t width, int32_t height) {
