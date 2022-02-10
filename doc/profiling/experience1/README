@@ -1,0 +1,9 @@
+Profiling sur le commit 0835890afe9a4496f2419ebcd0114f345e5e1ee3
+
+
+Difference of energy in XCode for the iPhone when using or not the LOCAL GPU memory for the vertices
+692.4KB de vertices (pour l’objet 3D)
+
+antialiasing is used in one screenshot to smooth the edges
+
+https://stackoverflow.com/questions/64045845/is-texture-filtering-an-anti-aliasing-technique

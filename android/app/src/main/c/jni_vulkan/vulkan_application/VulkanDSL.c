@@ -3426,7 +3426,7 @@ void vulkanDSL_main(struct VulkanDSL *vulkanDSL) {
 
     demo_prepare(vulkanDSL);
 
-    demo_draw(vulkanDSL, 0.5);
+    demo_draw(vulkanDSL, 1.3);
 }
 
 void VulkanDSL__setSize(struct VulkanDSL *vulkanDSL, int32_t width, int32_t height) {
