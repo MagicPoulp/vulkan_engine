@@ -90,6 +90,9 @@ static PFN_vkGetDeviceProcAddr g_gdpa = NULL;
         }                                                                                                        \
     }
 
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#define MAX(a,b) (((a)>(b))?(a):(b))
+
 /*
  * structure to track all objects related to a texture.
  */
