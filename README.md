@@ -93,3 +93,29 @@ how to make exact .obj export
 uncheck all except triangulate
 
 add the apply transform to get the smooth back and with less decimals Y is still fine
+
+# Links
+
+Vulkan synchronization examples
+https://github.com/cforfang/Vulkan-Tools/wiki/Synchronization-Examples
+https://www.lunarg.com/wp-content/uploads/2021/08/Vulkan-Synchronization-SIGGRAPH-2021.pdf
+
+# Debug with validation layers - IMPORTANT
+
+This is important to check anomalies in the use of Vulkan
+
+The best to check validation is to run on macOS (not iOS simulator).
+It will ahve all the needed extensions. For this to work you need to install the macOS vulkan SDK .dmg file in your home folder
+The vulkan loader with the validation layers in the SDK does not work for iOS, it only works for macOS.
+
+On android, validation does not wortk in the Emulator.
+It works on a real device but it will lack an extension VK_EXT_debug_utils
+
+https://developer.android.com/ndk/guides/graphics/validation-layer
+just copy the zip content in the jniLib folder
+And put the flag vulkanDSL->validate = true
+
+then adb logcat filtered on VALIDATION, or breakpoints in the callback function debug_messenger_callback
+will show the misuses of Vulkan.
+In the vulkan tutorial, there is even a test, removing DestroyDebugUtilsMessengerEXT in the cleanup
+

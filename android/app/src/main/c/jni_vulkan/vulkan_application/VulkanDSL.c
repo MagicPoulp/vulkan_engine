@@ -1,6 +1,6 @@
 /*
 The implementation file is in a .h and not a .c to simplify the build on iOS.
-THe CMakeLists copies to a .c
+The CMakeLists copies to a .c
 */
 
 #include <utils/gettime.h>
@@ -226,9 +226,9 @@ static bool memory_type_from_properties(struct VulkanDSL *vulkanDSL, uint32_t ty
         if ((typeBits & 1) == 1) { // a compatible memory index with the structure to use
             // Type is available, does it match user properties?
             if ((vulkanDSL->memory_properties.memoryTypes[i].propertyFlags & requirements_mask) == requirements_mask) {
-                *typeIndex = i;
                 if (vulkanDSL->memory_properties.memoryTypes[i].propertyFlags < minimalFlagsFound) {
                     minimalFlagsFound = vulkanDSL->memory_properties.memoryTypes[i].propertyFlags;
+                    *typeIndex = i;
                 }
                 result = true;
             }
@@ -289,7 +289,7 @@ static void demo_flush_init_cmd(struct VulkanDSL *vulkanDSL) {
 
     err = vkWaitForFences(vulkanDSL->device, 1, &fence, VK_TRUE, UINT64_MAX);
     assert(!err);
-
+    vkDeviceWaitIdle(vulkanDSL->device);
     vkFreeCommandBuffers(vulkanDSL->device, vulkanDSL->cmd_pool, 1, cmd_bufs);
     vkDestroyFence(vulkanDSL->device, fence, NULL);
     vulkanDSL->cmd = VK_NULL_HANDLE;
@@ -300,7 +300,8 @@ static void demo_set_image_layout(struct VulkanDSL *vulkanDSL, VkImage image, Vk
                                   VkPipelineStageFlags dest_stages) {
     assert(vulkanDSL->cmd);
 
-    VkImageMemoryBarrier image_memory_barrier = {.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+    VkImageMemoryBarrier image_memory_barrier = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
             .pNext = NULL,
             .srcAccessMask = srcAccessMask,
             .dstAccessMask = 0,
@@ -357,9 +358,11 @@ void VulkanDSL__draw_build_cmd(struct VulkanDSL *vulkanDSL, VkCommandBuffer cmd_
             .flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT,
             .pInheritanceInfo = NULL,
     };
-    const VkClearValue clear_values[2] = {
-            [0] = {.color.float32 = {0.2f, 0.2f, 0.2f, 0.2f}},
+    const VkClearValue clear_values[4] = {
+  //          [0] = {.color.float32 = {0.0f, 0.0f, 0.0f, 1.0f}},
+            [0] = {.color.float32 = {0.0f, 0.0f, 0.0f, 1.0f}},
             [1] = {.depthStencil = {1.0f, 0}},
+            [3] = {.color.float32 = {0.0f, 0.0f, 0.0f, 1.0f}},
     };
     const VkRenderPassBeginInfo rp_begin = {
             .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
@@ -370,7 +373,8 @@ void VulkanDSL__draw_build_cmd(struct VulkanDSL *vulkanDSL, VkCommandBuffer cmd_
             .renderArea.offset.y = 0,
             .renderArea.extent.width = vulkanDSL->width,
             .renderArea.extent.height = vulkanDSL->height,
-            .clearValueCount = 2,
+            .clearValueCount = 3,
+            //.clearValueCount = 1,
             .pClearValues = clear_values,
     };
     VkResult U_ASSERT_ONLY err;
@@ -442,14 +446,11 @@ void VulkanDSL__draw_build_cmd(struct VulkanDSL *vulkanDSL, VkCommandBuffer cmd_
         vulkanDSL->CmdBeginDebugUtilsLabelEXT(cmd_buf, &label);
     }
 
-    VkBuffer vertexBuffers[] = { vulkanDSL->swapchain_image_resources[0].vertex_buffer };
+    VkBuffer *vertexBuffers = &vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu;
+    //VkBuffer vertexBuffers[] = { vulkanDSL->vertex_buffer_resources->vertex_buffer };
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(cmd_buf, 0, 1, vertexBuffers, offsets);
-    //vkCmdDraw(cmd_buf, 30000, 1, 0, 0);
-
     vkCmdDraw(cmd_buf, (uint32_t)vulkanDSL->assetsFetcher.vertexCount, 1, 0, 0);
-    //vkCmdDraw(cmd_buf, 1, 1, 0, 0);
-    //vkCmdDraw(cmd_buf, 12 * 3, 1, 0, 0);
 
     if (vulkanDSL->validate) {
         vulkanDSL->CmdEndDebugUtilsLabelEXT(cmd_buf);
@@ -953,10 +954,10 @@ static void demo_prepare_buffers(struct VulkanDSL *vulkanDSL) {
     // Find a supported composite alpha mode - one of these is guaranteed to be set
     VkCompositeAlphaFlagBitsKHR compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     VkCompositeAlphaFlagBitsKHR compositeAlphaFlags[4] = {
-            VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
             VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR,
             VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR,
             VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR,
+            VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR
     };
     for (uint32_t i = 0; i < ARRAY_SIZE(compositeAlphaFlags); i++) {
         if (surfCapabilities.supportedCompositeAlpha & compositeAlphaFlags[i]) {
@@ -966,7 +967,9 @@ static void demo_prepare_buffers(struct VulkanDSL *vulkanDSL) {
     }
 
     // we do not want opaque
-    compositeAlpha = VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR;
+    if (surfCapabilities.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR) {
+        compositeAlpha = VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR;
+    }
 
     VkSwapchainCreateInfoKHR swapchain_ci = {
             .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
@@ -1014,6 +1017,9 @@ static void demo_prepare_buffers(struct VulkanDSL *vulkanDSL) {
     vulkanDSL->swapchain_image_resources =
             (SwapchainImageResources *)malloc(sizeof(SwapchainImageResources) * vulkanDSL->swapchainImageCount);
     assert(vulkanDSL->swapchain_image_resources);
+    vulkanDSL->vertex_buffer_resources =
+            (VertexBufferResources *)malloc(sizeof(VertexBufferResources));
+    assert(vulkanDSL->vertex_buffer_resources);
 
     for (i = 0; i < vulkanDSL->swapchainImageCount; i++) {
         VkImageViewCreateInfo color_image_view = {
@@ -1064,6 +1070,15 @@ static void demo_prepare_buffers(struct VulkanDSL *vulkanDSL) {
     }
 }
 
+static void demo_prepare_multisample_buffer(struct VulkanDSL *vulkanDSL) {
+    VkFormat colorFormat = vulkanDSL->format;
+
+    createImage(vulkanDSL, vulkanDSL->width, vulkanDSL->height, 1, vulkanDSL->msaaSamples,
+                colorFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &vulkanDSL->colorImageMultisample, &vulkanDSL->colorImageMemoryMultisample);
+    vulkanDSL->colorImageViewMultisample = createImageView(vulkanDSL, vulkanDSL->colorImageMultisample, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+}
+
 static void demo_prepare_depth(struct VulkanDSL *vulkanDSL) {
     const VkFormat depth_format = VK_FORMAT_D16_UNORM;
     const VkImageCreateInfo image = {
@@ -1074,7 +1089,7 @@ static void demo_prepare_depth(struct VulkanDSL *vulkanDSL) {
             .extent = {vulkanDSL->width, vulkanDSL->height, 1},
             .mipLevels = 1,
             .arrayLayers = 1,
-            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .samples = vulkanDSL->msaaSamples,
             .tiling = VK_IMAGE_TILING_OPTIMAL,
             .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
             .flags = 0,
@@ -1252,7 +1267,8 @@ static void demo_prepare_texture_image(struct VulkanDSL *vulkanDSL, const char *
             .extent = {tex_width, tex_height, 1},
             .mipLevels = 1,
             .arrayLayers = 1,
-            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .samples = VK_SAMPLE_COUNT_1_BIT, // in tiling linear
+            //.samples = vulkanDSL->msaaSamples,
             .tiling = tiling,
             .usage = usage,
             .flags = 0,
@@ -1260,6 +1276,7 @@ static void demo_prepare_texture_image(struct VulkanDSL *vulkanDSL, const char *
     };
 
     VkMemoryRequirements mem_reqs;
+    memset(&mem_reqs, 0, sizeof(VkMemoryRequirements));
 
     err = vkCreateImage(vulkanDSL->device, &image_create_info, NULL, &tex_obj->image);
     assert(!err);
@@ -1477,13 +1494,89 @@ void demo_prepare_cube_data_buffers(struct VulkanDSL *vulkanDSL) {
     }
 }
 
-void VulkanDSL__prepare_vertex_buffer(struct VulkanDSL *vulkanDSL, tinyobj_attrib_t *attrib) {
-    VkBufferCreateInfo buf_info;
-    VkMemoryRequirements mem_reqs;
-    VkMemoryAllocateInfo mem_alloc;
+// https://vulkan-tutorial.com/Vertex_buffers/Vertex_buffer_creation
+void VulkanDSL__allocate_vulkan_buffer(
+        struct VulkanDSL *vulkanDSL, VkBufferCreateInfo *buf_info, VkBuffer *buffer,
+        VkFlags memory_properties, VkDeviceMemory *buffer_memory,
+        bool *coherentMemory) {
     VkResult U_ASSERT_ONLY err;
     bool U_ASSERT_ONLY pass;
 
+    err = vkCreateBuffer(vulkanDSL->device, buf_info, NULL, buffer);
+    assert(!err);
+
+    VkMemoryRequirements mem_reqs;
+    vkGetBufferMemoryRequirements(vulkanDSL->device, *buffer, &mem_reqs);
+
+    VkMemoryAllocateInfo mem_alloc;
+    mem_alloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    mem_alloc.pNext = NULL;
+    mem_alloc.allocationSize = mem_reqs.size;
+    mem_alloc.memoryTypeIndex = 0;
+
+    // mem_reqs.memoryTypeBits contains the compatible memories
+    // then mem_alloc.memoryTypeIndex contains the chosen memory index
+    pass = memory_type_from_properties(vulkanDSL, mem_reqs.memoryTypeBits,
+                                       memory_properties, // no coherent is required
+                                       &mem_alloc.memoryTypeIndex);
+    if (!pass) {
+        // we produce a coherent one if we could not get a non-coherent one
+        // a boolean will tell the application that flush is needed if we produce a non-coherent
+        if ((memory_properties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == memory_properties) {
+            memory_properties &= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+            pass = memory_type_from_properties(vulkanDSL, mem_reqs.memoryTypeBits,
+                                               memory_properties,
+                                               &mem_alloc.memoryTypeIndex);
+        }
+    }
+    assert(pass);
+
+    *coherentMemory = (memory_properties & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) == VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
+    err = vkAllocateMemory(vulkanDSL->device, &mem_alloc, NULL, buffer_memory);
+    assert(!err);
+
+    err = vkBindBufferMemory(vulkanDSL->device, *buffer,
+                             *buffer_memory, 0);
+    assert(!err);
+}
+
+void VulkanDSL__fill_vulkan_buffer(
+        struct VulkanDSL *vulkanDSL, VkBufferCreateInfo *buf_info,
+        VkDeviceMemory *buffer_memory,
+        bool coherentMemory,
+        void **buffer_memory_ptr_ptr,
+        void *data) {
+    VkResult U_ASSERT_ONLY err;
+
+    // map to the application address space
+    err = vkMapMemory(vulkanDSL->device, *buffer_memory, 0, buf_info->size, 0,
+                      buffer_memory_ptr_ptr);
+    assert(!err);
+
+    memcpy(*buffer_memory_ptr_ptr, data, buf_info->size);
+
+    if (!coherentMemory) {
+        // this is because we use non coherent memory
+        VkMappedMemoryRange range;
+        range.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+        range.pNext = 0;
+        range.memory = *buffer_memory;
+        range.offset = 0;
+        range.size = buf_info->size;
+
+        err = vkFlushMappedMemoryRanges(vulkanDSL->device, 1, &range);
+        assert(!err);
+
+        err = vkInvalidateMappedMemoryRanges(vulkanDSL->device, 1, &range);
+        assert(!err);
+    }
+}
+
+void VulkanDSL__prepare_vertex_buffer_classic(struct VulkanDSL *vulkanDSL, tinyobj_attrib_t *attrib) {
+    VkResult U_ASSERT_ONLY err;
+
+    VkBufferCreateInfo buf_info;
     memset(&buf_info, 0, sizeof(buf_info));
     buf_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     buf_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -1510,59 +1603,169 @@ void VulkanDSL__prepare_vertex_buffer(struct VulkanDSL *vulkanDSL, tinyobj_attri
     vulkanDSL->vi_attribs[1].binding = 0;
     vulkanDSL->vi_attribs[1].location = 1;
     vulkanDSL->vi_attribs[1].format = VK_FORMAT_R32G32_SFLOAT;
-    // offset represents the shift copmared to the start of the vertex struct
+    // offset represents the shift compared to the start of the vertex struct
     // so it is the size of the attrib 0 for the coordinates
     vulkanDSL->vi_attribs[1].offset = 3 * sizeof(float);
 
-    // https://vulkan-tutorial.com/Vertex_buffers/Vertex_buffer_creation
-    unsigned int i = 0;
-    err = vkCreateBuffer(vulkanDSL->device, &buf_info, NULL, &vulkanDSL->swapchain_image_resources[i].vertex_buffer);
+    bool coherentMemory;
+    VulkanDSL__allocate_vulkan_buffer(
+            vulkanDSL, &buf_info, &vulkanDSL->vertex_buffer_resources->vertex_buffer,
+           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, &vulkanDSL->vertex_buffer_resources->vertex_memory,
+            &coherentMemory);
+    vulkanDSL->vertex_buffer_resources->vertex_buffer_allocated = true;
+    VulkanDSL__fill_vulkan_buffer(
+            vulkanDSL, &buf_info,
+            &vulkanDSL->vertex_buffer_resources->vertex_memory,
+            coherentMemory,
+            &vulkanDSL->vertex_buffer_resources->vertex_memory_ptr,
+            vulkanDSL->assetsFetcher.triangles);
+    vulkanDSL->vertex_buffer_resources->vertex_memory_mapped = true;
+}
+
+// some tutorials about using a staging buffer to send vertices (and use GPU local memory)
+// best full intel tutorial:
+// https://www.intel.com/content/www/us/en/developer/articles/training/api-without-secrets-introduction-to-vulkan-part-5.html
+// see the code at "if (isUnifiedGraphicsAndTransferQueue)"
+// https://github.com/cforfang/Vulkan-Tools/wiki/Synchronization-Examples
+// https://cpp-rendering.io/barriers-vulkan-not-difficult/
+// https://github.com/GameTechDev/IntroductionToVulkan/blob/master/Project/Tutorials/05/Tutorial05.cpp
+// See in particular the example 19 here:
+// https://github.com/Overv/VulkanTutorial.git
+void copyBuffer(struct VulkanDSL *vulkanDSL, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
+    VkResult U_ASSERT_ONLY err;
+    const VkCommandBufferAllocateInfo allocInfo = {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+            .pNext = NULL,
+            .commandPool = vulkanDSL->cmd_pool,
+            .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+            .commandBufferCount = 1,
+    };
+
+    VkCommandBuffer commandBuffer;
+    err = vkAllocateCommandBuffers(vulkanDSL->device, &allocInfo, &commandBuffer);
     assert(!err);
 
-    vkGetBufferMemoryRequirements(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_buffer, &mem_reqs);
+    VkCommandBufferBeginInfo beginInfo;
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    beginInfo.pNext = 0;
+    vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
-    mem_alloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    mem_alloc.pNext = NULL;
-    mem_alloc.allocationSize = mem_reqs.size;
-    mem_alloc.memoryTypeIndex = 0;
+    VkBufferCopy copyRegion;
+    copyRegion.srcOffset = 0;
+    copyRegion.dstOffset = 0;
+    copyRegion.size = size;
+    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
-    pass = memory_type_from_properties(vulkanDSL, mem_reqs.memoryTypeBits,
-                                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, // no coherent is required
-                                       &mem_alloc.memoryTypeIndex);
-    assert(pass);
+    VkBufferMemoryBarrier buffer_memory_barrier = {
+            VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,          // VkStructureType                        sType;
+            NULL,                                             // const void                            *pNext
+            VK_ACCESS_MEMORY_WRITE_BIT,                       // VkAccessFlags                          srcAccessMask
+            VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT,              // VkAccessFlags                          dstAccessMask
+            VK_QUEUE_FAMILY_IGNORED,                          // uint32_t                               srcQueueFamilyIndex
+            VK_QUEUE_FAMILY_IGNORED,                          // uint32_t                               dstQueueFamilyIndex
+            dstBuffer,// VkBuffer                               buffer
+            0,                                                // VkDeviceSize                           offset
+            VK_WHOLE_SIZE                                     // VkDeviceSize                           size
+    };
+    vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, 0, NULL, 1, &buffer_memory_barrier, 0, NULL );
 
-    err = vkAllocateMemory(vulkanDSL->device, &mem_alloc, NULL, &vulkanDSL->swapchain_image_resources[i].vertex_memory);
+    vkEndCommandBuffer(commandBuffer);
+
+    VkSubmitInfo submitInfo = {
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+            .pNext = NULL,
+            .waitSemaphoreCount = 0,
+            .pWaitSemaphores = NULL,
+            .pWaitDstStageMask = NULL,
+            .commandBufferCount = 1,
+            .pCommandBuffers = &commandBuffer,
+            .signalSemaphoreCount = 0,
+            .pSignalSemaphores = NULL
+    };
+
+    VkFence fence;
+    VkFenceCreateInfo fence_ci = {.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO, .pNext = NULL, .flags = 0};
+    err = vkCreateFence(vulkanDSL->device, &fence_ci, NULL, &fence);
     assert(!err);
-
-    err = vkBindBufferMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_buffer,
-                             vulkanDSL->swapchain_image_resources[i].vertex_memory, 0);
+    vkQueueSubmit(vulkanDSL->graphics_queue, 1, &submitInfo, fence);
+    err = vkWaitForFences(vulkanDSL->device, 1, &fence, VK_TRUE, UINT64_MAX);
     assert(!err);
+    vkQueueWaitIdle(vulkanDSL->graphics_queue);
+    vkDestroyFence(vulkanDSL->device, fence, NULL);
+    vkFreeCommandBuffers(vulkanDSL->device, vulkanDSL->cmd_pool, 1, &commandBuffer);
+}
 
-    // map to the application address space
-    err = vkMapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_memory, 0, sizeVertices, 0,
-                      &vulkanDSL->swapchain_image_resources[i].vertex_memory_ptr);
-    assert(!err);
+// https://vkguide.dev/docs/chapter-5/memory_transfers/
+// https://raw.githubusercontent.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/master/include/vk_mem_alloc.h
+// see also the flag USE_STAGING here:
+// https://github.com/SaschaWillems/Vulkan/blob/master/examples/triangle/triangle.cpp
+void VulkanDSL__prepare_vertex_buffer_gpu_only(struct VulkanDSL *vulkanDSL, tinyobj_attrib_t *attrib) {
+    VkResult U_ASSERT_ONLY err;
+    bool U_ASSERT_ONLY pass;
 
-    memcpy(vulkanDSL->swapchain_image_resources[i].vertex_memory_ptr, vulkanDSL->assetsFetcher.triangles, sizeVertices);
+    VkBufferCreateInfo buf_info;
+    VkMemoryRequirements mem_reqs;
+    VkMemoryAllocateInfo mem_alloc;
 
-    // this is because we use non coherent memory, actually 10 = cached memory Host_visible
-    VkMappedMemoryRange range;
-    range.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-    range.pNext = 0;
-    range.memory = vulkanDSL->swapchain_image_resources[i].vertex_memory;
-    range.offset = 0;
-    range.size = sizeVertices;
+    memset(&buf_info, 0, sizeof(buf_info));
+    buf_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    buf_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    buf_info.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+    int sizeVertices = vulkanDSL->assetsFetcher.arraySize * sizeof(vulkanDSL->assetsFetcher.triangles[0]);
+    buf_info.size = sizeVertices;
 
-    err = vkFlushMappedMemoryRanges(vulkanDSL->device, 1, &range);
-    assert(!err);
+    vulkanDSL->vi_binding.binding = 0;
+    vulkanDSL->vi_binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+    // 5 for 3 coordinates + 2 uv texture coordinates
+    vulkanDSL->vi_binding.stride = 5 * sizeof(float);
 
-    err = vkInvalidateMappedMemoryRanges(vulkanDSL->device, 1, &range);
-    assert(!err);
+    // this is for vertices in variables
+    // a color format is used for vec3, see this link here
+    // https://vulkan-tutorial.com/Vertex_buffers/Vertex_input_description#page_Attribute-descriptions
+    // float: VK_FORMAT_R32_SFLOAT
+    // vec2: VK_FORMAT_R32G32_SFLOAT
+    // vec3: VK_FORMAT_R32G32B32_SFLOAT
+    // vec4: VK_FORMAT_R32G32B32A32_SFLOAT
+    vulkanDSL->vi_attribs[0].binding = 0;
+    vulkanDSL->vi_attribs[0].location = 0;
+    //vulkanDSL->vi_attribs[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+    vulkanDSL->vi_attribs[0].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+    vulkanDSL->vi_attribs[0].offset = 0;
+    vulkanDSL->vi_attribs[1].binding = 0;
+    vulkanDSL->vi_attribs[1].location = 1;
+    vulkanDSL->vi_attribs[1].format = VK_FORMAT_R32G32_SFLOAT;
+    // offset represents the shift compared to the start of the vertex struct
+    // so it is the size of the attrib 0 for the coordinates
+    vulkanDSL->vi_attribs[1].offset = 3 * sizeof(float);
 
-    //err = vkBindBufferMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].vertex_buffer,
-    //                         vulkanDSL->swapchain_image_resources[i].vertex_memory, 0);
-    assert(!err);
 
+    bool coherentMemory;
+    VulkanDSL__allocate_vulkan_buffer(
+            vulkanDSL, &buf_info, &vulkanDSL->vertex_buffer_resources->vertex_buffer,
+            //VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, &vulkanDSL->vertex_buffer_resources->vertex_memory,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &vulkanDSL->vertex_buffer_resources->vertex_memory,
+            &coherentMemory);
+    vulkanDSL->vertex_buffer_resources->vertex_buffer_allocated = true;
+    VulkanDSL__fill_vulkan_buffer(
+            vulkanDSL, &buf_info,
+            &vulkanDSL->vertex_buffer_resources->vertex_memory,
+            coherentMemory,
+            &vulkanDSL->vertex_buffer_resources->vertex_memory_ptr,
+            vulkanDSL->assetsFetcher.triangles);
+    vulkanDSL->vertex_buffer_resources->vertex_memory_mapped = true;
+
+    // a GPU only buffer used as vertex buffer and as a transfer destination
+    buf_info.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+    VulkanDSL__allocate_vulkan_buffer(
+            vulkanDSL, &buf_info, &vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu,
+
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+            //VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+            &vulkanDSL->vertex_buffer_resources->vertex_memory_gpu,
+            &coherentMemory);
+    vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu_allocated = true;
+    copyBuffer(vulkanDSL, vulkanDSL->vertex_buffer_resources->vertex_buffer, vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu, sizeVertices);
 }
 
 // here we define the in variables in the shader that have the tag "binding"
@@ -1617,12 +1820,12 @@ static void demo_prepare_render_pass(struct VulkanDSL *vulkanDSL) {
     // the renderpass, the color attachment's layout will be transitioned to
     // LAYOUT_PRESENT_SRC_KHR to be ready to present.  This is all done as part of
     // the renderpass, no barriers are necessary.
-    const VkAttachmentDescription attachments[2] = {
+    const VkAttachmentDescription attachments[3] = {
             [0] =
                     {
                             .format = vulkanDSL->format,
                             .flags = 0,
-                            .samples = VK_SAMPLE_COUNT_1_BIT,
+                            .samples = vulkanDSL->msaaSamples,
                             .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
                             .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
                             .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
@@ -1634,13 +1837,26 @@ static void demo_prepare_render_pass(struct VulkanDSL *vulkanDSL) {
                     {
                             .format = vulkanDSL->depth.format,
                             .flags = 0,
-                            .samples = VK_SAMPLE_COUNT_1_BIT,
+                            .samples = vulkanDSL->msaaSamples,
                             .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
                             .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                             .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
                             .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                             .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
                             .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+                    },
+            [2] =
+                    {
+                            .format = vulkanDSL->format,
+                            .flags = 0,
+                            // https://vulkan-tutorial.com/Multisampling
+                            .samples = VK_SAMPLE_COUNT_1_BIT, // the final image is not sampled
+                            .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+                            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+                            .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                            .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                            .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
                     },
     };
     const VkAttachmentReference color_reference = {
@@ -1651,6 +1867,9 @@ static void demo_prepare_render_pass(struct VulkanDSL *vulkanDSL) {
             .attachment = 1,
             .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
     };
+    VkAttachmentReference colorAttachmentResolveRef;
+    colorAttachmentResolveRef.attachment = 2;
+    colorAttachmentResolveRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     const VkSubpassDescription subpass = {
             .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
             .flags = 0,
@@ -1658,7 +1877,7 @@ static void demo_prepare_render_pass(struct VulkanDSL *vulkanDSL) {
             .pInputAttachments = NULL,
             .colorAttachmentCount = 1,
             .pColorAttachments = &color_reference,
-            .pResolveAttachments = NULL,
+            .pResolveAttachments = &colorAttachmentResolveRef,
             .pDepthStencilAttachment = &depth_reference,
             .preserveAttachmentCount = 0,
             .pPreserveAttachments = NULL,
@@ -1693,11 +1912,14 @@ static void demo_prepare_render_pass(struct VulkanDSL *vulkanDSL) {
             .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
             .pNext = NULL,
             .flags = 0,
-            .attachmentCount = 2,
+            .attachmentCount = 3,
+            //.attachmentCount = 1,
             .pAttachments = attachments,
             .subpassCount = 1,
             .pSubpasses = &subpass,
             .dependencyCount = 2,
+            //.dependencyCount = 1,
+            //.pDependencies = &attachmentDependencies[1],
             .pDependencies = attachmentDependencies,
     };
     VkResult U_ASSERT_ONLY err;
@@ -1790,6 +2012,82 @@ static void demo_prepare_fs(struct VulkanDSL *vulkanDSL) {
     vulkanDSL->frag_shader_module = demo_prepare_shader_module(vulkanDSL, vs_code, length1);
 }
 
+VkSampleCountFlagBits getMaxUsableSampleCount(struct VulkanDSL *vulkanDSL) {
+    VkPhysicalDeviceProperties physicalDeviceProperties;
+    vkGetPhysicalDeviceProperties(vulkanDSL->gpu, &physicalDeviceProperties);
+
+    VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts & physicalDeviceProperties.limits.framebufferDepthSampleCounts;
+    if (counts & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
+    if (counts & VK_SAMPLE_COUNT_32_BIT) { return VK_SAMPLE_COUNT_32_BIT; }
+    if (counts & VK_SAMPLE_COUNT_16_BIT) { return VK_SAMPLE_COUNT_16_BIT; }
+    if (counts & VK_SAMPLE_COUNT_8_BIT) { return VK_SAMPLE_COUNT_8_BIT; }
+    if (counts & VK_SAMPLE_COUNT_4_BIT) { return VK_SAMPLE_COUNT_4_BIT; }
+    if (counts & VK_SAMPLE_COUNT_2_BIT) { return VK_SAMPLE_COUNT_2_BIT; }
+
+    return VK_SAMPLE_COUNT_1_BIT;
+}
+
+void createImage(struct VulkanDSL* vulkanDSL, uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples,
+                 VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage,
+                 VkMemoryPropertyFlags properties, VkImage *image, VkDeviceMemory *imageMemory) {
+    VkImageCreateInfo imageInfo;
+    VkResult U_ASSERT_ONLY err;
+    memset(&imageInfo, 0, sizeof(VkImageCreateInfo));
+    imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    imageInfo.imageType = VK_IMAGE_TYPE_2D;
+    imageInfo.extent.width = width;
+    imageInfo.extent.height = height;
+    imageInfo.extent.depth = 1;
+    imageInfo.mipLevels = mipLevels;
+    imageInfo.arrayLayers = 1;
+    imageInfo.format = format;
+    imageInfo.tiling = tiling;
+    imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    imageInfo.usage = usage;
+    imageInfo.samples = numSamples;
+    imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    err = vkCreateImage(vulkanDSL->device, &imageInfo, NULL, image);
+    assert(!err);
+
+    VkMemoryRequirements memRequirements;
+    memset(&memRequirements, 0, sizeof(VkMemoryRequirements));
+    vkGetImageMemoryRequirements(vulkanDSL->device, *image, &memRequirements);
+
+    VkMemoryAllocateInfo allocInfo;
+    memset(&allocInfo, 0, sizeof(VkMemoryAllocateInfo));
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+
+    bool U_ASSERT_ONLY pass = memory_type_from_properties(vulkanDSL, memRequirements.memoryTypeBits,
+                                       properties,
+                                       &allocInfo.memoryTypeIndex);
+    assert(pass);
+
+    err = vkAllocateMemory(vulkanDSL->device, &allocInfo, NULL, imageMemory);
+    assert(!err);
+
+    vkBindImageMemory(vulkanDSL->device, *image, *imageMemory, 0);
+}
+
+VkImageView createImageView(struct VulkanDSL *vulkanDSL, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels) {
+    VkImageViewCreateInfo viewInfo;
+    memset(&viewInfo, 0, sizeof(VkImageViewCreateInfo));
+    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    viewInfo.image = image;
+    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    viewInfo.format = format;
+    viewInfo.subresourceRange.aspectMask = aspectFlags;
+    viewInfo.subresourceRange.baseMipLevel = 0;
+    viewInfo.subresourceRange.levelCount = mipLevels;
+    viewInfo.subresourceRange.baseArrayLayer = 0;
+    viewInfo.subresourceRange.layerCount = 1;
+
+    VkImageView imageView;
+    assert(!vkCreateImageView(vulkanDSL->device, &viewInfo, NULL, &imageView));
+
+    return imageView;
+}
 
 static void demo_prepare_pipeline(struct VulkanDSL *vulkanDSL) {
 #define NUM_DYNAMIC_STATES 2 /*Viewport + Scissor*/
@@ -1873,7 +2171,14 @@ static void demo_prepare_pipeline(struct VulkanDSL *vulkanDSL) {
     memset(&ms, 0, sizeof(ms));
     ms.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     ms.pSampleMask = NULL;
-    ms.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+    //ms.sampleShadingEnable = VK_FALSE;
+    ms.rasterizationSamples = vulkanDSL->msaaSamples;
+
+    // https://vulkan-tutorial.com/Multisampling
+    // https://www.khronos.org/registry/vulkan/specs/1.2/html/chap25.html#primsrast-sampleshading
+    //ms.sampleShadingEnable = VK_FALSE; // NOT SURE
+    ms.sampleShadingEnable = VK_TRUE; // enable sample shading in the pipeline
+    ms.minSampleShading = .2f; // min fraction for sample shading; closer to one
 
     demo_prepare_vs(vulkanDSL);
     demo_prepare_fs(vulkanDSL);
@@ -1913,6 +2218,7 @@ static void demo_prepare_pipeline(struct VulkanDSL *vulkanDSL) {
     pipeline.renderPass = vulkanDSL->render_pass;
 
     err = vkCreateGraphicsPipelines(vulkanDSL->device, vulkanDSL->pipelineCache, 1, &pipeline, NULL, &vulkanDSL->pipeline);
+    //err = vkCreateGraphicsPipelines(vulkanDSL->device, VK_NULL_HANDLE, 1, &pipeline, NULL, &vulkanDSL->pipeline);
     assert(!err);
 
     vkDestroyShaderModule(vulkanDSL->device, vulkanDSL->frag_shader_module, NULL);
@@ -1991,14 +2297,17 @@ static void demo_prepare_descriptor_set(struct VulkanDSL *vulkanDSL) {
 }
 
 static void demo_prepare_framebuffers(struct VulkanDSL *vulkanDSL) {
-    VkImageView attachments[2];
+    VkImageView attachments[3];
+    attachments[0] = vulkanDSL->colorImageViewMultisample;
     attachments[1] = vulkanDSL->depth.view;
 
     const VkFramebufferCreateInfo fb_info = {
             .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
             .pNext = NULL,
             .renderPass = vulkanDSL->render_pass,
-            .attachmentCount = 2,
+            .attachmentCount = 3,
+            //.attachmentCount = 2,
+            //.attachmentCount = 1,
             .pAttachments = attachments,
             .width = vulkanDSL->width,
             .height = vulkanDSL->height,
@@ -2008,7 +2317,7 @@ static void demo_prepare_framebuffers(struct VulkanDSL *vulkanDSL) {
     uint32_t i;
 
     for (i = 0; i < vulkanDSL->swapchainImageCount; i++) {
-        attachments[0] = vulkanDSL->swapchain_image_resources[i].view;
+        attachments[2] = vulkanDSL->swapchain_image_resources[i].view;
         err = vkCreateFramebuffer(vulkanDSL->device, &fb_info, NULL, &vulkanDSL->swapchain_image_resources[i].framebuffer);
         assert(!err);
     }
@@ -2023,27 +2332,6 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
     }
 
     VkResult U_ASSERT_ONLY err;
-    if (vulkanDSL->cmd_pool2 == VK_NULL_HANDLE) {
-        const VkCommandPoolCreateInfo cmd_pool_info2 = {
-                .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-                .pNext = NULL,
-                .queueFamilyIndex = vulkanDSL->graphics_queue_family_index2,
-                .flags = 0,
-        };
-        err = vkCreateCommandPool(vulkanDSL->device, &cmd_pool_info2, NULL, &vulkanDSL->cmd_pool2);
-        assert(!err);
-    }
-
-    const VkCommandBufferAllocateInfo cmd2 = {
-            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-            .pNext = NULL,
-            .commandPool = vulkanDSL->cmd_pool2,
-            .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-            .commandBufferCount = 1,
-    };
-    err = vkAllocateCommandBuffers(vulkanDSL->device, &cmd2, &vulkanDSL->cmd2);
-    assert(!err);
-
     if (vulkanDSL->cmd_pool == VK_NULL_HANDLE) {
         const VkCommandPoolCreateInfo cmd_pool_info = {
                 .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
@@ -2054,6 +2342,18 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
         err = vkCreateCommandPool(vulkanDSL->device, &cmd_pool_info, NULL, &vulkanDSL->cmd_pool);
         assert(!err);
     }
+
+    tinyobj_attrib_t* outAttrib;
+#ifdef __ANDROID__
+    const char* objFile = "meshes/textPanel.obj";
+#else
+    const char* objFile = "textPanel.obj";
+#endif
+    AssetsFetcher__loadObj(&vulkanDSL->assetsFetcher, objFile, &outAttrib);
+
+    // when change this also change the vkBindVertexBuffer
+    //VulkanDSL__prepare_vertex_buffer_classic(vulkanDSL, outAttrib);
+    VulkanDSL__prepare_vertex_buffer_gpu_only(vulkanDSL, outAttrib);
 
     const VkCommandBufferAllocateInfo cmd = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -2067,23 +2367,74 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
     VkCommandBufferBeginInfo cmd_buf_info = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
             .pNext = NULL,
-            .flags = 0,
+            //.flags = 0,
+            .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
             .pInheritanceInfo = NULL,
     };
     err = vkBeginCommandBuffer(vulkanDSL->cmd, &cmd_buf_info);
     assert(!err);
 
+    // best full intel tutorial:
+    // https://www.intel.com/content/www/us/en/developer/articles/training/api-without-secrets-introduction-to-vulkan-part-5.html
+    // see the code at "if (isUnifiedGraphicsAndTransferQueue)"
+    // https://github.com/cforfang/Vulkan-Tools/wiki/Synchronization-Examples
+    // https://cpp-rendering.io/barriers-vulkan-not-difficult/
+    // https://github.com/GameTechDev/IntroductionToVulkan/blob/master/Project/Tutorials/05/Tutorial05.cpp
+    VkBufferCopy copy;
+    copy.dstOffset = 0;
+    copy.srcOffset = 0;
+    //copy.size = vulkanDSL->assetsFetcher.arraySize;
+    copy.size = 8 * sizeof(float) * 3 * 3;
+    //vkCmdCopyBuffer(vulkanDSL->cmd, vulkanDSL->vertex_buffer_resources->vertex_buffer, vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu, 1, &copy);
+    VkBufferCopy copy2;
+    copy.dstOffset = 8 * 6;
+    copy.srcOffset = 8 * 6;
+    copy.size = 32 * 8;
+    //vkCmdCopyBuffer(vulkanDSL->cmd, vulkanDSL->vertex_buffer_resources->vertex_buffer, vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu, 1, &copy2);
+
+    VkBufferMemoryBarrier buffer_memory_barrier = {
+            VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,          // VkStructureType                        sType;
+            NULL,                                             // const void                            *pNext
+            VK_ACCESS_MEMORY_WRITE_BIT,                       // VkAccessFlags                          srcAccessMask
+            VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT,              // VkAccessFlags                          dstAccessMask
+            VK_QUEUE_FAMILY_IGNORED,                          // uint32_t                               srcQueueFamilyIndex
+            VK_QUEUE_FAMILY_IGNORED,                          // uint32_t                               dstQueueFamilyIndex
+ //           vulkanDSL->vertex_buffer_resources->vertex_buffer,// VkBuffer                               buffer
+            vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu,// VkBuffer                               buffer
+            0,                                                // VkDeviceSize                           offset
+            VK_WHOLE_SIZE                                     // VkDeviceSize                           size
+    };
+    //vkCmdPipelineBarrier(vulkanDSL->cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, 0, NULL, 1, &buffer_memory_barrier, 0, NULL );
+
+    VkMemoryBarrier memoryBarrier;
+    memoryBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+    memoryBarrier.pNext = NULL;
+    memoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    memoryBarrier.dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
+    //VkBufferMemoryBarrier
+    //VkMemoryBarrier
+    vkCmdPipelineBarrier(vulkanDSL->cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, 1,
+                         (const VkMemoryBarrier *) &memoryBarrier, 0, NULL, 0, NULL);
+
+    /*
+    VkMemoryBarrier memoryBarrier;
+    memoryBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+    memoryBarrier.pNext = NULL;
+    memoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    memoryBarrier.dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
+    //VkBufferMemoryBarrier
+    //VkMemoryBarrier
+    vkCmdPipelineBarrier(vulkanDSL->cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, 0, NULL);
+*/
+    //vkCmdPipelineBarrier(vulkanDSL->cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 1,
+    //vkCmdPipelineBarrier(vulkanDSL->cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, 1,
+    //vkCmdPipelineBarrier(vulkanDSL->cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, 1,
+    //                     (const VkMemoryBarrier *) &memoryBarrier, 0, NULL, 0, NULL);
+
+    demo_prepare_multisample_buffer(vulkanDSL);
     demo_prepare_depth(vulkanDSL);
     demo_prepare_textures(vulkanDSL);
     demo_prepare_cube_data_buffers(vulkanDSL);
-    tinyobj_attrib_t* outAttrib;
-#ifdef __ANDROID__
-    const char* objFile = "meshes/textPanel.obj";
-#else
-    const char* objFile = "textPanel.obj";
-#endif
-    AssetsFetcher__loadObj(&vulkanDSL->assetsFetcher, objFile, &outAttrib);
-    VulkanDSL__prepare_vertex_buffer(vulkanDSL, outAttrib);
 
     demo_prepare_descriptor_layout(vulkanDSL);
     demo_prepare_render_pass(vulkanDSL);
@@ -2128,11 +2479,13 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
         VulkanDSL__draw_build_cmd(vulkanDSL, vulkanDSL->swapchain_image_resources[i].cmd);
     }
 
-    /*
+     /*
      * Prepare functions above may generate pipeline commands
      * that need to be flushed before beginning the render loop.
      */
+    // vulkanDSL->cmd is used to transfer the images and wait for them before the fragment shader
     demo_flush_init_cmd(vulkanDSL);
+
     if (vulkanDSL->staging_texture.buffer) {
         demo_destroy_texture(vulkanDSL, &vulkanDSL->staging_texture);
     }
@@ -2141,7 +2494,67 @@ void demo_prepare(struct VulkanDSL *vulkanDSL) {
     vulkanDSL->prepared = true;
 }
 
-void demo_cleanup(struct VulkanDSL *vulkanDSL) {
+void VulkanDSL__half_cleanup(struct VulkanDSL *vulkanDSL) {
+    int i;
+    for (i = 0; i < vulkanDSL->swapchainImageCount; i++) {
+        vkDestroyFramebuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].framebuffer, NULL);
+    }
+    vkDestroyDescriptorPool(vulkanDSL->device, vulkanDSL->desc_pool, NULL);
+
+    vkDestroyPipeline(vulkanDSL->device, vulkanDSL->pipeline, NULL);
+    vkDestroyPipelineCache(vulkanDSL->device, vulkanDSL->pipelineCache, NULL);
+    vkDestroyRenderPass(vulkanDSL->device, vulkanDSL->render_pass, NULL);
+    vkDestroyPipelineLayout(vulkanDSL->device, vulkanDSL->pipeline_layout, NULL);
+    vkDestroyDescriptorSetLayout(vulkanDSL->device, vulkanDSL->desc_layout, NULL);
+
+    for (i = 0; i < DEMO_TEXTURE_COUNT; i++) {
+        vkDestroyImageView(vulkanDSL->device, vulkanDSL->textures[i].view, NULL);
+        vkDestroyImage(vulkanDSL->device, vulkanDSL->textures[i].image, NULL);
+        vkFreeMemory(vulkanDSL->device, vulkanDSL->textures[i].mem, NULL);
+        vkDestroySampler(vulkanDSL->device, vulkanDSL->textures[i].sampler, NULL);
+        vkDestroySampler(vulkanDSL->device, vulkanDSL->textures[i].sampler, NULL);
+    }
+
+    vkDestroyImageView(vulkanDSL->device, vulkanDSL->depth.view, NULL);
+    vkDestroyImage(vulkanDSL->device, vulkanDSL->depth.image, NULL);
+    vkFreeMemory(vulkanDSL->device, vulkanDSL->depth.mem, NULL);
+
+    vkDestroyImageView(vulkanDSL->device, vulkanDSL->colorImageViewMultisample, NULL);
+    vkDestroyImage(vulkanDSL->device, vulkanDSL->colorImageMultisample, NULL);
+    vkFreeMemory(vulkanDSL->device, vulkanDSL->colorImageMemoryMultisample, NULL);
+
+    for (i = 0; i < vulkanDSL->swapchainImageCount; i++) {
+        vkDestroyImageView(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].view, NULL);
+        vkFreeCommandBuffers(vulkanDSL->device, vulkanDSL->cmd_pool, 1, &vulkanDSL->swapchain_image_resources[i].cmd);
+        vkDestroyBuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_buffer, NULL);
+        vkUnmapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_memory);
+        vkFreeMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_memory, NULL);
+    }
+    if (vulkanDSL->vertex_buffer_resources->vertex_buffer_allocated) {
+        vkDestroyBuffer(vulkanDSL->device, vulkanDSL->vertex_buffer_resources->vertex_buffer,
+                        NULL);
+        if (vulkanDSL->vertex_buffer_resources->vertex_memory_mapped) {
+            vkUnmapMemory(vulkanDSL->device, vulkanDSL->vertex_buffer_resources->vertex_memory);
+        }
+        vkFreeMemory(vulkanDSL->device, vulkanDSL->vertex_buffer_resources->vertex_memory,
+                     NULL);
+    }
+    if (vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu_allocated) {
+        vkDestroyBuffer(vulkanDSL->device, vulkanDSL->vertex_buffer_resources->vertex_buffer_gpu,
+                        NULL);
+        vkFreeMemory(vulkanDSL->device, vulkanDSL->vertex_buffer_resources->vertex_memory_gpu,
+                     NULL);
+    }
+    vkDestroyCommandPool(vulkanDSL->device, vulkanDSL->cmd_pool, NULL);
+    vulkanDSL->cmd_pool = VK_NULL_HANDLE;
+    if (vulkanDSL->separate_present_queue) {
+        vkDestroyCommandPool(vulkanDSL->device, vulkanDSL->present_cmd_pool, NULL);
+    }
+    free(vulkanDSL->swapchain_image_resources);
+    free(vulkanDSL->vertex_buffer_resources);
+}
+
+void VulkanDSL__cleanup(struct VulkanDSL *vulkanDSL) {
     VulkanDSL__freeResources(vulkanDSL);
 
     uint32_t i;
@@ -2162,46 +2575,7 @@ void demo_cleanup(struct VulkanDSL *vulkanDSL) {
 
     // If the window is currently minimized, demo_resize has already done some cleanup for us.
     if (!vulkanDSL->is_minimized) {
-        for (i = 0; i < vulkanDSL->swapchainImageCount; i++) {
-            vkDestroyFramebuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].framebuffer, NULL);
-        }
-        vkDestroyDescriptorPool(vulkanDSL->device, vulkanDSL->desc_pool, NULL);
-
-        vkDestroyPipeline(vulkanDSL->device, vulkanDSL->pipeline, NULL);
-        vkDestroyPipelineCache(vulkanDSL->device, vulkanDSL->pipelineCache, NULL);
-        vkDestroyRenderPass(vulkanDSL->device, vulkanDSL->render_pass, NULL);
-        vkDestroyPipelineLayout(vulkanDSL->device, vulkanDSL->pipeline_layout, NULL);
-        vkDestroyDescriptorSetLayout(vulkanDSL->device, vulkanDSL->desc_layout, NULL);
-
-        for (i = 0; i < DEMO_TEXTURE_COUNT; i++) {
-            vkDestroyImageView(vulkanDSL->device, vulkanDSL->textures[i].view, NULL);
-            vkDestroyImage(vulkanDSL->device, vulkanDSL->textures[i].image, NULL);
-            vkFreeMemory(vulkanDSL->device, vulkanDSL->textures[i].mem, NULL);
-            vkDestroySampler(vulkanDSL->device, vulkanDSL->textures[i].sampler, NULL);
-        }
-        vulkanDSL->fpDestroySwapchainKHR(vulkanDSL->device, vulkanDSL->swapchain, NULL);
-
-        vkDestroyImageView(vulkanDSL->device, vulkanDSL->depth.view, NULL);
-        vkDestroyImage(vulkanDSL->device, vulkanDSL->depth.image, NULL);
-        vkFreeMemory(vulkanDSL->device, vulkanDSL->depth.mem, NULL);
-
-        for (i = 0; i < vulkanDSL->swapchainImageCount; i++) {
-            vkDestroyImageView(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].view, NULL);
-            vkFreeCommandBuffers(vulkanDSL->device, vulkanDSL->cmd_pool, 1, &vulkanDSL->swapchain_image_resources[i].cmd);
-            vkDestroyBuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_buffer, NULL);
-            vkUnmapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_memory);
-            vkFreeMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_memory, NULL);
-        }
-        vkDestroyBuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[0].vertex_buffer, NULL);
-        vkUnmapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[0].vertex_memory);
-        vkFreeMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[0].vertex_memory, NULL);
-        free(vulkanDSL->swapchain_image_resources);
-        free(vulkanDSL->queue_props);
-        vkDestroyCommandPool(vulkanDSL->device, vulkanDSL->cmd_pool, NULL);
-
-        if (vulkanDSL->separate_present_queue) {
-            vkDestroyCommandPool(vulkanDSL->device, vulkanDSL->present_cmd_pool, NULL);
-        }
+        VulkanDSL__half_cleanup(vulkanDSL);
     }
     vkDeviceWaitIdle(vulkanDSL->device);
     vkDestroyDevice(vulkanDSL->device, NULL);
@@ -2229,44 +2603,7 @@ void demo_resize(struct VulkanDSL *vulkanDSL) {
     vulkanDSL->prepared = false;
     vkDeviceWaitIdle(vulkanDSL->device);
 
-    for (i = 0; i < vulkanDSL->swapchainImageCount; i++) {
-        vkDestroyFramebuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].framebuffer, NULL);
-    }
-    vkDestroyDescriptorPool(vulkanDSL->device, vulkanDSL->desc_pool, NULL);
-
-    vkDestroyPipeline(vulkanDSL->device, vulkanDSL->pipeline, NULL);
-    vkDestroyPipelineCache(vulkanDSL->device, vulkanDSL->pipelineCache, NULL);
-    vkDestroyRenderPass(vulkanDSL->device, vulkanDSL->render_pass, NULL);
-    vkDestroyPipelineLayout(vulkanDSL->device, vulkanDSL->pipeline_layout, NULL);
-    vkDestroyDescriptorSetLayout(vulkanDSL->device, vulkanDSL->desc_layout, NULL);
-
-    for (i = 0; i < DEMO_TEXTURE_COUNT; i++) {
-        vkDestroyImageView(vulkanDSL->device, vulkanDSL->textures[i].view, NULL);
-        vkDestroyImage(vulkanDSL->device, vulkanDSL->textures[i].image, NULL);
-        vkFreeMemory(vulkanDSL->device, vulkanDSL->textures[i].mem, NULL);
-        vkDestroySampler(vulkanDSL->device, vulkanDSL->textures[i].sampler, NULL);
-    }
-
-    vkDestroyImageView(vulkanDSL->device, vulkanDSL->depth.view, NULL);
-    vkDestroyImage(vulkanDSL->device, vulkanDSL->depth.image, NULL);
-    vkFreeMemory(vulkanDSL->device, vulkanDSL->depth.mem, NULL);
-
-    for (i = 0; i < vulkanDSL->swapchainImageCount; i++) {
-        vkDestroyImageView(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].view, NULL);
-        vkFreeCommandBuffers(vulkanDSL->device, vulkanDSL->cmd_pool, 1, &vulkanDSL->swapchain_image_resources[i].cmd);
-        vkDestroyBuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_buffer, NULL);
-        vkUnmapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_memory);
-        vkFreeMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[i].uniform_memory, NULL);
-    }
-    vkDestroyBuffer(vulkanDSL->device, vulkanDSL->swapchain_image_resources[0].vertex_buffer, NULL);
-    vkUnmapMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[0].vertex_memory);
-    vkFreeMemory(vulkanDSL->device, vulkanDSL->swapchain_image_resources[0].vertex_memory, NULL);
-    vkDestroyCommandPool(vulkanDSL->device, vulkanDSL->cmd_pool, NULL);
-    vulkanDSL->cmd_pool = VK_NULL_HANDLE;
-    if (vulkanDSL->separate_present_queue) {
-        vkDestroyCommandPool(vulkanDSL->device, vulkanDSL->present_cmd_pool, NULL);
-    }
-    free(vulkanDSL->swapchain_image_resources);
+    VulkanDSL__half_cleanup(vulkanDSL);
 
     // Second, re-perform the demo_prepare() function, which will re-create the
     // swapchain:
@@ -2368,6 +2705,7 @@ static void demo_init_vk(struct VulkanDSL *vulkanDSL) {
         err = vkEnumerateInstanceExtensionProperties(NULL, &instance_extension_count, instance_extensions);
         assert(!err);
         for (uint32_t i = 0; i < instance_extension_count; i++) {
+            //fprintf(stdout, "%s\n", instance_extensions[i].extensionName);
             if (!strcmp(VK_KHR_SURFACE_EXTENSION_NAME, instance_extensions[i].extensionName)) {
                 surfaceExtFound = 1;
                 vulkanDSL->extension_names[vulkanDSL->enabled_extension_count++] = VK_KHR_SURFACE_EXTENSION_NAME;
@@ -2492,8 +2830,12 @@ static void demo_init_vk(struct VulkanDSL *vulkanDSL) {
             .applicationVersion = 0,
             .pEngineName = APP_SHORT_NAME,
             .engineVersion = 0,
-            .apiVersion = VK_API_VERSION_1_0,
+            // MoltenVK supports only 1.1
+            // #define VULKAN_1_1 is defined in the volk_setup.h
+            .apiVersion = VK_API_VERSION_1_1,
     };
+    // spec 1.1, different from the latest one
+    // https://www.khronos.org/registry/vulkan/specs/1.1/html/vkspec.html
     VkInstanceCreateInfo inst_info = {
             .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
             .pNext = NULL,
@@ -2588,7 +2930,9 @@ static void demo_init_vk(struct VulkanDSL *vulkanDSL) {
             assert(physicalDeviceProperties.deviceType <= VK_PHYSICAL_DEVICE_TYPE_CPU);
             count_device_type[physicalDeviceProperties.deviceType]++;
         }
-
+        // nonCoherentAtomSize is the size and alignment in bytes that bounds concurrent access
+        // to host-mapped device memory. The value must be a power of two.
+        // size_t nonCoherentAtomSize = physicalDeviceProperties.limits.nonCoherentAtomSize;
         VkPhysicalDeviceType search_for_device_type = VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
         if (count_device_type[VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU]) {
             search_for_device_type = VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
@@ -2619,6 +2963,7 @@ static void demo_init_vk(struct VulkanDSL *vulkanDSL) {
         fprintf(stderr, "Selected GPU %d: %s, type: %u\n", vulkanDSL->gpu_number, physicalDeviceProperties.deviceName,
                 physicalDeviceProperties.deviceType);
     }
+    vulkanDSL->msaaSamples = getMaxUsableSampleCount(vulkanDSL);
     free(physical_devices);
 
     /* Look for device extensions */
@@ -2755,13 +3100,20 @@ static void demo_init_vk(struct VulkanDSL *vulkanDSL) {
 static void demo_create_device(struct VulkanDSL *vulkanDSL) {
     VkResult U_ASSERT_ONLY err;
     float queue_priorities[1] = {0.0};
-    VkDeviceQueueCreateInfo queues[2];
+    VkDeviceQueueCreateInfo queues[1];
+    // in the spec, we cannot have the same queue family on separate VkDeviceQueueCreateInfos
     queues[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     queues[0].pNext = NULL;
     queues[0].queueFamilyIndex = vulkanDSL->graphics_queue_family_index;
     queues[0].queueCount = 1;
     queues[0].pQueuePriorities = queue_priorities;
     queues[0].flags = 0;
+
+    // multisampling
+    VkPhysicalDeviceFeatures deviceFeatures;
+    memset(&deviceFeatures, 0, sizeof(VkPhysicalDeviceFeatures));
+    //deviceFeatures.samplerAnisotropy = VK_TRUE;
+    deviceFeatures.sampleRateShading = VK_TRUE;
 
     VkDeviceCreateInfo device = {
             .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
@@ -2772,7 +3124,7 @@ static void demo_create_device(struct VulkanDSL *vulkanDSL) {
             .ppEnabledLayerNames = NULL,
             .enabledExtensionCount = vulkanDSL->enabled_extension_count,
             .ppEnabledExtensionNames = (const char *const *)vulkanDSL->extension_names,
-            .pEnabledFeatures = NULL,  // If specific features are required, pass them in here
+            .pEnabledFeatures = &deviceFeatures,  // If specific features are required, pass them in here
     };
     /*
     if (vulkanDSL->separate_present_queue) {
@@ -2786,13 +3138,8 @@ static void demo_create_device(struct VulkanDSL *vulkanDSL) {
       }
     */
 
-    queues[1].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queues[1].pNext = NULL;
-    queues[1].queueFamilyIndex = vulkanDSL->graphics_queue_family_index2;
-    queues[1].queueCount = 1;
-    queues[1].pQueuePriorities = queue_priorities;
-    queues[1].flags = 0;
-    device.queueCreateInfoCount = 2;
+    device.queueCreateInfoCount = 1;
+
     err = vkCreateDevice(vulkanDSL->gpu, &device, NULL, &vulkanDSL->device);
     assert(!err);
 }
@@ -2903,24 +3250,17 @@ static void demo_init_vk_swapchain(struct VulkanDSL *vulkanDSL) {
     // families, try to find one that supports both
     uint32_t graphicsQueueFamilyIndex = UINT32_MAX;
     uint32_t presentQueueFamilyIndex = UINT32_MAX;
-    uint32_t graphicsQueueFamilyIndex2 = UINT32_MAX;
-    uint32_t presentQueueFamilyIndex2 = UINT32_MAX;
-    bool val1 = false;
     for (uint32_t i = 0; i < vulkanDSL->queue_family_count; i++) {
-        if ((vulkanDSL->queue_props[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0) {
+        //if ((vulkanDSL->queue_props[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0) {
+        if ((vulkanDSL->queue_props[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0
+        && (vulkanDSL->queue_props[i].queueFlags & VK_QUEUE_TRANSFER_BIT) != 0) {
             if (graphicsQueueFamilyIndex == UINT32_MAX) {
                 graphicsQueueFamilyIndex = i;
             }
 
-            if (val1 && supportsPresent[i] == VK_TRUE) {
-                graphicsQueueFamilyIndex2 = i;
-                presentQueueFamilyIndex2 = i;
-                break;
-            }
-            if (!val1 && supportsPresent[i] == VK_TRUE) {
+            if (supportsPresent[i] == VK_TRUE) {
                 graphicsQueueFamilyIndex = i;
                 presentQueueFamilyIndex = i;
-                val1 = true;
             }
         }
     }
@@ -2953,8 +3293,8 @@ static void demo_init_vk_swapchain(struct VulkanDSL *vulkanDSL) {
     vulkanDSL->fpGetSwapchainImagesKHR = vkGetSwapchainImagesKHR;
     vulkanDSL->fpAcquireNextImageKHR = vkAcquireNextImageKHR;
     vulkanDSL->fpQueuePresentKHR = vkQueuePresentKHR;
-    vulkanDSL->fpGetRefreshCycleDurationGOOGLE = vkGetRefreshCycleDurationGOOGLE;
-    vulkanDSL->fpGetPastPresentationTimingGOOGLE = vkGetPastPresentationTimingGOOGLE;
+    //vulkanDSL->fpGetRefreshCycleDurationGOOGLE = vkGetRefreshCycleDurationGOOGLE;
+    //vulkanDSL->fpGetPastPresentationTimingGOOGLE = vkGetPastPresentationTimingGOOGLE;
 
     /*
    GET_DEVICE_PROC_ADDR(vulkanDSL->device, CreateSwapchainKHR);
@@ -2969,7 +3309,7 @@ static void demo_init_vk_swapchain(struct VulkanDSL *vulkanDSL) {
     */
 
     vkGetDeviceQueue(vulkanDSL->device, vulkanDSL->graphics_queue_family_index, 0, &vulkanDSL->graphics_queue);
-    vkGetDeviceQueue(vulkanDSL->device, vulkanDSL->graphics_queue_family_index2, 0, &vulkanDSL->graphics_queue2);
+    //vkGetDeviceQueue(vulkanDSL->device, vulkanDSL->graphics_queue_family_index, 1, &vulkanDSL->graphics_queue2);
 
     if (!vulkanDSL->separate_present_queue) {
         vulkanDSL->present_queue = vulkanDSL->graphics_queue;
@@ -3027,9 +3367,13 @@ static void demo_init_vk_swapchain(struct VulkanDSL *vulkanDSL) {
 
 void demo_init_matrices(struct VulkanDSL *vulkanDSL, int width, int height) {
     //vec3 eye = {0.0f, 0, 12.0f}; // to be on the axis of rotation
-    vec3 eye = {0.0f, 4.5f, 6.5f};
+    //vec3 eye = {0.0f, 4.5f, 6.5f};
+    //vec3 origin = {0, 0, 0};
+    //vec3 up = {0.0f, 1.0f, 1.0};
+    vec3 eye = {0.0f, 3.0f, 5.0f};
     vec3 origin = {0, 0, 0};
-    vec3 up = {0.0f, 1.0f, 1.0};
+    vec3 up = {0.0f, 1.0f, 0.0};
+
     // degrees per second
     vulkanDSL->spin_angle = 32.0f;
     vulkanDSL->spin_increment = 0.2f;
@@ -3073,6 +3417,7 @@ void setTextures(struct VulkanDSL *vulkanDSL ) {
 }
 
 void vulkanDSL_main(struct VulkanDSL *vulkanDSL) {
+
     setTextures(vulkanDSL);
 
     demo_init(vulkanDSL, 10, 10);
@@ -3085,6 +3430,9 @@ void vulkanDSL_main(struct VulkanDSL *vulkanDSL) {
 }
 
 void VulkanDSL__setSize(struct VulkanDSL *vulkanDSL, int32_t width, int32_t height) {
+    if (width == vulkanDSL->width && height == vulkanDSL->height) {
+        return;
+    }
     demo_init_matrices(vulkanDSL, width, height);
     demo_resize(vulkanDSL);
 }

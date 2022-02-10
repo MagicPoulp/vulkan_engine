@@ -7,94 +7,160 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1839F4B025190F2A00BB00F1 /* AppMain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1839F4AF25190F2A00BB00F1 /* AppMain.swift */; };
-		18D775C522AD944300AE281E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18D775C422AD944300AE281E /* ContentView.swift */; };
-		18D775C722AD944400AE281E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 18D775C622AD944400AE281E /* Assets.xcassets */; };
-		18D775CA22AD944400AE281E /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 18D775C922AD944400AE281E /* Preview Assets.xcassets */; };
-		18D775D822AD963800AE281E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 18D775DA22AD963800AE281E /* LaunchScreen.storyboard */; };
-		22081113277769EE00B5BA42 /* LayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22081112277769EE00B5BA42 /* LayerView.swift */; };
 		221DA82927778F80007612BD /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 221DA82827778F80007612BD /* libc++.tbd */; };
-		221DA84327779D11007612BD /* VulkanViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 221DA84227779D11007612BD /* VulkanViewController.swift */; };
-		22354E5427944E9600A43E63 /* Program.c in Sources */ = {isa = PBXBuildFile; fileRef = 22354E3027944E9600A43E63 /* Program.c */; };
-		22354E5527944E9600A43E63 /* AssetsFetcher.c in Sources */ = {isa = PBXBuildFile; fileRef = 22354E3227944E9600A43E63 /* AssetsFetcher.c */; };
-		22354E5627944E9600A43E63 /* cube.frag in Resources */ = {isa = PBXBuildFile; fileRef = 22354E3C27944E9600A43E63 /* cube.frag */; };
-		22354E5727944E9600A43E63 /* textPanel.vert in Resources */ = {isa = PBXBuildFile; fileRef = 22354E3E27944E9600A43E63 /* textPanel.vert */; };
-		22354E5827944E9600A43E63 /* textPanel.frag in Resources */ = {isa = PBXBuildFile; fileRef = 22354E3F27944E9600A43E63 /* textPanel.frag */; };
-		22354E5927944E9600A43E63 /* cube.vert in Resources */ = {isa = PBXBuildFile; fileRef = 22354E4027944E9600A43E63 /* cube.vert */; };
-		22354E5A27944E9600A43E63 /* VulkanDSL.c in Sources */ = {isa = PBXBuildFile; fileRef = 22354E4127944E9600A43E63 /* VulkanDSL.c */; };
-		22354E5B27944E9600A43E63 /* home8.png in Resources */ = {isa = PBXBuildFile; fileRef = 22354E4527944E9600A43E63 /* home8.png */; };
-		22354E5C27944E9600A43E63 /* helloWorld.png in Resources */ = {isa = PBXBuildFile; fileRef = 22354E4627944E9600A43E63 /* helloWorld.png */; };
-		22354E5D27944E9600A43E63 /* statue-hera.png in Resources */ = {isa = PBXBuildFile; fileRef = 22354E4727944E9600A43E63 /* statue-hera.png */; };
-		22354E5E27944E9600A43E63 /* index.html in Resources */ = {isa = PBXBuildFile; fileRef = 22354E4927944E9600A43E63 /* index.html */; };
-		22354E5F27944E9600A43E63 /* jquery-ui.css in Resources */ = {isa = PBXBuildFile; fileRef = 22354E4A27944E9600A43E63 /* jquery-ui.css */; };
-		22354E6027944E9600A43E63 /* jquery-3.6.0.js in Resources */ = {isa = PBXBuildFile; fileRef = 22354E4B27944E9600A43E63 /* jquery-3.6.0.js */; };
-		22354E6127944E9600A43E63 /* jquery-ui.js in Resources */ = {isa = PBXBuildFile; fileRef = 22354E4C27944E9600A43E63 /* jquery-ui.js */; };
-		22354E6227944E9600A43E63 /* textPanel.obj in Resources */ = {isa = PBXBuildFile; fileRef = 22354E4E27944E9600A43E63 /* textPanel.obj */; };
-		22354E6327944E9600A43E63 /* textPanel.vert.spv in Resources */ = {isa = PBXBuildFile; fileRef = 22354E5027944E9600A43E63 /* textPanel.vert.spv */; };
-		22354E6427944E9600A43E63 /* cube.frag.spv in Resources */ = {isa = PBXBuildFile; fileRef = 22354E5127944E9600A43E63 /* cube.frag.spv */; };
-		22354E6527944E9600A43E63 /* cube.vert.spv in Resources */ = {isa = PBXBuildFile; fileRef = 22354E5227944E9600A43E63 /* cube.vert.spv */; };
-		22354E6627944E9600A43E63 /* textPanel.frag.spv in Resources */ = {isa = PBXBuildFile; fileRef = 22354E5327944E9600A43E63 /* textPanel.frag.spv */; };
-		224FED492787A8270081190D /* MoltenVK.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 224FEBD02787A35E0081190D /* MoltenVK.xcframework */; };
-		22528006277C504D00E3109E /* DemoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 22528005277C504D00E3109E /* DemoViewController.m */; };
-		9F69EE4C26942A8A00746CD7 /* CameraError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F69EE4B26942A8A00746CD7 /* CameraError.swift */; };
-		9F69EE4E26942CD500746CD7 /* CameraManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F69EE4D26942CD500746CD7 /* CameraManager.swift */; };
-		9F69EE5226957E1300746CD7 /* FrameManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F69EE5126957E1300746CD7 /* FrameManager.swift */; };
-		9F69EE542695837100746CD7 /* FrameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F69EE532695837100746CD7 /* FrameView.swift */; };
-		9F69EE562696F0A200746CD7 /* ErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F69EE552696F0A200746CD7 /* ErrorView.swift */; };
-		9F69EE5A2696F18900746CD7 /* ContentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F69EE592696F18900746CD7 /* ContentViewModel.swift */; };
-		9F69EE602698210900746CD7 /* VulkanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F69EE5F2698210900746CD7 /* VulkanView.swift */; };
+		2221C5FE279EA13900E8C8B6 /* vulkan.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 22500609279E105F0085DED4 /* vulkan.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		2221C602279EA6FD00E8C8B6 /* libvulkan.1.2.198.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2221C601279EA6FD00E8C8B6 /* libvulkan.1.2.198.dylib */; };
+		2221C603279EB9DA00E8C8B6 /* MoltenVK.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 22500601279E0FA50085DED4 /* MoltenVK.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		2221C604279EB9DA00E8C8B6 /* libc++.tbd in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 221DA82827778F80007612BD /* libc++.tbd */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		2221C605279EB9F400E8C8B6 /* MoltenVK.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 22500601279E0FA50085DED4 /* MoltenVK.xcframework */; };
+		2244D7B9279E04D60058AEF7 /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 221DA82827778F80007612BD /* libc++.tbd */; };
+		225005F5279E0CC30085DED4 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 225005EE279E0CC30085DED4 /* Main.storyboard */; };
+		225005F6279E0CC30085DED4 /* macOS.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 225005EF279E0CC30085DED4 /* macOS.xcassets */; };
+		225005F7279E0CC30085DED4 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 225005F1279E0CC30085DED4 /* main.m */; };
+		225005F8279E0CC30085DED4 /* DemoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 225005F2279E0CC30085DED4 /* DemoViewController.m */; };
+		225005F9279E0CC30085DED4 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 225005F3279E0CC30085DED4 /* AppDelegate.m */; };
+		229C4C76279E12CD0088E944 /* ContentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 229C4C33279E12CD0088E944 /* ContentViewModel.swift */; };
+		229C4C77279E12CD0088E944 /* DemoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 229C4C37279E12CD0088E944 /* DemoViewController.m */; };
+		229C4C9A279E12CD0088E944 /* CameraError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 229C4C64279E12CD0088E944 /* CameraError.swift */; };
+		229C4C9B279E12CD0088E944 /* FrameManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 229C4C65279E12CD0088E944 /* FrameManager.swift */; };
+		229C4C9C279E12CD0088E944 /* CameraManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 229C4C66279E12CD0088E944 /* CameraManager.swift */; };
+		229C4C9D279E12CD0088E944 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 229C4C67279E12CD0088E944 /* Assets.xcassets */; };
+		229C4C9E279E12CD0088E944 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 229C4C69279E12CD0088E944 /* Preview Assets.xcassets */; };
+		229C4C9F279E12CD0088E944 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 229C4C6A279E12CD0088E944 /* LaunchScreen.storyboard */; };
+		229C4CA0279E12CD0088E944 /* VulkanViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 229C4C6D279E12CD0088E944 /* VulkanViewController.swift */; };
+		229C4CA1279E12CD0088E944 /* LayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 229C4C6E279E12CD0088E944 /* LayerView.swift */; };
+		229C4CA2279E12CD0088E944 /* FrameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 229C4C70279E12CD0088E944 /* FrameView.swift */; };
+		229C4CA3279E12CD0088E944 /* VulkanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 229C4C71279E12CD0088E944 /* VulkanView.swift */; };
+		229C4CA4279E12CD0088E944 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 229C4C72279E12CD0088E944 /* ContentView.swift */; };
+		229C4CA5279E12CD0088E944 /* ErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 229C4C73279E12CD0088E944 /* ErrorView.swift */; };
+		229C4CA7279E12CD0088E944 /* AppMain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 229C4C75279E12CD0088E944 /* AppMain.swift */; };
+		229C4CCD279E12FE0088E944 /* Program.c in Sources */ = {isa = PBXBuildFile; fileRef = 229C4CA9279E12FE0088E944 /* Program.c */; };
+		229C4CCE279E12FE0088E944 /* Program.c in Sources */ = {isa = PBXBuildFile; fileRef = 229C4CA9279E12FE0088E944 /* Program.c */; };
+		229C4CCF279E12FE0088E944 /* AssetsFetcher.c in Sources */ = {isa = PBXBuildFile; fileRef = 229C4CAB279E12FE0088E944 /* AssetsFetcher.c */; };
+		229C4CD0279E12FE0088E944 /* AssetsFetcher.c in Sources */ = {isa = PBXBuildFile; fileRef = 229C4CAB279E12FE0088E944 /* AssetsFetcher.c */; };
+		229C4CD1279E12FE0088E944 /* cube.frag in Resources */ = {isa = PBXBuildFile; fileRef = 229C4CB5279E12FE0088E944 /* cube.frag */; };
+		229C4CD2279E12FE0088E944 /* cube.frag in Resources */ = {isa = PBXBuildFile; fileRef = 229C4CB5279E12FE0088E944 /* cube.frag */; };
+		229C4CD3279E12FE0088E944 /* textPanel.vert in Resources */ = {isa = PBXBuildFile; fileRef = 229C4CB7279E12FE0088E944 /* textPanel.vert */; };
+		229C4CD4279E12FE0088E944 /* textPanel.vert in Resources */ = {isa = PBXBuildFile; fileRef = 229C4CB7279E12FE0088E944 /* textPanel.vert */; };
+		229C4CD5279E12FE0088E944 /* textPanel.frag in Resources */ = {isa = PBXBuildFile; fileRef = 229C4CB8279E12FE0088E944 /* textPanel.frag */; };
+		229C4CD6279E12FE0088E944 /* textPanel.frag in Resources */ = {isa = PBXBuildFile; fileRef = 229C4CB8279E12FE0088E944 /* textPanel.frag */; };
+		229C4CD7279E12FE0088E944 /* cube.vert in Resources */ = {isa = PBXBuildFile; fileRef = 229C4CB9279E12FE0088E944 /* cube.vert */; };
+		229C4CD8279E12FE0088E944 /* cube.vert in Resources */ = {isa = PBXBuildFile; fileRef = 229C4CB9279E12FE0088E944 /* cube.vert */; };
+		229C4CD9279E12FE0088E944 /* VulkanDSL.c in Sources */ = {isa = PBXBuildFile; fileRef = 229C4CBA279E12FE0088E944 /* VulkanDSL.c */; };
+		229C4CDA279E12FE0088E944 /* VulkanDSL.c in Sources */ = {isa = PBXBuildFile; fileRef = 229C4CBA279E12FE0088E944 /* VulkanDSL.c */; };
+		229C4CDB279E12FE0088E944 /* home8.png in Resources */ = {isa = PBXBuildFile; fileRef = 229C4CBE279E12FE0088E944 /* home8.png */; };
+		229C4CDC279E12FE0088E944 /* home8.png in Resources */ = {isa = PBXBuildFile; fileRef = 229C4CBE279E12FE0088E944 /* home8.png */; };
+		229C4CDD279E12FE0088E944 /* helloWorld.png in Resources */ = {isa = PBXBuildFile; fileRef = 229C4CBF279E12FE0088E944 /* helloWorld.png */; };
+		229C4CDE279E12FE0088E944 /* helloWorld.png in Resources */ = {isa = PBXBuildFile; fileRef = 229C4CBF279E12FE0088E944 /* helloWorld.png */; };
+		229C4CDF279E12FE0088E944 /* statue-hera.png in Resources */ = {isa = PBXBuildFile; fileRef = 229C4CC0279E12FE0088E944 /* statue-hera.png */; };
+		229C4CE0279E12FE0088E944 /* statue-hera.png in Resources */ = {isa = PBXBuildFile; fileRef = 229C4CC0279E12FE0088E944 /* statue-hera.png */; };
+		229C4CE1279E12FE0088E944 /* index.html in Resources */ = {isa = PBXBuildFile; fileRef = 229C4CC2279E12FE0088E944 /* index.html */; };
+		229C4CE2279E12FE0088E944 /* index.html in Resources */ = {isa = PBXBuildFile; fileRef = 229C4CC2279E12FE0088E944 /* index.html */; };
+		229C4CE3279E12FE0088E944 /* jquery-ui.css in Resources */ = {isa = PBXBuildFile; fileRef = 229C4CC3279E12FE0088E944 /* jquery-ui.css */; };
+		229C4CE4279E12FE0088E944 /* jquery-ui.css in Resources */ = {isa = PBXBuildFile; fileRef = 229C4CC3279E12FE0088E944 /* jquery-ui.css */; };
+		229C4CE5279E12FE0088E944 /* jquery-3.6.0.js in Resources */ = {isa = PBXBuildFile; fileRef = 229C4CC4279E12FE0088E944 /* jquery-3.6.0.js */; };
+		229C4CE6279E12FE0088E944 /* jquery-3.6.0.js in Resources */ = {isa = PBXBuildFile; fileRef = 229C4CC4279E12FE0088E944 /* jquery-3.6.0.js */; };
+		229C4CE7279E12FE0088E944 /* jquery-ui.js in Resources */ = {isa = PBXBuildFile; fileRef = 229C4CC5279E12FE0088E944 /* jquery-ui.js */; };
+		229C4CE8279E12FE0088E944 /* jquery-ui.js in Resources */ = {isa = PBXBuildFile; fileRef = 229C4CC5279E12FE0088E944 /* jquery-ui.js */; };
+		229C4CE9279E12FE0088E944 /* textPanel.obj in Resources */ = {isa = PBXBuildFile; fileRef = 229C4CC7279E12FE0088E944 /* textPanel.obj */; };
+		229C4CEA279E12FE0088E944 /* textPanel.obj in Resources */ = {isa = PBXBuildFile; fileRef = 229C4CC7279E12FE0088E944 /* textPanel.obj */; };
+		229C4CEB279E12FE0088E944 /* textPanel.vert.spv in Resources */ = {isa = PBXBuildFile; fileRef = 229C4CC9279E12FE0088E944 /* textPanel.vert.spv */; };
+		229C4CEC279E12FE0088E944 /* textPanel.vert.spv in Resources */ = {isa = PBXBuildFile; fileRef = 229C4CC9279E12FE0088E944 /* textPanel.vert.spv */; };
+		229C4CED279E12FE0088E944 /* cube.frag.spv in Resources */ = {isa = PBXBuildFile; fileRef = 229C4CCA279E12FE0088E944 /* cube.frag.spv */; };
+		229C4CEE279E12FE0088E944 /* cube.frag.spv in Resources */ = {isa = PBXBuildFile; fileRef = 229C4CCA279E12FE0088E944 /* cube.frag.spv */; };
+		229C4CEF279E12FE0088E944 /* cube.vert.spv in Resources */ = {isa = PBXBuildFile; fileRef = 229C4CCB279E12FE0088E944 /* cube.vert.spv */; };
+		229C4CF0279E12FE0088E944 /* cube.vert.spv in Resources */ = {isa = PBXBuildFile; fileRef = 229C4CCB279E12FE0088E944 /* cube.vert.spv */; };
+		229C4CF1279E12FE0088E944 /* textPanel.frag.spv in Resources */ = {isa = PBXBuildFile; fileRef = 229C4CCC279E12FE0088E944 /* textPanel.frag.spv */; };
+		229C4CF2279E12FE0088E944 /* textPanel.frag.spv in Resources */ = {isa = PBXBuildFile; fileRef = 229C4CCC279E12FE0088E944 /* textPanel.frag.spv */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		2244D7A3279E04110058AEF7 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				2221C603279EB9DA00E8C8B6 /* MoltenVK.xcframework in Embed Frameworks */,
+				2221C604279EB9DA00E8C8B6 /* libc++.tbd in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2244D7D0279E04D60058AEF7 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				2221C5FE279EA13900E8C8B6 /* vulkan.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
-		1839F4AF25190F2A00BB00F1 /* AppMain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppMain.swift; sourceTree = "<group>"; };
 		18D775BD22AD944300AE281E /* FilterTheWorld.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FilterTheWorld.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		18D775C422AD944300AE281E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		18D775C622AD944400AE281E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		18D775C922AD944400AE281E /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		18D775CE22AD944400AE281E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		18D775DE22AD96B400AE281E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		22081112277769EE00B5BA42 /* LayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayerView.swift; sourceTree = "<group>"; };
 		221DA82827778F80007612BD /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "usr/lib/libc++.tbd"; sourceTree = SDKROOT; };
-		221DA82A27779037007612BD /* MoltenVK.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = MoltenVK.xcframework; path = ../../../MoltenVK/Package/Debug/MoltenVK/MoltenVK.xcframework; sourceTree = "<group>"; };
-		221DA84227779D11007612BD /* VulkanViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VulkanViewController.swift; sourceTree = "<group>"; };
-		22354E3027944E9600A43E63 /* Program.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Program.c; sourceTree = "<group>"; };
-		22354E3227944E9600A43E63 /* AssetsFetcher.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = AssetsFetcher.c; sourceTree = "<group>"; };
-		22354E3327944E9600A43E63 /* AssetsFetcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AssetsFetcher.h; sourceTree = "<group>"; };
-		22354E3427944E9600A43E63 /* VulkanDSL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VulkanDSL.h; sourceTree = "<group>"; };
-		22354E3627944E9600A43E63 /* object_type_string_helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = object_type_string_helper.h; sourceTree = "<group>"; };
-		22354E3727944E9600A43E63 /* linmath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = linmath.h; sourceTree = "<group>"; };
-		22354E3827944E9600A43E63 /* tinyobj_loader_c.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tinyobj_loader_c.h; sourceTree = "<group>"; };
-		22354E3927944E9600A43E63 /* stb_image.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stb_image.h; sourceTree = "<group>"; };
-		22354E3A27944E9600A43E63 /* gettime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gettime.h; sourceTree = "<group>"; };
-		22354E3C27944E9600A43E63 /* cube.frag */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = cube.frag; sourceTree = "<group>"; };
-		22354E3E27944E9600A43E63 /* textPanel.vert */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = textPanel.vert; sourceTree = "<group>"; };
-		22354E3F27944E9600A43E63 /* textPanel.frag */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = textPanel.frag; sourceTree = "<group>"; };
-		22354E4027944E9600A43E63 /* cube.vert */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = cube.vert; sourceTree = "<group>"; };
-		22354E4127944E9600A43E63 /* VulkanDSL.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = VulkanDSL.c; sourceTree = "<group>"; };
-		22354E4227944E9600A43E63 /* Program.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Program.h; sourceTree = "<group>"; };
-		22354E4527944E9600A43E63 /* home8.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = home8.png; sourceTree = "<group>"; };
-		22354E4627944E9600A43E63 /* helloWorld.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = helloWorld.png; sourceTree = "<group>"; };
-		22354E4727944E9600A43E63 /* statue-hera.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "statue-hera.png"; sourceTree = "<group>"; };
-		22354E4927944E9600A43E63 /* index.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
-		22354E4A27944E9600A43E63 /* jquery-ui.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = "jquery-ui.css"; sourceTree = "<group>"; };
-		22354E4B27944E9600A43E63 /* jquery-3.6.0.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "jquery-3.6.0.js"; sourceTree = "<group>"; };
-		22354E4C27944E9600A43E63 /* jquery-ui.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "jquery-ui.js"; sourceTree = "<group>"; };
-		22354E4E27944E9600A43E63 /* textPanel.obj */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = textPanel.obj; sourceTree = "<group>"; };
-		22354E5027944E9600A43E63 /* textPanel.vert.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = textPanel.vert.spv; sourceTree = "<group>"; };
-		22354E5127944E9600A43E63 /* cube.frag.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = cube.frag.spv; sourceTree = "<group>"; };
-		22354E5227944E9600A43E63 /* cube.vert.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = cube.vert.spv; sourceTree = "<group>"; };
-		22354E5327944E9600A43E63 /* textPanel.frag.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = textPanel.frag.spv; sourceTree = "<group>"; };
-		224FEBD02787A35E0081190D /* MoltenVK.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = MoltenVK.xcframework; path = ../../../MoltenVK/MoltenVK/MoltenVK.xcframework; sourceTree = "<group>"; };
-		22528003277C504D00E3109E /* DemoViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DemoViewController.h; sourceTree = "<group>"; };
-		22528004277C504D00E3109E /* FilterTheWorld-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "FilterTheWorld-Bridging-Header.h"; sourceTree = "<group>"; };
-		22528005277C504D00E3109E /* DemoViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DemoViewController.m; sourceTree = "<group>"; };
-		9F69EE4B26942A8A00746CD7 /* CameraError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraError.swift; sourceTree = "<group>"; };
-		9F69EE4D26942CD500746CD7 /* CameraManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraManager.swift; sourceTree = "<group>"; };
-		9F69EE5126957E1300746CD7 /* FrameManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameManager.swift; sourceTree = "<group>"; };
-		9F69EE532695837100746CD7 /* FrameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameView.swift; sourceTree = "<group>"; };
-		9F69EE552696F0A200746CD7 /* ErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorView.swift; sourceTree = "<group>"; };
-		9F69EE592696F18900746CD7 /* ContentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentViewModel.swift; sourceTree = "<group>"; };
-		9F69EE5F2698210900746CD7 /* VulkanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VulkanView.swift; sourceTree = "<group>"; };
+		2221C601279EA6FD00E8C8B6 /* libvulkan.1.2.198.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libvulkan.1.2.198.dylib; path = ../../../../VulkanSDK/1.2.198.1/macOS/lib/libvulkan.1.2.198.dylib; sourceTree = "<group>"; };
+		2244D7D6279E04D60058AEF7 /* FilterTheWorld macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "FilterTheWorld macOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		225005EB279E0CC30085DED4 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		225005EC279E0CC30085DED4 /* DemoViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DemoViewController.h; sourceTree = "<group>"; };
+		225005EE279E0CC30085DED4 /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
+		225005EF279E0CC30085DED4 /* macOS.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = macOS.xcassets; sourceTree = "<group>"; };
+		225005F0279E0CC30085DED4 /* Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Prefix.pch; sourceTree = "<group>"; };
+		225005F1279E0CC30085DED4 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		225005F2279E0CC30085DED4 /* DemoViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DemoViewController.m; sourceTree = "<group>"; };
+		225005F3279E0CC30085DED4 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		22500601279E0FA50085DED4 /* MoltenVK.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = MoltenVK.xcframework; path = ../../../../VulkanSDK/1.2.198.1/MoltenVK/MoltenVK.xcframework; sourceTree = "<group>"; };
+		22500606279E10150085DED4 /* libMoltenVK.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libMoltenVK.dylib; path = ../../../../VulkanSDK/1.2.198.1/MoltenVK/dylib/macOS/libMoltenVK.dylib; sourceTree = "<group>"; };
+		22500609279E105F0085DED4 /* vulkan.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = vulkan.framework; path = ../../../../VulkanSDK/1.2.198.1/macOS/Frameworks/vulkan.framework; sourceTree = "<group>"; };
+		229C4C33279E12CD0088E944 /* ContentViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContentViewModel.swift; sourceTree = "<group>"; };
+		229C4C35279E12CD0088E944 /* DemoViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DemoViewController.h; sourceTree = "<group>"; };
+		229C4C36279E12CD0088E944 /* FilterTheWorld-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "FilterTheWorld-Bridging-Header.h"; sourceTree = "<group>"; };
+		229C4C37279E12CD0088E944 /* DemoViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DemoViewController.m; sourceTree = "<group>"; };
+		229C4C64279E12CD0088E944 /* CameraError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CameraError.swift; sourceTree = "<group>"; };
+		229C4C65279E12CD0088E944 /* FrameManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FrameManager.swift; sourceTree = "<group>"; };
+		229C4C66279E12CD0088E944 /* CameraManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CameraManager.swift; sourceTree = "<group>"; };
+		229C4C67279E12CD0088E944 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		229C4C69279E12CD0088E944 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		229C4C6B279E12CD0088E944 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		229C4C6D279E12CD0088E944 /* VulkanViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VulkanViewController.swift; sourceTree = "<group>"; };
+		229C4C6E279E12CD0088E944 /* LayerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LayerView.swift; sourceTree = "<group>"; };
+		229C4C70279E12CD0088E944 /* FrameView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FrameView.swift; sourceTree = "<group>"; };
+		229C4C71279E12CD0088E944 /* VulkanView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VulkanView.swift; sourceTree = "<group>"; };
+		229C4C72279E12CD0088E944 /* ContentView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		229C4C73279E12CD0088E944 /* ErrorView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ErrorView.swift; sourceTree = "<group>"; };
+		229C4C74279E12CD0088E944 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		229C4C75279E12CD0088E944 /* AppMain.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppMain.swift; sourceTree = "<group>"; };
+		229C4CA9279E12FE0088E944 /* Program.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Program.c; sourceTree = "<group>"; };
+		229C4CAB279E12FE0088E944 /* AssetsFetcher.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = AssetsFetcher.c; sourceTree = "<group>"; };
+		229C4CAC279E12FE0088E944 /* AssetsFetcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AssetsFetcher.h; sourceTree = "<group>"; };
+		229C4CAD279E12FE0088E944 /* VulkanDSL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VulkanDSL.h; sourceTree = "<group>"; };
+		229C4CAF279E12FE0088E944 /* object_type_string_helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = object_type_string_helper.h; sourceTree = "<group>"; };
+		229C4CB0279E12FE0088E944 /* linmath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = linmath.h; sourceTree = "<group>"; };
+		229C4CB1279E12FE0088E944 /* tinyobj_loader_c.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tinyobj_loader_c.h; sourceTree = "<group>"; };
+		229C4CB2279E12FE0088E944 /* stb_image.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stb_image.h; sourceTree = "<group>"; };
+		229C4CB3279E12FE0088E944 /* gettime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gettime.h; sourceTree = "<group>"; };
+		229C4CB5279E12FE0088E944 /* cube.frag */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = cube.frag; sourceTree = "<group>"; };
+		229C4CB7279E12FE0088E944 /* textPanel.vert */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = textPanel.vert; sourceTree = "<group>"; };
+		229C4CB8279E12FE0088E944 /* textPanel.frag */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = textPanel.frag; sourceTree = "<group>"; };
+		229C4CB9279E12FE0088E944 /* cube.vert */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = cube.vert; sourceTree = "<group>"; };
+		229C4CBA279E12FE0088E944 /* VulkanDSL.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = VulkanDSL.c; sourceTree = "<group>"; };
+		229C4CBB279E12FE0088E944 /* Program.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Program.h; sourceTree = "<group>"; };
+		229C4CBE279E12FE0088E944 /* home8.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = home8.png; sourceTree = "<group>"; };
+		229C4CBF279E12FE0088E944 /* helloWorld.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = helloWorld.png; sourceTree = "<group>"; };
+		229C4CC0279E12FE0088E944 /* statue-hera.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "statue-hera.png"; sourceTree = "<group>"; };
+		229C4CC2279E12FE0088E944 /* index.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
+		229C4CC3279E12FE0088E944 /* jquery-ui.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = "jquery-ui.css"; sourceTree = "<group>"; };
+		229C4CC4279E12FE0088E944 /* jquery-3.6.0.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "jquery-3.6.0.js"; sourceTree = "<group>"; };
+		229C4CC5279E12FE0088E944 /* jquery-ui.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "jquery-ui.js"; sourceTree = "<group>"; };
+		229C4CC7279E12FE0088E944 /* textPanel.obj */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = textPanel.obj; sourceTree = "<group>"; };
+		229C4CC9279E12FE0088E944 /* textPanel.vert.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = textPanel.vert.spv; sourceTree = "<group>"; };
+		229C4CCA279E12FE0088E944 /* cube.frag.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = cube.frag.spv; sourceTree = "<group>"; };
+		229C4CCB279E12FE0088E944 /* cube.vert.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = cube.vert.spv; sourceTree = "<group>"; };
+		229C4CCC279E12FE0088E944 /* textPanel.frag.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = textPanel.frag.spv; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -102,8 +168,17 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				224FED492787A8270081190D /* MoltenVK.xcframework in Frameworks */,
+				2221C605279EB9F400E8C8B6 /* MoltenVK.xcframework in Frameworks */,
 				221DA82927778F80007612BD /* libc++.tbd in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2244D7B8279E04D60058AEF7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2244D7B9279E04D60058AEF7 /* libc++.tbd in Frameworks */,
+				2221C602279EA6FD00E8C8B6 /* libvulkan.1.2.198.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -113,8 +188,9 @@
 		18D775B422AD944300AE281E = {
 			isa = PBXGroup;
 			children = (
-				22354E2F27944E9600A43E63 /* vulkan_application */,
-				18D775BF22AD944300AE281E /* FilterTheWorld */,
+				229C4CA8279E12FE0088E944 /* vulkan_application */,
+				229C4C31279E12CD0088E944 /* FilterTheWorld */,
+				225005EA279E0CC30085DED4 /* macOS */,
 				221DA81427778DB9007612BD /* Resources */,
 				18D775BE22AD944300AE281E /* Products */,
 				221DA82727778F80007612BD /* Frameworks */,
@@ -127,42 +203,9 @@
 			isa = PBXGroup;
 			children = (
 				18D775BD22AD944300AE281E /* FilterTheWorld.app */,
+				2244D7D6279E04D60058AEF7 /* FilterTheWorld macOS.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		18D775BF22AD944300AE281E /* FilterTheWorld */ = {
-			isa = PBXGroup;
-			children = (
-				22528002277C504D00E3109E /* bridge */,
-				2208111427777AFB00B5BA42 /* Components */,
-				9F69EE4926942A2900746CD7 /* Camera */,
-				9F69EE582696F17100746CD7 /* ViewModels */,
-				9F69EE572696F15500746CD7 /* Views */,
-				1839F4AF25190F2A00BB00F1 /* AppMain.swift */,
-				18D775C622AD944400AE281E /* Assets.xcassets */,
-				18D775DA22AD963800AE281E /* LaunchScreen.storyboard */,
-				18D775CE22AD944400AE281E /* Info.plist */,
-				18D775C822AD944400AE281E /* Preview Content */,
-			);
-			path = FilterTheWorld;
-			sourceTree = "<group>";
-		};
-		18D775C822AD944400AE281E /* Preview Content */ = {
-			isa = PBXGroup;
-			children = (
-				18D775C922AD944400AE281E /* Preview Assets.xcassets */,
-			);
-			path = "Preview Content";
-			sourceTree = "<group>";
-		};
-		2208111427777AFB00B5BA42 /* Components */ = {
-			isa = PBXGroup;
-			children = (
-				22081112277769EE00B5BA42 /* LayerView.swift */,
-				221DA84227779D11007612BD /* VulkanViewController.swift */,
-			);
-			path = Components;
 			sourceTree = "<group>";
 		};
 		221DA81427778DB9007612BD /* Resources */ = {
@@ -175,157 +218,217 @@
 		221DA82727778F80007612BD /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				221DA82A27779037007612BD /* MoltenVK.xcframework */,
-				224FEBD02787A35E0081190D /* MoltenVK.xcframework */,
+				2221C601279EA6FD00E8C8B6 /* libvulkan.1.2.198.dylib */,
+				22500609279E105F0085DED4 /* vulkan.framework */,
+				22500601279E0FA50085DED4 /* MoltenVK.xcframework */,
 				221DA82827778F80007612BD /* libc++.tbd */,
+				22500606279E10150085DED4 /* libMoltenVK.dylib */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		22354E2F27944E9600A43E63 /* vulkan_application */ = {
+		225005EA279E0CC30085DED4 /* macOS */ = {
 			isa = PBXGroup;
 			children = (
-				22354E3127944E9600A43E63 /* assets_management */,
-				22354E3527944E9600A43E63 /* utils */,
-				22354E3B27944E9600A43E63 /* shaders */,
-				22354E3427944E9600A43E63 /* VulkanDSL.h */,
-				22354E4127944E9600A43E63 /* VulkanDSL.c */,
-				22354E3027944E9600A43E63 /* Program.c */,
-				22354E4227944E9600A43E63 /* Program.h */,
-				22354E4327944E9600A43E63 /* assets */,
+				225005EB279E0CC30085DED4 /* AppDelegate.h */,
+				225005EC279E0CC30085DED4 /* DemoViewController.h */,
+				225005ED279E0CC30085DED4 /* Resources */,
+				225005F0279E0CC30085DED4 /* Prefix.pch */,
+				225005F1279E0CC30085DED4 /* main.m */,
+				225005F2279E0CC30085DED4 /* DemoViewController.m */,
+				225005F3279E0CC30085DED4 /* AppDelegate.m */,
+			);
+			name = macOS;
+			path = ../macOS;
+			sourceTree = "<group>";
+		};
+		225005ED279E0CC30085DED4 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				225005EE279E0CC30085DED4 /* Main.storyboard */,
+				225005EF279E0CC30085DED4 /* macOS.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		229C4C31279E12CD0088E944 /* FilterTheWorld */ = {
+			isa = PBXGroup;
+			children = (
+				229C4C32279E12CD0088E944 /* ViewModels */,
+				229C4C34279E12CD0088E944 /* bridge */,
+				229C4C63279E12CD0088E944 /* Camera */,
+				229C4C67279E12CD0088E944 /* Assets.xcassets */,
+				229C4C68279E12CD0088E944 /* Preview Content */,
+				229C4C6A279E12CD0088E944 /* LaunchScreen.storyboard */,
+				229C4C6C279E12CD0088E944 /* Components */,
+				229C4C6F279E12CD0088E944 /* Views */,
+				229C4C74279E12CD0088E944 /* Info.plist */,
+				229C4C75279E12CD0088E944 /* AppMain.swift */,
+			);
+			path = FilterTheWorld;
+			sourceTree = "<group>";
+		};
+		229C4C32279E12CD0088E944 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				229C4C33279E12CD0088E944 /* ContentViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		229C4C34279E12CD0088E944 /* bridge */ = {
+			isa = PBXGroup;
+			children = (
+				229C4C35279E12CD0088E944 /* DemoViewController.h */,
+				229C4C36279E12CD0088E944 /* FilterTheWorld-Bridging-Header.h */,
+				229C4C37279E12CD0088E944 /* DemoViewController.m */,
+			);
+			path = bridge;
+			sourceTree = "<group>";
+		};
+		229C4C63279E12CD0088E944 /* Camera */ = {
+			isa = PBXGroup;
+			children = (
+				229C4C64279E12CD0088E944 /* CameraError.swift */,
+				229C4C65279E12CD0088E944 /* FrameManager.swift */,
+				229C4C66279E12CD0088E944 /* CameraManager.swift */,
+			);
+			path = Camera;
+			sourceTree = "<group>";
+		};
+		229C4C68279E12CD0088E944 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				229C4C69279E12CD0088E944 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		229C4C6C279E12CD0088E944 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				229C4C6D279E12CD0088E944 /* VulkanViewController.swift */,
+				229C4C6E279E12CD0088E944 /* LayerView.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		229C4C6F279E12CD0088E944 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				229C4C70279E12CD0088E944 /* FrameView.swift */,
+				229C4C71279E12CD0088E944 /* VulkanView.swift */,
+				229C4C72279E12CD0088E944 /* ContentView.swift */,
+				229C4C73279E12CD0088E944 /* ErrorView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		229C4CA8279E12FE0088E944 /* vulkan_application */ = {
+			isa = PBXGroup;
+			children = (
+				229C4CA9279E12FE0088E944 /* Program.c */,
+				229C4CAA279E12FE0088E944 /* assets_management */,
+				229C4CAD279E12FE0088E944 /* VulkanDSL.h */,
+				229C4CAE279E12FE0088E944 /* utils */,
+				229C4CB4279E12FE0088E944 /* shaders */,
+				229C4CBA279E12FE0088E944 /* VulkanDSL.c */,
+				229C4CBB279E12FE0088E944 /* Program.h */,
+				229C4CBC279E12FE0088E944 /* assets */,
 			);
 			name = vulkan_application;
 			path = ../../vulkan_application;
 			sourceTree = "<group>";
 		};
-		22354E3127944E9600A43E63 /* assets_management */ = {
+		229C4CAA279E12FE0088E944 /* assets_management */ = {
 			isa = PBXGroup;
 			children = (
-				22354E3227944E9600A43E63 /* AssetsFetcher.c */,
-				22354E3327944E9600A43E63 /* AssetsFetcher.h */,
+				229C4CAB279E12FE0088E944 /* AssetsFetcher.c */,
+				229C4CAC279E12FE0088E944 /* AssetsFetcher.h */,
 			);
 			path = assets_management;
 			sourceTree = "<group>";
 		};
-		22354E3527944E9600A43E63 /* utils */ = {
+		229C4CAE279E12FE0088E944 /* utils */ = {
 			isa = PBXGroup;
 			children = (
-				22354E3627944E9600A43E63 /* object_type_string_helper.h */,
-				22354E3727944E9600A43E63 /* linmath.h */,
-				22354E3827944E9600A43E63 /* tinyobj_loader_c.h */,
-				22354E3927944E9600A43E63 /* stb_image.h */,
-				22354E3A27944E9600A43E63 /* gettime.h */,
+				229C4CAF279E12FE0088E944 /* object_type_string_helper.h */,
+				229C4CB0279E12FE0088E944 /* linmath.h */,
+				229C4CB1279E12FE0088E944 /* tinyobj_loader_c.h */,
+				229C4CB2279E12FE0088E944 /* stb_image.h */,
+				229C4CB3279E12FE0088E944 /* gettime.h */,
 			);
 			path = utils;
 			sourceTree = "<group>";
 		};
-		22354E3B27944E9600A43E63 /* shaders */ = {
+		229C4CB4279E12FE0088E944 /* shaders */ = {
 			isa = PBXGroup;
 			children = (
-				22354E3D27944E9600A43E63 /* textPanel */,
-				22354E4027944E9600A43E63 /* cube.vert */,
-				22354E3C27944E9600A43E63 /* cube.frag */,
+				229C4CB5279E12FE0088E944 /* cube.frag */,
+				229C4CB6279E12FE0088E944 /* textPanel */,
+				229C4CB9279E12FE0088E944 /* cube.vert */,
 			);
 			path = shaders;
 			sourceTree = "<group>";
 		};
-		22354E3D27944E9600A43E63 /* textPanel */ = {
+		229C4CB6279E12FE0088E944 /* textPanel */ = {
 			isa = PBXGroup;
 			children = (
-				22354E3E27944E9600A43E63 /* textPanel.vert */,
-				22354E3F27944E9600A43E63 /* textPanel.frag */,
+				229C4CB7279E12FE0088E944 /* textPanel.vert */,
+				229C4CB8279E12FE0088E944 /* textPanel.frag */,
 			);
 			path = textPanel;
 			sourceTree = "<group>";
 		};
-		22354E4327944E9600A43E63 /* assets */ = {
+		229C4CBC279E12FE0088E944 /* assets */ = {
 			isa = PBXGroup;
 			children = (
-				22354E4427944E9600A43E63 /* textures */,
-				22354E4827944E9600A43E63 /* www */,
-				22354E4D27944E9600A43E63 /* meshes */,
-				22354E4F27944E9600A43E63 /* shaders */,
+				229C4CBD279E12FE0088E944 /* textures */,
+				229C4CC1279E12FE0088E944 /* www */,
+				229C4CC6279E12FE0088E944 /* meshes */,
+				229C4CC8279E12FE0088E944 /* shaders */,
 			);
 			path = assets;
 			sourceTree = "<group>";
 		};
-		22354E4427944E9600A43E63 /* textures */ = {
+		229C4CBD279E12FE0088E944 /* textures */ = {
 			isa = PBXGroup;
 			children = (
-				22354E4527944E9600A43E63 /* home8.png */,
-				22354E4627944E9600A43E63 /* helloWorld.png */,
-				22354E4727944E9600A43E63 /* statue-hera.png */,
+				229C4CBE279E12FE0088E944 /* home8.png */,
+				229C4CBF279E12FE0088E944 /* helloWorld.png */,
+				229C4CC0279E12FE0088E944 /* statue-hera.png */,
 			);
 			path = textures;
 			sourceTree = "<group>";
 		};
-		22354E4827944E9600A43E63 /* www */ = {
+		229C4CC1279E12FE0088E944 /* www */ = {
 			isa = PBXGroup;
 			children = (
-				22354E4927944E9600A43E63 /* index.html */,
-				22354E4A27944E9600A43E63 /* jquery-ui.css */,
-				22354E4B27944E9600A43E63 /* jquery-3.6.0.js */,
-				22354E4C27944E9600A43E63 /* jquery-ui.js */,
+				229C4CC2279E12FE0088E944 /* index.html */,
+				229C4CC3279E12FE0088E944 /* jquery-ui.css */,
+				229C4CC4279E12FE0088E944 /* jquery-3.6.0.js */,
+				229C4CC5279E12FE0088E944 /* jquery-ui.js */,
 			);
 			path = www;
 			sourceTree = "<group>";
 		};
-		22354E4D27944E9600A43E63 /* meshes */ = {
+		229C4CC6279E12FE0088E944 /* meshes */ = {
 			isa = PBXGroup;
 			children = (
-				22354E4E27944E9600A43E63 /* textPanel.obj */,
+				229C4CC7279E12FE0088E944 /* textPanel.obj */,
 			);
 			path = meshes;
 			sourceTree = "<group>";
 		};
-		22354E4F27944E9600A43E63 /* shaders */ = {
+		229C4CC8279E12FE0088E944 /* shaders */ = {
 			isa = PBXGroup;
 			children = (
-				22354E5027944E9600A43E63 /* textPanel.vert.spv */,
-				22354E5127944E9600A43E63 /* cube.frag.spv */,
-				22354E5227944E9600A43E63 /* cube.vert.spv */,
-				22354E5327944E9600A43E63 /* textPanel.frag.spv */,
+				229C4CC9279E12FE0088E944 /* textPanel.vert.spv */,
+				229C4CCA279E12FE0088E944 /* cube.frag.spv */,
+				229C4CCB279E12FE0088E944 /* cube.vert.spv */,
+				229C4CCC279E12FE0088E944 /* textPanel.frag.spv */,
 			);
 			path = shaders;
-			sourceTree = "<group>";
-		};
-		22528002277C504D00E3109E /* bridge */ = {
-			isa = PBXGroup;
-			children = (
-				22528004277C504D00E3109E /* FilterTheWorld-Bridging-Header.h */,
-				22528003277C504D00E3109E /* DemoViewController.h */,
-				22528005277C504D00E3109E /* DemoViewController.m */,
-			);
-			path = bridge;
-			sourceTree = "<group>";
-		};
-		9F69EE4926942A2900746CD7 /* Camera */ = {
-			isa = PBXGroup;
-			children = (
-				9F69EE4B26942A8A00746CD7 /* CameraError.swift */,
-				9F69EE4D26942CD500746CD7 /* CameraManager.swift */,
-				9F69EE5126957E1300746CD7 /* FrameManager.swift */,
-			);
-			path = Camera;
-			sourceTree = "<group>";
-		};
-		9F69EE572696F15500746CD7 /* Views */ = {
-			isa = PBXGroup;
-			children = (
-				18D775C422AD944300AE281E /* ContentView.swift */,
-				9F69EE5F2698210900746CD7 /* VulkanView.swift */,
-				9F69EE552696F0A200746CD7 /* ErrorView.swift */,
-				9F69EE532695837100746CD7 /* FrameView.swift */,
-			);
-			path = Views;
-			sourceTree = "<group>";
-		};
-		9F69EE582696F17100746CD7 /* ViewModels */ = {
-			isa = PBXGroup;
-			children = (
-				9F69EE592696F18900746CD7 /* ContentViewModel.swift */,
-			);
-			path = ViewModels;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -339,6 +442,7 @@
 				18D775B922AD944300AE281E /* Sources */,
 				18D775BA22AD944300AE281E /* Frameworks */,
 				18D775BB22AD944300AE281E /* Resources */,
+				2244D7A3279E04110058AEF7 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -349,6 +453,25 @@
 			productReference = 18D775BD22AD944300AE281E /* FilterTheWorld.app */;
 			productType = "com.apple.product-type.application";
 		};
+		2244D7A6279E04D60058AEF7 /* FilterTheWorld macOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2244D7D3279E04D60058AEF7 /* Build configuration list for PBXNativeTarget "FilterTheWorld macOS" */;
+			buildPhases = (
+				2244D7A7279E04D60058AEF7 /* SwiftLint */,
+				2244D7A8279E04D60058AEF7 /* Sources */,
+				2244D7B8279E04D60058AEF7 /* Frameworks */,
+				2244D7BC279E04D60058AEF7 /* Resources */,
+				2244D7D0279E04D60058AEF7 /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "FilterTheWorld macOS";
+			productName = MyRWTutorial;
+			productReference = 2244D7D6279E04D60058AEF7 /* FilterTheWorld macOS.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -356,7 +479,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1100;
-				LastUpgradeCheck = 1200;
+				LastUpgradeCheck = 1320;
 				ORGANIZATIONNAME = "Ray Wenderlich";
 				TargetAttributes = {
 					18D775BC22AD944300AE281E = {
@@ -378,6 +501,7 @@
 			projectRoot = "";
 			targets = (
 				18D775BC22AD944300AE281E /* FilterTheWorld */,
+				2244D7A6279E04D60058AEF7 /* FilterTheWorld macOS */,
 			);
 		};
 /* End PBXProject section */
@@ -387,25 +511,50 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				18D775D822AD963800AE281E /* LaunchScreen.storyboard in Resources */,
-				22354E5E27944E9600A43E63 /* index.html in Resources */,
-				22354E5827944E9600A43E63 /* textPanel.frag in Resources */,
-				22354E5927944E9600A43E63 /* cube.vert in Resources */,
-				22354E6127944E9600A43E63 /* jquery-ui.js in Resources */,
-				22354E6227944E9600A43E63 /* textPanel.obj in Resources */,
-				22354E6027944E9600A43E63 /* jquery-3.6.0.js in Resources */,
-				22354E6627944E9600A43E63 /* textPanel.frag.spv in Resources */,
-				18D775CA22AD944400AE281E /* Preview Assets.xcassets in Resources */,
-				22354E5627944E9600A43E63 /* cube.frag in Resources */,
-				22354E5C27944E9600A43E63 /* helloWorld.png in Resources */,
-				22354E6527944E9600A43E63 /* cube.vert.spv in Resources */,
-				22354E5F27944E9600A43E63 /* jquery-ui.css in Resources */,
-				22354E5B27944E9600A43E63 /* home8.png in Resources */,
-				22354E5D27944E9600A43E63 /* statue-hera.png in Resources */,
-				22354E6327944E9600A43E63 /* textPanel.vert.spv in Resources */,
-				18D775C722AD944400AE281E /* Assets.xcassets in Resources */,
-				22354E5727944E9600A43E63 /* textPanel.vert in Resources */,
-				22354E6427944E9600A43E63 /* cube.frag.spv in Resources */,
+				229C4CE9279E12FE0088E944 /* textPanel.obj in Resources */,
+				229C4CD5279E12FE0088E944 /* textPanel.frag in Resources */,
+				229C4CE5279E12FE0088E944 /* jquery-3.6.0.js in Resources */,
+				229C4CDF279E12FE0088E944 /* statue-hera.png in Resources */,
+				229C4CEF279E12FE0088E944 /* cube.vert.spv in Resources */,
+				229C4CDB279E12FE0088E944 /* home8.png in Resources */,
+				229C4CD1279E12FE0088E944 /* cube.frag in Resources */,
+				229C4CE1279E12FE0088E944 /* index.html in Resources */,
+				229C4CED279E12FE0088E944 /* cube.frag.spv in Resources */,
+				229C4C9E279E12CD0088E944 /* Preview Assets.xcassets in Resources */,
+				229C4C9D279E12CD0088E944 /* Assets.xcassets in Resources */,
+				229C4CEB279E12FE0088E944 /* textPanel.vert.spv in Resources */,
+				229C4CD3279E12FE0088E944 /* textPanel.vert in Resources */,
+				229C4CE7279E12FE0088E944 /* jquery-ui.js in Resources */,
+				229C4C9F279E12CD0088E944 /* LaunchScreen.storyboard in Resources */,
+				229C4CE3279E12FE0088E944 /* jquery-ui.css in Resources */,
+				229C4CF1279E12FE0088E944 /* textPanel.frag.spv in Resources */,
+				229C4CD7279E12FE0088E944 /* cube.vert in Resources */,
+				229C4CDD279E12FE0088E944 /* helloWorld.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2244D7BC279E04D60058AEF7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				229C4CE2279E12FE0088E944 /* index.html in Resources */,
+				229C4CD6279E12FE0088E944 /* textPanel.frag in Resources */,
+				229C4CD8279E12FE0088E944 /* cube.vert in Resources */,
+				229C4CE8279E12FE0088E944 /* jquery-ui.js in Resources */,
+				229C4CEA279E12FE0088E944 /* textPanel.obj in Resources */,
+				229C4CE6279E12FE0088E944 /* jquery-3.6.0.js in Resources */,
+				229C4CF2279E12FE0088E944 /* textPanel.frag.spv in Resources */,
+				225005F6279E0CC30085DED4 /* macOS.xcassets in Resources */,
+				229C4CD2279E12FE0088E944 /* cube.frag in Resources */,
+				229C4CDE279E12FE0088E944 /* helloWorld.png in Resources */,
+				229C4CF0279E12FE0088E944 /* cube.vert.spv in Resources */,
+				229C4CE4279E12FE0088E944 /* jquery-ui.css in Resources */,
+				229C4CDC279E12FE0088E944 /* home8.png in Resources */,
+				229C4CE0279E12FE0088E944 /* statue-hera.png in Resources */,
+				229C4CEC279E12FE0088E944 /* textPanel.vert.spv in Resources */,
+				225005F5279E0CC30085DED4 /* Main.storyboard in Resources */,
+				229C4CD4279E12FE0088E944 /* textPanel.vert in Resources */,
+				229C4CEE279E12FE0088E944 /* cube.frag.spv in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -430,6 +579,24 @@
 			shellPath = /bin/sh;
 			shellScript = "PATH=/opt/homebrew/bin:$PATH\nif [ -f ~/com.raywenderlich.swiftlint.yml ]; then\n  if which swiftlint >/dev/null; then\n    swiftlint --no-cache --config ~/com.raywenderlich.swiftlint.yml\n  fi\nfi\n";
 		};
+		2244D7A7279E04D60058AEF7 /* SwiftLint */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = SwiftLint;
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "PATH=/opt/homebrew/bin:$PATH\nif [ -f ~/com.raywenderlich.swiftlint.yml ]; then\n  if which swiftlint >/dev/null; then\n    swiftlint --no-cache --config ~/com.raywenderlich.swiftlint.yml\n  fi\nfi\n";
+		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -437,31 +604,44 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9F69EE542695837100746CD7 /* FrameView.swift in Sources */,
-				22354E5427944E9600A43E63 /* Program.c in Sources */,
-				9F69EE5226957E1300746CD7 /* FrameManager.swift in Sources */,
-				9F69EE602698210900746CD7 /* VulkanView.swift in Sources */,
-				22354E5527944E9600A43E63 /* AssetsFetcher.c in Sources */,
-				22528006277C504D00E3109E /* DemoViewController.m in Sources */,
-				18D775C522AD944300AE281E /* ContentView.swift in Sources */,
-				1839F4B025190F2A00BB00F1 /* AppMain.swift in Sources */,
-				221DA84327779D11007612BD /* VulkanViewController.swift in Sources */,
-				22081113277769EE00B5BA42 /* LayerView.swift in Sources */,
-				9F69EE5A2696F18900746CD7 /* ContentViewModel.swift in Sources */,
-				9F69EE4E26942CD500746CD7 /* CameraManager.swift in Sources */,
-				9F69EE4C26942A8A00746CD7 /* CameraError.swift in Sources */,
-				22354E5A27944E9600A43E63 /* VulkanDSL.c in Sources */,
-				9F69EE562696F0A200746CD7 /* ErrorView.swift in Sources */,
+				229C4C76279E12CD0088E944 /* ContentViewModel.swift in Sources */,
+				229C4CA3279E12CD0088E944 /* VulkanView.swift in Sources */,
+				229C4C9B279E12CD0088E944 /* FrameManager.swift in Sources */,
+				229C4CA5279E12CD0088E944 /* ErrorView.swift in Sources */,
+				229C4CCF279E12FE0088E944 /* AssetsFetcher.c in Sources */,
+				229C4C77279E12CD0088E944 /* DemoViewController.m in Sources */,
+				229C4CCD279E12FE0088E944 /* Program.c in Sources */,
+				229C4CA2279E12CD0088E944 /* FrameView.swift in Sources */,
+				229C4CA4279E12CD0088E944 /* ContentView.swift in Sources */,
+				229C4CA1279E12CD0088E944 /* LayerView.swift in Sources */,
+				229C4CD9279E12FE0088E944 /* VulkanDSL.c in Sources */,
+				229C4C9A279E12CD0088E944 /* CameraError.swift in Sources */,
+				229C4C9C279E12CD0088E944 /* CameraManager.swift in Sources */,
+				229C4CA7279E12CD0088E944 /* AppMain.swift in Sources */,
+				229C4CA0279E12CD0088E944 /* VulkanViewController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2244D7A8279E04D60058AEF7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				229C4CD0279E12FE0088E944 /* AssetsFetcher.c in Sources */,
+				225005F9279E0CC30085DED4 /* AppDelegate.m in Sources */,
+				225005F8279E0CC30085DED4 /* DemoViewController.m in Sources */,
+				229C4CCE279E12FE0088E944 /* Program.c in Sources */,
+				229C4CDA279E12FE0088E944 /* VulkanDSL.c in Sources */,
+				225005F7279E0CC30085DED4 /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
-		18D775DA22AD963800AE281E /* LaunchScreen.storyboard */ = {
+		229C4C6A279E12CD0088E944 /* LaunchScreen.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
-				18D775DE22AD96B400AE281E /* Base */,
+				229C4C6B279E12CD0088E944 /* Base */,
 			);
 			name = LaunchScreen.storyboard;
 			sourceTree = "<group>";
@@ -597,7 +777,7 @@
 				HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)../android/app/src/main/c/jni_vulkan/vulkan_application",
 					"$(SRCROOT)",
-					"$(MOLTENVK_PATH)/MoltenVK/include",
+					"$(MOLTENVK_PATH)/include",
 					/Users/thierryvilmart/repos/vulkan_engine/android/app/src/main/c/jni_vulkan/vulkan_application,
 				);
 				INFOPLIST_FILE = FilterTheWorld/Info.plist;
@@ -606,8 +786,12 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MOLTENVK_PATH = /Users/thierryvilmart/repos/MoltenVK;
-				PRODUCT_BUNDLE_IDENTIFIER = com.raywenderlich.FilterTheWorld3;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/FilterTheWorld/bridge/build",
+				);
+				MOLTENVK_PATH = /Users/thierryvilmart/VulkanSDK/1.2.198.1/MoltenVK;
+				PRODUCT_BUNDLE_IDENTIFIER = com.raywenderlich.FilterTheWorld2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/FilterTheWorld/bridge/FilterTheWorld-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
@@ -627,7 +811,7 @@
 				HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)../android/app/src/main/c/jni_vulkan/vulkan_application",
 					"$(SRCROOT)",
-					"$(MOLTENVK_PATH)/MoltenVK/include",
+					"$(MOLTENVK_PATH)/include",
 					/Users/thierryvilmart/repos/vulkan_engine/android/app/src/main/c/jni_vulkan/vulkan_application,
 				);
 				INFOPLIST_FILE = FilterTheWorld/Info.plist;
@@ -636,12 +820,89 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MOLTENVK_PATH = /Users/thierryvilmart/repos/MoltenVK;
-				PRODUCT_BUNDLE_IDENTIFIER = com.raywenderlich.FilterTheWorld3;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/FilterTheWorld/bridge/build",
+				);
+				MOLTENVK_PATH = /Users/thierryvilmart/VulkanSDK/1.2.198.1/MoltenVK;
+				PRODUCT_BUNDLE_IDENTIFIER = com.raywenderlich.FilterTheWorld2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/FilterTheWorld/bridge/FilterTheWorld-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		2244D7D4279E04D60058AEF7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_OBJC_ARC = NO;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_ASSET_PATHS = "FilterTheWorld/Preview\\ Content";
+				DEVELOPMENT_TEAM = 5PQJ73JT76;
+				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = "$(MOLTENVK_PATH)/../macOS/Frameworks";
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/../../android/app/src/main/c/jni_vulkan/vulkan_application",
+					"$(SRCROOT)",
+					"$(MOLTENVK_PATH)/MoltenVK/include",
+					"$(MOLTENVK_PATH)/include",
+				);
+				INFOPLIST_FILE = "macOS-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(MOLTENVK_PATH)/../macOS/lib",
+					/Users/thierryvilmart/VulkanSDK/1.2.198.1/macOS/lib,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 12.1;
+				MOLTENVK_PATH = /Users/thierryvilmart/VulkanSDK/1.2.198.1/MoltenVK;
+				"OTHER_CODE_SIGN_FLAGS[sdk=*]" = "--deep";
+				PRODUCT_BUNDLE_IDENTIFIER = com.raywenderlich.FilterTheWorld3;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/FilterTheWorld/bridge/FilterTheWorld-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		2244D7D5279E04D60058AEF7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_OBJC_ARC = NO;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_ASSET_PATHS = "FilterTheWorld/Preview\\ Content";
+				DEVELOPMENT_TEAM = 5PQJ73JT76;
+				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = "$(MOLTENVK_PATH)/../macOS/Frameworks";
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/../../android/app/src/main/c/jni_vulkan/vulkan_application",
+					"$(SRCROOT)",
+					"$(MOLTENVK_PATH)/MoltenVK/include",
+					"$(MOLTENVK_PATH)/include",
+				);
+				INFOPLIST_FILE = "macOS-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(MOLTENVK_PATH)/../macOS/lib",
+					/Users/thierryvilmart/VulkanSDK/1.2.198.1/macOS/lib,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 12.1;
+				MOLTENVK_PATH = /Users/thierryvilmart/VulkanSDK/1.2.198.1/MoltenVK;
+				PRODUCT_BUNDLE_IDENTIFIER = com.raywenderlich.FilterTheWorld4;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/FilterTheWorld/bridge/FilterTheWorld-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
@@ -662,6 +923,15 @@
 			buildConfigurations = (
 				18D775D222AD944400AE281E /* Debug */,
 				18D775D322AD944400AE281E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		2244D7D3279E04D60058AEF7 /* Build configuration list for PBXNativeTarget "FilterTheWorld macOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2244D7D4279E04D60058AEF7 /* Debug */,
+				2244D7D5279E04D60058AEF7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

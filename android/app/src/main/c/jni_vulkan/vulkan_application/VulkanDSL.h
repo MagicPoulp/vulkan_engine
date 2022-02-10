@@ -53,8 +53,9 @@
 #define APP_SHORT_NAME "vkcube"
 #define APP_LONG_NAME "Vulkan Cube"
 
+// see also desiredNumOfSwapchainImages
 // Allow a maximum of two outstanding presentation operations.
-#define FRAME_LAG 2
+#define FRAME_LAG 3
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 
@@ -113,6 +114,10 @@ struct vktexcube_vs_uniform {
     float mvp[4][4];
     float position[12 * 3][4];
     float attr[12 * 3][4];
+};
+
+struct vktexcube_vs_uniform2 {
+    float position[12 * 3][8];
 };
 
 //--------------------------------------------------------------------------------------
@@ -214,14 +219,22 @@ typedef struct {
     VkCommandBuffer graphics_to_present_cmd;
     VkImageView view;
     VkBuffer uniform_buffer;
-    VkBuffer vertex_buffer;
     VkDeviceMemory uniform_memory;
-    VkDeviceMemory vertex_memory;
-    void *vertex_memory_ptr;
     void *uniform_memory_ptr;
     VkFramebuffer framebuffer;
     VkDescriptorSet descriptor_set;
 } SwapchainImageResources;
+
+typedef struct {
+    VkBuffer vertex_buffer;
+    VkDeviceMemory vertex_memory;
+    void *vertex_memory_ptr;
+    bool vertex_buffer_allocated;
+    bool vertex_memory_mapped;
+    VkBuffer vertex_buffer_gpu;
+    VkDeviceMemory vertex_memory_gpu;
+    bool vertex_buffer_gpu_allocated;
+} VertexBufferResources;
 
 struct VulkanDSL {
     VkVertexInputBindingDescription vi_binding;
@@ -258,11 +271,8 @@ struct VulkanDSL {
     VkQueue graphics_queue;
     VkQueue present_queue;
     VkQueue graphics_queue2;
-    VkQueue present_queue2;
     uint32_t graphics_queue_family_index;
     uint32_t present_queue_family_index;
-    uint32_t graphics_queue_family_index2;
-    uint32_t present_queue_family_index2;
     VkSemaphore image_acquired_semaphores[FRAME_LAG];
     VkSemaphore draw_complete_semaphores[FRAME_LAG];
     VkSemaphore image_ownership_semaphores[FRAME_LAG];
@@ -293,12 +303,12 @@ struct VulkanDSL {
     uint32_t swapchainImageCount;
     VkSwapchainKHR swapchain;
     SwapchainImageResources *swapchain_image_resources;
+    VertexBufferResources *vertex_buffer_resources;
     VkPresentModeKHR presentMode;
     VkFence fences[FRAME_LAG];
     int frame_index;
 
     VkCommandPool cmd_pool;
-    VkCommandPool cmd_pool2;
     VkCommandPool present_cmd_pool;
 
     struct {
@@ -312,7 +322,6 @@ struct VulkanDSL {
     struct texture_object textures[DEMO_TEXTURE_COUNT];
     struct texture_object staging_texture;
 
-    VkCommandBuffer cmd2;
     VkCommandBuffer cmd;  // Buffer for initialization commands
     VkPipelineLayout pipeline_layout;
     VkDescriptorSetLayout desc_layout;
@@ -353,6 +362,10 @@ struct VulkanDSL {
     uint32_t current_buffer;
     uint32_t queue_family_count;
     bool iosSim;
+    VkSampleCountFlagBits msaaSamples;
+    VkImage colorImageMultisample;
+    VkDeviceMemory colorImageMemoryMultisample;
+    VkImageView colorImageViewMultisample;
 };
 
 void vulkanDSL_main(struct VulkanDSL *vulkanDSL);
@@ -361,11 +374,23 @@ bool loadTexture(struct VulkanDSL *vulkanDSL, const char *filename, uint8_t *rgb
 void demo_draw(struct VulkanDSL *vulkanDSL, double elapsedTimeS);
 void demo_init_matrices(struct VulkanDSL *vulkanDSL, int width, int height);
 void demo_prepare(struct VulkanDSL *vulkanDSL);
-void demo_cleanup(struct VulkanDSL *vulkanDSL);
+void VulkanDSL__half_cleanup(struct VulkanDSL *vulkanDSL);
+void VulkanDSL__cleanup(struct VulkanDSL *vulkanDSL);
 void demo_resize(struct VulkanDSL *vulkanDSL);
 void VulkanDSL__setSize(struct VulkanDSL *vulkanDSL, int32_t width, int32_t height);
 void VulkanDSL__freeResources(struct VulkanDSL *vulkanDSL);
 void VulkanDSL__read_shader(struct VulkanDSL *vulkanDSL, const char* filename, uint32_t* vs_code, size_t *length1);
-void VulkanDSL__prepare_vertex_buffer(struct VulkanDSL *vulkanDSL, tinyobj_attrib_t *outAttrib);
-
+void VulkanDSL__prepare_vertex_buffer_gpu_only(struct VulkanDSL *vulkanDSL, tinyobj_attrib_t *outAttrib);
+void VulkanDSL__prepare_vertex_buffer_classic(struct VulkanDSL *vulkanDSL, tinyobj_attrib_t *outAttrib);
+void copyBuffer(struct VulkanDSL *vulkanDSL, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+void VulkanDSL__allocate_vulkan_buffer(
+    struct VulkanDSL *vulkanDSL, VkBufferCreateInfo *buf_info, VkBuffer *buffer,
+    VkFlags memory_properties, VkDeviceMemory *buffer_memory,
+    bool *coherentMemory);
+VkSampleCountFlagBits getMaxUsableSampleCount(struct VulkanDSL *vulkanDSL);
+void createImage(struct VulkanDSL* vulkanDSL, uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples,
+    VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage,
+    VkMemoryPropertyFlags properties, VkImage *image, VkDeviceMemory *imageMemory);
+static void demo_prepare_multisample_buffer(struct VulkanDSL *vulkanDSL);
+VkImageView createImageView(struct VulkanDSL *vulkanDSL, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
 #endif

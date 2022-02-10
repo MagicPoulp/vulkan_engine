@@ -283,12 +283,12 @@ int AssetsFetcher__LoadObjAndConvert(struct AssetsFetcher* self, float bmin[3], 
         }
         //free(vb);
     }
-
+/*
     printf("bmin = %f, %f, %f\n", (double)bmin[0], (double)bmin[1],
            (double)bmin[2]);
     printf("bmax = %f, %f, %f\n", (double)bmax[0], (double)bmax[1],
            (double)bmax[2]);
-
+*/
     //tinyobj_attrib_free(&attrib);
     *outAttrib = &self->attrib;
     tinyobj_shapes_free(shapes, num_shapes);
