@@ -1390,7 +1390,7 @@ static void demo_prepare_textures(struct VulkanDSL *vulkanDSL) {
         const VkSamplerCreateInfo sampler = {
                 .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
                 .pNext = NULL,
-                .magFilter = VK_FILTER_LINEAR, //VK_FILTER_LINEAR or VK_FILTER_NEAREST
+                .magFilter = VK_FILTER_NEAREST, //VK_FILTER_LINEAR or VK_FILTER_NEAREST
                 /*
 GL_NEAREST
 Returns the value of the texture element that is nearest (in Manhattan distance) to the center of the pixel being textured.
@@ -1398,15 +1398,16 @@ Returns the value of the texture element that is nearest (in Manhattan distance)
 GL_LINEAR
 Returns the weighted average of the four texture elements that are closest to the center of the pixel being textured.
                  */
-                .minFilter = VK_FILTER_LINEAR,
-                .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
+                .minFilter = VK_FILTER_NEAREST,
+                //.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
+                .mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST,
                 .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                 .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                 .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-                //.anisotropyEnable = VK_FALSE,
-                .anisotropyEnable = VK_TRUE,
-                //.maxAnisotropy = 1,
-                .maxAnisotropy = vulkanDSL->maxSamplerAnisotropy,
+                .anisotropyEnable = VK_FALSE,
+                //.anisotropyEnable = VK_TRUE,
+                .maxAnisotropy = 1,
+                //.maxAnisotropy = vulkanDSL->maxSamplerAnisotropy,
                 .compareOp = VK_COMPARE_OP_NEVER,
                 .compareEnable = VK_FALSE,
                 .mipLodBias = 0.0f,
@@ -3125,7 +3126,7 @@ static void demo_create_device(struct VulkanDSL *vulkanDSL) {
     // multisampling
     VkPhysicalDeviceFeatures deviceFeatures;
     memset(&deviceFeatures, 0, sizeof(VkPhysicalDeviceFeatures));
-    deviceFeatures.samplerAnisotropy = VK_TRUE;
+    //deviceFeatures.samplerAnisotropy = VK_TRUE;
     deviceFeatures.sampleRateShading = VK_TRUE;
 
     VkDeviceCreateInfo device = {
