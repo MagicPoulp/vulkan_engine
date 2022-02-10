@@ -31,7 +31,7 @@ void demoDestroy() {
 }
 
 void drawFrame(double elapsedTimeS) {
-    demo_draw(program->vulkanDSL, elapsedTimeS);
+    //demo_draw(program->vulkanDSL, elapsedTimeS);
 }
 
 void setSize(int32_t width, int32_t height) {
