@@ -1399,15 +1399,17 @@ GL_LINEAR
 Returns the weighted average of the four texture elements that are closest to the center of the pixel being textured.
                  */
                 .minFilter = VK_FILTER_LINEAR,
-                .mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST,
+                .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
                 .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                 .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                 .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-                .mipLodBias = 0.0f,
-                .anisotropyEnable = VK_FALSE,
+                //.anisotropyEnable = VK_FALSE,
+                .anisotropyEnable = VK_TRUE,
                 //.maxAnisotropy = 1,
                 .maxAnisotropy = vulkanDSL->maxSamplerAnisotropy,
                 .compareOp = VK_COMPARE_OP_NEVER,
+                .compareEnable = VK_FALSE,
+                .mipLodBias = 0.0f,
                 .minLod = 0.0f,
                 .maxLod = 0.0f,
                 .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE,
@@ -3123,7 +3125,7 @@ static void demo_create_device(struct VulkanDSL *vulkanDSL) {
     // multisampling
     VkPhysicalDeviceFeatures deviceFeatures;
     memset(&deviceFeatures, 0, sizeof(VkPhysicalDeviceFeatures));
-    //deviceFeatures.samplerAnisotropy = VK_TRUE;
+    deviceFeatures.samplerAnisotropy = VK_TRUE;
     deviceFeatures.sampleRateShading = VK_TRUE;
 
     VkDeviceCreateInfo device = {
