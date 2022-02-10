@@ -77,7 +77,7 @@ static CVReturn DisplayLinkCallback(CVDisplayLinkRef displayLink,
   double fps = (outputTime->rateScalar * (double)(outputTime->videoTimeScale) / (double)(outputTime->videoRefreshPeriod));
   double elapsedTimeS = 1/fps;
   struct Program *program = (struct Program *)target;
-  //demo_draw(program->vulkanDSL, elapsedTimeS);
+  demo_draw(program->vulkanDSL, elapsedTimeS);
 	return kCVReturnSuccess;
 }
 
