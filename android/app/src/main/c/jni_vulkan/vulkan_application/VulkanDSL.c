@@ -3417,7 +3417,7 @@ void setTextures(struct VulkanDSL *vulkanDSL ) {
 }
 
 void vulkanDSL_main(struct VulkanDSL *vulkanDSL) {
-    vulkanDSL->use_staging_buffer = true;
+
     setTextures(vulkanDSL);
 
     demo_init(vulkanDSL, 10, 10);
