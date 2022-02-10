@@ -366,6 +366,7 @@ struct VulkanDSL {
     VkImage colorImageMultisample;
     VkDeviceMemory colorImageMemoryMultisample;
     VkImageView colorImageViewMultisample;
+    float maxSamplerAnisotropy;
 };
 
 void vulkanDSL_main(struct VulkanDSL *vulkanDSL);

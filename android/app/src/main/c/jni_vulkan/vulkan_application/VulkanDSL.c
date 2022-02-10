@@ -1385,18 +1385,28 @@ static void demo_prepare_textures(struct VulkanDSL *vulkanDSL) {
             assert(!"No support for R8G8B8A8_UNORM as texture image format");
         }
 
+        // texture filtering
+        // https://vulkan-tutorial.com/Texture_mapping/Image_view_and_sampler#page_Anisotropy-device-feature
         const VkSamplerCreateInfo sampler = {
                 .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
                 .pNext = NULL,
-                .magFilter = VK_FILTER_NEAREST,
-                .minFilter = VK_FILTER_NEAREST,
+                .magFilter = VK_FILTER_LINEAR, //VK_FILTER_LINEAR or VK_FILTER_NEAREST
+                /*
+GL_NEAREST
+Returns the value of the texture element that is nearest (in Manhattan distance) to the center of the pixel being textured.
+
+GL_LINEAR
+Returns the weighted average of the four texture elements that are closest to the center of the pixel being textured.
+                 */
+                .minFilter = VK_FILTER_LINEAR,
                 .mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST,
                 .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                 .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                 .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                 .mipLodBias = 0.0f,
                 .anisotropyEnable = VK_FALSE,
-                .maxAnisotropy = 1,
+                //.maxAnisotropy = 1,
+                .maxAnisotropy = vulkanDSL->maxSamplerAnisotropy,
                 .compareOp = VK_COMPARE_OP_NEVER,
                 .minLod = 0.0f,
                 .maxLod = 0.0f,
@@ -2016,6 +2026,7 @@ VkSampleCountFlagBits getMaxUsableSampleCount(struct VulkanDSL *vulkanDSL) {
     VkPhysicalDeviceProperties physicalDeviceProperties;
     vkGetPhysicalDeviceProperties(vulkanDSL->gpu, &physicalDeviceProperties);
 
+    vulkanDSL->maxSamplerAnisotropy = physicalDeviceProperties.limits.maxSamplerAnisotropy;
     VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts & physicalDeviceProperties.limits.framebufferDepthSampleCounts;
     if (counts & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
     if (counts & VK_SAMPLE_COUNT_32_BIT) { return VK_SAMPLE_COUNT_32_BIT; }
