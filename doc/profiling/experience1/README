@@ -7,3 +7,9 @@ Difference of energy in XCode for the iPhone when using or not the LOCAL GPU mem
 antialiasing is used in one screenshot to smooth the edges
 
 https://stackoverflow.com/questions/64045845/is-texture-filtering-an-anti-aliasing-technique
+
+
+The texture filtering is used to anti-alias the text
+Anisotropic filtering is used
+equivalent to GL_LINEAR and GL_NEAREST
+
