@@ -2029,7 +2029,8 @@ VkSampleCountFlagBits getMaxUsableSampleCount(struct VulkanDSL *vulkanDSL) {
     vkGetPhysicalDeviceProperties(vulkanDSL->gpu, &physicalDeviceProperties);
 
     // to improve the performance we take the MIN()
-    vulkanDSL->maxSamplerAnisotropy = MIN(2, physicalDeviceProperties.limits.maxSamplerAnisotropy);
+    //vulkanDSL->maxSamplerAnisotropy = physicalDeviceProperties.limits.maxSamplerAnisotropy;
+    vulkanDSL->maxSamplerAnisotropy = MIN(4, physicalDeviceProperties.limits.maxSamplerAnisotropy);
     VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts & physicalDeviceProperties.limits.framebufferDepthSampleCounts;
     if (counts & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
     if (counts & VK_SAMPLE_COUNT_32_BIT) { return VK_SAMPLE_COUNT_32_BIT; }
