@@ -30,7 +30,6 @@ class MainActivity : AppCompatActivity() {
 
         val sfhTrackHolder = sfvTrack.holder
         sfhTrackHolder.setFormat(PixelFormat.TRANSPARENT)
-        return
 
         // https://www.titanwolf.org/Network/q/069ee91e-3ffe-4dd6-ad79-e0e63922c0ac/y
         ActivityCompat.requestPermissions(this,
@@ -45,7 +44,6 @@ class MainActivity : AppCompatActivity() {
 
     // https://developer.android.com/training/camerax/preview
     private fun bindPreview(cameraProvider : ProcessCameraProvider) {
-/*
         val preview : Preview = Preview.Builder()
             .build()
 
@@ -57,7 +55,6 @@ class MainActivity : AppCompatActivity() {
         preview.setSurfaceProvider(previewView.surfaceProvider)
 
         cameraProvider.bindToLifecycle(this as LifecycleOwner, cameraSelector, preview)
-*/
     }
 
     override fun onPause() {

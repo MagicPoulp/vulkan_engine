@@ -9,10 +9,10 @@ android:id= "@+id/linearlayout1" >
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/container">
-<!--        <androidx.camera.view.PreviewView
+       <androidx.camera.view.PreviewView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/previewView" />-->
+            android:id="@+id/previewView" />
         <com.getwemap.vulkan_engine.VulkanSurfaceView
            android:id="@+id/myVulkanSurfaceView"
            android:layout_width="match_parent"

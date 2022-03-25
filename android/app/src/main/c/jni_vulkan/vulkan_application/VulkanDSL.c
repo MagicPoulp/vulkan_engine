@@ -359,10 +359,12 @@ void VulkanDSL__draw_build_cmd(struct VulkanDSL *vulkanDSL, VkCommandBuffer cmd_
             .pInheritanceInfo = NULL,
     };
     const VkClearValue clear_values[4] = {
+  //          [0] = {.color.float32 = {0.2f, 0.2f, 0.2f, 0.2f}},
+            [0] = {.color.float32 = {0.0f, 0.0f, 0.0f, 0.0f}},
   //          [0] = {.color.float32 = {0.0f, 0.0f, 0.0f, 1.0f}},
-            [0] = {.color.float32 = {0.0f, 0.0f, 0.0f, 1.0f}},
             [1] = {.depthStencil = {1.0f, 0}},
-            [3] = {.color.float32 = {0.0f, 0.0f, 0.0f, 1.0f}},
+  //          [2] = {.color.float32 = {0.2f, 0.2f, 0.2f, 0.2f}},
+            [2] = {.color.float32 = {0.0f, 0.0f, 0.0f, 0.0f}},
     };
     const VkRenderPassBeginInfo rp_begin = {
             .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
