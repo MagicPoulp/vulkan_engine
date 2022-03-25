@@ -2527,7 +2527,7 @@ void VulkanDSL__half_cleanup(struct VulkanDSL *vulkanDSL) {
         vkDestroyImage(vulkanDSL->device, vulkanDSL->textures[i].image, NULL);
         vkFreeMemory(vulkanDSL->device, vulkanDSL->textures[i].mem, NULL);
         vkDestroySampler(vulkanDSL->device, vulkanDSL->textures[i].sampler, NULL);
-        vkDestroySampler(vulkanDSL->device, vulkanDSL->textures[i].sampler, NULL);
+        //vkDestroySampler(vulkanDSL->device, vulkanDSL->textures[i].sampler, NULL);
     }
 
     vkDestroyImageView(vulkanDSL->device, vulkanDSL->depth.view, NULL);

@@ -20,7 +20,7 @@ struct AssetsFetcher {
 #ifdef __ANDROID__
     struct AAssetManager* assetManager;
 #endif
-    const char* assetsPath;
+    const char assetsPath[100];
     // only for png files, and on iOS the background in the header of the PNG is not interpreted
     char** tex_files_short;
     char** meshes_files_short;

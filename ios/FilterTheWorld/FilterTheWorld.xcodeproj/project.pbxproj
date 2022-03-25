@@ -791,7 +791,7 @@
 					"$(PROJECT_DIR)/FilterTheWorld/bridge/build",
 				);
 				MOLTENVK_PATH = /Users/thierryvilmart/VulkanSDK/1.2.198.1/MoltenVK;
-				PRODUCT_BUNDLE_IDENTIFIER = com.raywenderlich.FilterTheWorld2;
+				PRODUCT_BUNDLE_IDENTIFIER = com.raywenderlich.FilterTheWorld3;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/FilterTheWorld/bridge/FilterTheWorld-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
@@ -825,7 +825,7 @@
 					"$(PROJECT_DIR)/FilterTheWorld/bridge/build",
 				);
 				MOLTENVK_PATH = /Users/thierryvilmart/VulkanSDK/1.2.198.1/MoltenVK;
-				PRODUCT_BUNDLE_IDENTIFIER = com.raywenderlich.FilterTheWorld2;
+				PRODUCT_BUNDLE_IDENTIFIER = com.raywenderlich.FilterTheWorld3;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/FilterTheWorld/bridge/FilterTheWorld-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;

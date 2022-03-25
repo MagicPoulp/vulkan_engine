@@ -28,7 +28,8 @@ char *tex_files_short[] = { "helloWorld" };
 char *meshes_files_short[] = { "textPanel.obj" };
 
 void AssetsFetcher__init(struct AssetsFetcher* self, const char *assetsPath) {
-    self->assetsPath = assetsPath;
+  // we must copy it because it can disappear oniOS
+    sprintf(self->assetsPath, "%s", assetsPath);
     self->tex_files_short = tex_files_short;
     self->meshes_files_short = meshes_files_short;
     self->attribAllocated = false;
