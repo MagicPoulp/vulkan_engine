@@ -5,6 +5,7 @@ import AVFoundation
 class LayerUIViewController: UIViewController {
   
   var layer: CALayer?
+  var angle: Double = 0
   
   init(layer: CALayer) {
     self.layer = layer
@@ -31,9 +32,39 @@ class LayerUIViewController: UIViewController {
   }
 
   // to manage the CALayer rotation
+  // viewDidLayoutSubviews changes the bounds whilst viewWillTransition performs a rotation
   // https://stackoverflow.com/questions/1282302/autorotation-of-calayer-on-iphone-rotation
   override func viewDidLayoutSubviews() {
     layer?.frame = view.bounds
+  }
+
+  // we rotate the CALayer to match the screen rotation, fully tested
+  override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+      super.viewWillTransition(to: size, with: coordinator)
+      switch UIDevice.current.orientation {
+      case .landscapeLeft:
+        let transform2 = -90.0 / 180.0 * .pi
+        layer?.transform = CATransform3DMakeRotation(transform2, 0.0, 0.0, 1.0)
+        angle = transform2
+
+      case .landscapeRight:
+        let transform2 = 90.0 / 180.0 * .pi
+        layer?.transform = CATransform3DMakeRotation(transform2, 0.0, 0.0, 1.0)
+        angle = transform2
+
+      case .portrait:
+        let transform2 = 0.0
+        layer?.transform = CATransform3DMakeRotation(transform2, 0.0, 0.0, 1.0)
+        angle = 0
+        
+      case .portraitUpsideDown:
+        let transform2 = 180.0 / 180.0 * .pi
+        layer?.transform = CATransform3DMakeRotation(transform2, 0.0, 0.0, 1.0)
+        angle = transform2
+        
+      default:
+        break
+      }
   }
 }
 
