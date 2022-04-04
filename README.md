@@ -7,9 +7,8 @@ make ios
 change the MOLTENVK_PATH in the project settings
 
 ## glslc to compile shaders
-you must copy it to MoltenVK/bin/glslc
-downloaded here for macOS
-https://github.com/google/shaderc#downloads
+
+glslc is provided by the Vulkan sdk in macOS/bin/glsc
 
 # Summary
 

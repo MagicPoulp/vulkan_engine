@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 3.10.2)
 # https://gist.github.com/evilactually/a0d191701cb48f157b05be7f74d79396
 add_custom_target(Main)
 
-set(MOLTENVK_PATH "/Users/thierryvilmart/VulkanSDK/1.2.198.1/MoltenVK/")
+set(MOLTENVK_PATH "/Users/thierryvilmart/VulkanSDK/1.2.198.1/macOS/")
 
 set(GLSLC "${MOLTENVK_PATH}/bin/glslc")
 #set(GLSLC "$ENV{MOLTENVK_PATH}/bin/glslc")
