@@ -127,9 +127,10 @@ https://github.com/LunarG/VulkanSamples.git
 
 On Android, VkAndroidSurfaceCreateInfoKHR attaches the ANativeWindow from the SurfaceView.
 
-From API level 33, the Choregrapher can render future frames
+From API level 33, the Choreographer can render future frames, and we can check the deadline.
 https://developer.android.com/ndk/reference/group/choreographer#achoreographer_registerrefreshratecallback
 https://developer.android.com/about/versions/13/features#choreographer
+https://android.googlesource.com/platform/frameworks/native/+/master/include/android/choreographer.h
 
 https://lwn.net/Articles/809545/
 https://source.android.com/docs/core/graphics/implement-vsync
