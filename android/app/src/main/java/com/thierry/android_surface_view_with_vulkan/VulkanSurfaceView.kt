@@ -30,6 +30,7 @@ class VulkanSurfaceView: SurfaceView, SurfaceHolder.Callback2 {
     }
 
     fun syncedRendererStart() {
+/*
         if (!isSyncRendererCreated) {
             return
         }
@@ -37,6 +38,7 @@ class VulkanSurfaceView: SurfaceView, SurfaceHolder.Callback2 {
             isSyncRendererStarted = true
             syncedRenderer.start()
         }
+ */
     }
 
     fun syncedRendererStop() {

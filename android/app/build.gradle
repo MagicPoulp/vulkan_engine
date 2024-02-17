@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId "com.getwemap.vulkan_engine"
-        minSdkVersion 28
+        minSdkVersion 29
         targetSdkVersion 31
         versionCode 1
         versionName "1.0"

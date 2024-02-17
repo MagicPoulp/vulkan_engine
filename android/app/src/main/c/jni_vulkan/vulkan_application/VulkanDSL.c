@@ -16,6 +16,7 @@ The CMakeLists copies to a .c
 
 
 #if defined __ANDROID__
+#include <android/choreographer.h>
 #define VARARGS_WORKS_ON_ANDROID
 #include <android/log.h>
 #include <android/native_activity.h>
@@ -652,6 +653,7 @@ void DemoUpdateTargetIPD(struct VulkanDSL *vulkanDSL) {
 }
 
 void demo_draw(struct VulkanDSL *vulkanDSL, double elapsedTimeS) {
+    printf("ZZZ demo_draw");
     VkResult U_ASSERT_ONLY err;
 
     // Ensure no more than FRAME_LAG renderings are outstanding
@@ -3433,6 +3435,20 @@ void setTextures(struct VulkanDSL *vulkanDSL ) {
     }
 }
 
+double elapsedAbsolute = 0.0;
+void frameCallback(int64_t frameTimeNanos, void* data) {
+
+    struct VulkanDSL* vulkanDSL = data;
+    double elapsedAbsoluteNew = frameTimeNanos / 1000000000.0;
+    double elapsedRelative = elapsedAbsoluteNew - elapsedAbsolute;
+    if (elapsedAbsolute != 0) {
+        demo_draw(vulkanDSL, elapsedRelative);
+    }
+    elapsedAbsolute = elapsedAbsoluteNew;
+    AChoreographer* choreographer = AChoreographer_getInstance();
+    AChoreographer_postFrameCallback64(choreographer, &frameCallback, vulkanDSL);
+}
+
 void vulkanDSL_main(struct VulkanDSL *vulkanDSL) {
 
     setTextures(vulkanDSL);
@@ -3444,6 +3460,9 @@ void vulkanDSL_main(struct VulkanDSL *vulkanDSL) {
     demo_prepare(vulkanDSL);
 
     demo_draw(vulkanDSL, 0);
+
+    AChoreographer* choreographer = AChoreographer_getInstance();
+    AChoreographer_postFrameCallback64(choreographer, &frameCallback, vulkanDSL);
 }
 
 void VulkanDSL__setSize(struct VulkanDSL *vulkanDSL, int32_t width, int32_t height) {
