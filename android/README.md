@@ -1,8 +1,14 @@
 # Version history
 
-# Introduction
+# Setup
 
 git update submodule
+
+update MOLTENVK_PATH GLSLC in the CMakeLists.txt so that glslc can be found
+
+build in Android Studio
+
+# Introduction
 
 It is possible to show a Vulkan rendered surface, in a part of the screen, from Kotlin or Swift, and not just in pure C/C++, or Objective-C.
 
@@ -86,10 +92,6 @@ https://software.intel.com/content/www/us/en/develop/articles/api-without-secret
 https://software.intel.com/content/www/us/en/develop/articles/api-without-secrets-introduction-to-vulkan-part-2.html
 
 
-How to build on mac OS
-
-https://www.appitventures.com/blog/how-to-setup-flutter-on-android-studio
-
 
 # Licenses
 
@@ -121,3 +123,15 @@ https://stackoverflow.com/questions/45157950/can-we-use-vulkan-with-java-activit
 --> LunarG for the Vulkan code samples:
 https://github.com/LunarG/VulkanSamples.git
 
+# More info about the Android Rendering
+
+On Android, VkAndroidSurfaceCreateInfoKHR attaches the ANativeWindow from the SurfaceView.
+
+From API level 33, the Choregrapher can render future frames
+https://developer.android.com/ndk/reference/group/choreographer#achoreographer_registerrefreshratecallback
+https://developer.android.com/about/versions/13/features#choreographer
+
+https://lwn.net/Articles/809545/
+https://source.android.com/docs/core/graphics/implement-vsync
+https://source.android.com/docs/core/graphics/arch-vulkan
+https://android-developers.googleblog.com/2020/04/high-refresh-rate-rendering-on-android.html
