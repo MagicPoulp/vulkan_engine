@@ -1971,7 +1971,7 @@ void VulkanDSL__read_shader(struct VulkanDSL *vulkanDSL, const char* filename, u
         return;
     }
     void* rawData = (void*)AAsset_getBuffer(asset);
-    FILE* file = fmemopen(rawData, length1, "rb");
+    FILE* file = fmemopen(rawData, *length1, "rb");
     fread(vs_code, 1, *length1, file);
     fclose(file);
 #else
