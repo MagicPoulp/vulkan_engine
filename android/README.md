@@ -127,7 +127,13 @@ https://github.com/LunarG/VulkanSamples.git
 
 On Android, VkAndroidSurfaceCreateInfoKHR attaches the ANativeWindow from the SurfaceView.
 
-From API level 33, the Choreographer can render future frames, and we can check the deadline.
+The next frame callback is faster with the C version of the Choreographer than in kotlin,
+see the separate commits. The difference is visible with the eye. the performance improvement
+comes from Garbage collection and bridge kotlin/C calls that are avoided in the C version.
+
+For the next frame callback, from API level 33, the Choreographer lets the developer chose among multiple timelines
+the presentation time depending on the deadline the developer can meet.
+
 https://developer.android.com/ndk/reference/group/choreographer#achoreographer_registerrefreshratecallback
 https://developer.android.com/about/versions/13/features#choreographer
 https://android.googlesource.com/platform/frameworks/native/+/master/include/android/choreographer.h

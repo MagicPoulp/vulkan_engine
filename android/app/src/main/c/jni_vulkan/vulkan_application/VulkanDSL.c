@@ -3435,6 +3435,7 @@ void setTextures(struct VulkanDSL *vulkanDSL ) {
     }
 }
 
+#if defined __ANDROID__
 double elapsedAbsolute = 0.0;
 void frameCallback(int64_t frameTimeNanos, void* data) {
 
@@ -3448,6 +3449,7 @@ void frameCallback(int64_t frameTimeNanos, void* data) {
     AChoreographer* choreographer = AChoreographer_getInstance();
     AChoreographer_postFrameCallback64(choreographer, &frameCallback, vulkanDSL);
 }
+#endif
 
 void vulkanDSL_main(struct VulkanDSL *vulkanDSL) {
 
@@ -3460,9 +3462,11 @@ void vulkanDSL_main(struct VulkanDSL *vulkanDSL) {
     demo_prepare(vulkanDSL);
 
     demo_draw(vulkanDSL, 0);
-
-    //AChoreographer* choreographer = AChoreographer_getInstance();
-    //AChoreographer_postFrameCallback64(choreographer, &frameCallback, vulkanDSL);
+#if defined __ANDROID__
+    AChoreographer* choreographer = AChoreographer_getInstance();
+    // available in API 29
+    AChoreographer_postFrameCallback64(choreographer, &frameCallback, vulkanDSL);
+#endif
 }
 
 void VulkanDSL__setSize(struct VulkanDSL *vulkanDSL, int32_t width, int32_t height) {

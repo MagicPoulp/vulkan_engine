@@ -30,13 +30,16 @@ class VulkanSurfaceView: SurfaceView, SurfaceHolder.Callback2 {
     }
 
     fun syncedRendererStart() {
-        if (!isSyncRendererCreated) {
-            return
-        }
-        if (!isSyncRendererStarted) {
-            isSyncRendererStarted = true
-            syncedRenderer.start()
-        }
+        // The Chroeographer next frame was moved to the C code
+        // we see a performance improvement, du to garbage collection and the bridge calls
+        // the code is commented to show the difference
+        //if (!isSyncRendererCreated) {
+        //    return
+        //}
+        //if (!isSyncRendererStarted) {
+        //    isSyncRendererStarted = true
+        //    syncedRenderer.start()
+        //}
     }
 
     fun syncedRendererStop() {
