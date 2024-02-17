@@ -3461,8 +3461,8 @@ void vulkanDSL_main(struct VulkanDSL *vulkanDSL) {
 
     demo_draw(vulkanDSL, 0);
 
-    AChoreographer* choreographer = AChoreographer_getInstance();
-    AChoreographer_postFrameCallback64(choreographer, &frameCallback, vulkanDSL);
+    //AChoreographer* choreographer = AChoreographer_getInstance();
+    //AChoreographer_postFrameCallback64(choreographer, &frameCallback, vulkanDSL);
 }
 
 void VulkanDSL__setSize(struct VulkanDSL *vulkanDSL, int32_t width, int32_t height) {
